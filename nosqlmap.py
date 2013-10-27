@@ -13,6 +13,7 @@
 #You should have received a copy of the GNU General Public License
 #along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+
 import sys
 import string
 import random
@@ -22,6 +23,9 @@ import urllib
 import pymongo
 from subprocess import call
 
+#Set a list so we can track whether options are set or not
+global optionSet
+optionSet = [False,False,False,False,False,False]
 
 
 def mainMenu():
@@ -41,10 +45,20 @@ def mainMenu():
 			options()
 
 		elif select == "2":
-			netAttacks(victim)
+			if optionSet[0] == True:
+				netAttacks(victim)
+			else:
+				raw_input("Target not set! Check options.  Press enter to continue...")
+				mainMenu()
+			
 		
 		elif select == "3":
-			webApps()
+			if (optionSet[0] == True) and (optionSet[2] == True):	
+				webApps()
+			
+			else:
+				raw_input("Options not set! Check Host and URI path.  Press enter to continue...")
+				mainMenu()
 
 		elif select == "4":
 			sys.exit()
@@ -60,17 +74,33 @@ def options():
 	global uri
 	global httpMethod
 	global myIP
+	global myPort
+	
+	
+	if optionSet[0] == False:
+		victim = "Not Set"
+	if optionSet[1] == False:
+		webPort = 80
+	if optionSet[2] == False:
+		uri = "Not Set"
+	if optionSet[3] == False:
+		httpMethod = "GET"
+	if optionSet[4] == False:
+		myIP = "Not Set"
+	if optionSet[5] == False:
+		myPort = "Not Set"
+	
 	select = True
 	
 	while select:	
 		print "\n\n"
 		print "Options"
-		print "1-Set target host/IP"
-		print "2-Set web app port"
-		print "3-Set URI Path"
+		print "1-Set target host/IP (Current: " + str(victim) + ")"
+		print "2-Set web app port (Current: " + str(webPort) + ")" 
+		print "3-Set URI Path (Current: " + str(uri) + ")"
 		print "4-Set HTTP Request Method (GET/POST)"
-		print "5-Set my local Mongo/Shell IP"
-		print "6-Set shell listener port"
+		print "5-Set my local Mongo/Shell IP (Current: " + str(myIP) + ")"
+		print "6-Set shell listener port (Current: " + str(myPort) + ")"
 		print "7-Back to main menu"
 
 		select = raw_input("Select an option: ")
@@ -78,16 +108,19 @@ def options():
 		if select == "1":
 			victim = raw_input("Enter the host IP/DNS name: ")
 			print "Target set to " + victim + "\n"
+			optionSet[0] = True
 			options()
 			
 		elif select == "2":
 			webPort = raw_input("Enter the HTTP port for web apps: ")
 			print "HTTP port set to " + webPort + "\n"
+			optionSet[1] = True
 			options()
 
 		elif select == "3":
 			uri = raw_input("Enter URI Path (Press enter for no URI): ")
 			print "URI Path set to " + uri + "\n"
+			optionSet[2] = True
 			options()
 
 		elif select == "4":
@@ -100,10 +133,12 @@ def options():
 			
 				if httpMethod == "1":
 					print "GET request set"
+					optionSet[3] = True
 					options()
 
 				elif httpMethod == "2":
 					print "POST request set"
+					optionSet[3] = True
 					options()
 				else:
 					print "Invalid selection"
@@ -111,11 +146,13 @@ def options():
 		elif select == "5":
 			myIP = raw_input("Enter host IP for my Mongo/Shells: ")
 			print "Shell IP set to " + myIP + "\n"
+			optionSet[4] = True
 			options()
 		
 		elif select == "6":
 			myPort = raw_input("Enter TCP listener for shells: ")
 			print "Shell TCP listener set to " + myPort + "\n"
+			optionSet[5] = True
 			options()
 			
 		elif select == "7":
@@ -136,9 +173,10 @@ def netAttacks(target):
 		
 		
 	mgtUrl = "http://" + target + ":28017"
-	mgtRespCode = urllib.urlopen(mgtUrl).getcode()
 	
-	try:	
+	
+	try:		
+		mgtRespCode = urllib.urlopen(mgtUrl).getcode()
 		if mgtRespCode == 200:
 			print "MongoDB web management open at " + mgtUrl + ".  Check this out!"
 	
@@ -184,9 +222,9 @@ def webApps():
 	print "Checking to see if site at " + str(victim) + ":" + str(webPort) + str(uri) + " is up..."
 	
 	appURL = "http://" + str(victim) + ":" + str(webPort) + str(uri)
-	appRespCode = urllib.urlopen(appURL).getcode()
 	
 	try:
+		appRespCode = urllib.urlopen(appURL).getcode()
 		if appRespCode == 200:
 			normLength = int(len(urllib.urlopen(appURL).read()))
 			
@@ -401,7 +439,7 @@ def stealDBs(myDB):
 			return()
 	
 	except:
-		print "Something went wrong.  Are you sure your MongoDB is running?" , sys.exc_info()
-		stealDBs(myDB)								
+		raw_input ("Something went wrong.  Are you sure your MongoDB is running and options are set? Press enter to return...")
+		mainMenu()								
 	
 mainMenu()
