@@ -32,7 +32,7 @@ def mainMenu():
 	select = True
 	while select:
 		os.system('clear')
-		print "NoSQLMap v0.08-by Russell Butturini(tcstool@gmail.com)"
+		print "NoSQLMap v0.08a-by Russell Butturini(tcstool@gmail.com)"
 		print "\n"
 		print "1-Set options (do this first)"
 		print "2-NoSQL DB Access Attacks"
@@ -261,7 +261,7 @@ def webApps():
 		randInjDelta = abs(injLen - randLength)
 		
 		if (randInjDelta >= 100) and (injLen != 0) :
-			print "Not equals injection respnose varied " + str(randInjDelta) + " bytes from random parameter! Injection works!"
+			print "Not equals injection response varied " + str(randInjDelta) + " bytes from random parameter! Injection works!"
 		
 		elif (randInjDelta > 0) and (randInjDelta < 100) and (injLen != 0) :
 			print "Response variance was only " + str(randInjDelta) + " bytes. Injection might have worked but difference is too small to be certain. "
@@ -269,24 +269,24 @@ def webApps():
 		elif (randInjDelta == 0):
 			print "Random string response size and not equals injection were the same. Injection did not work."
 		else:
-			print "Got zero length response. Injection did not work."
+			print "Injected response was smaller than random response.  Injection may have worked but requires verification."
 		
 		print "Testing Mongo <2.4 $where all Javascript string escape attack for all records...\n"
 		print " Injecting " + whereStrUri
 		whereStrLen = int(len(urllib.urlopen(whereStrUri).read()))
 		whereStrDelta = abs(whereStrLen - randLength)
 		
-		if whereStrDelta >= 100 and (whereStrLen != 0):
+		if (whereStrDelta >= 100) and (whereStrLen > 0):
 			print "Java $where escape varied " + str(whereStrDelta)  + " bytes from random parameter! Where injection works!"
 		
-		elif (whereStrDelta > 0) and (whereStrDelta < 100) and (whereStrLen != 0):
+		elif (whereStrDelta > 0) and (whereStrDelta < 100) and (whereStrLen - randLength > 0):
 			print " response variance was only " + str(whereStrDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
 		
 		elif (whereStrDelta == 0):
 			print "Random string response size and $where injection were the same. Injection did not work."
 		
 		else:
-			print "Got zero length response.  Injection did not work."
+			print "Injected response was smaller than random response.  Injection may have worked but requires verification."
 		
 		print "\n"
 		print "Testing Mongo <2.4 $where Javascript integer escape attack for all records...\n"
@@ -294,18 +294,20 @@ def webApps():
 		
 		whereIntLen = int(len(urllib.urlopen(whereIntUri).read()))
 		whereIntDelta = abs(whereIntLen - randLength)
+		#print "whereIntLen debug: " + str(whereIntLen)
+		#print "whereIntDelta debug: " + str(whereIntDelta)
 		
-		if (whereIntDelta >= 100) and (whereIntLen != 0):
+		if (whereIntDelta >= 100) and (whereIntLen - randLength > 0):
 			print "Java $where escape varied " + str(whereIntDelta)  + " bytes from random parameter! Where injection works!"
 		
-		elif (whereIntDelta > 0) and (whereIntDelta < 100) and (whereIntLen != 0):
+		elif (whereIntDelta > 0) and (whereIntDelta < 100) and (whereIntLen - randLength > 0):
 			print " response variance was only " + str(whereIntDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
 		
 		elif (whereIntDelta == 0):
 			print "Random string response size and $where injection were the same. Injection did not work."
 		
 		else:
-			print "Got zero length response.  Injection did not work."
+			print "Injected response was smaller than random response.  Injection may have worked but requires verification."
 		#Start a single record attack
 		
 		print "Testing Mongo <2.4 $where all Javascript string escape attack for one record...\n"
@@ -317,17 +319,17 @@ def webApps():
 		else:
 			whereOneStrDelta = 0
 			
-		if (whereOneStrDelta >= 100) and (whereOneStrLen != 0):
+		if (whereOneStrDelta >= 100) and (whereOneStrLen - randLength > 0):
 			print "Java $where escape varied " + str(whereOneStrDelta)  + " bytes from random parameter! Where injection works!"
 		
-		elif (whereOneStrDelta > 0) and (whereOneStrDelta < 100) and (whereOneStrLen != 0):
+		elif (whereOneStrDelta > 0) and (whereOneStrDelta < 100) and (whereOneStrLen - randLength > 0):
 			print " response variance was only " + str(whereOneStrDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
 		
 		elif (whereOneStrDelta == 0):
 			print "Random string response size and $where single injection were the same. Injection did not work."
 		
 		else:
-			print "Got zero length response.  Injection did not work."
+			print "Injected response was smaller than random response.  Injection may have worked but requires verification."
 		print "\n"
 		print "Testing Mongo <2.4 $where Javascript integer escape attack for one record...\n"
 		print " Injecting " + whereOneInt
@@ -339,17 +341,17 @@ def webApps():
 		else:
 			whereOneIntDelta = 0
 			
-		if (whereOneIntDelta >= 100) and (whereOneIntLen != 0):
+		if (whereOneIntDelta >= 100) and (whereOneIntLen - randLength > 0):
 			print "Java $where escape varied " + str(whereOneIntDelta)  + " bytes from random parameter! Where injection works!"
 		
-		elif (whereOneIntDelta > 0) and (whereOneIntDelta < 100) and (whereOneIntLen != 0):
+		elif (whereOneIntDelta > 0) and (whereOneIntDelta < 100) and (whereOneIntLen - randLength > 0):
 			print " response variance was only " + str(whereOneIntDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
 		
 		elif (whereOneIntDelta == 0):
 			print "Random string response size and $where single record injection were the same. Injection did not work."
 		
 		else:	
-			print "Got zero length response.  Injection did not work."								
+			print "Injected response was smaller than random response.  Injection may have worked but requires verification."								
 	
 	raw_input("Press enter to continue...")
 	return()
