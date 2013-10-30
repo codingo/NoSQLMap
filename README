@@ -1,4 +1,5 @@
-NoSQLMap v0.06
+NoSQLMap v0.09
+http://www.nosqlmap.net
 
 Introduction:
 NoSQLMap is an open source Python tool designed to audit for as well as automate injection attacks and exploit default configuration weaknesses in NoSQL databases as well as web applications using NoSQL in order to disclose data from the database.  It is named as a tribute to Bernardo Damele and Miroslav's Stampar's popular SQL injection tool SQLmap, and its concepts are based on and extensions of Ming Chow's excellent presentation at Defcon 21, "Abusing NoSQL Databases".  Presently the tool's exploits are focused around MongoDB, but additional support for other NoSQL based platforms such as CouchDB, Redis, and Cassandra are planned in future releases.
