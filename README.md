@@ -35,7 +35,8 @@ or
 ```
 python nosqlmap.py.
 ```
--NoSQLMap uses a menu based system for building attacks.  Upon starting NoSQLMap you are presented with with the main menu:
+
+NoSQLMap uses a menu based system for building attacks.  Upon starting NoSQLMap you are presented with with the main menu:
 
 ```
 1-Set options (do this first)
