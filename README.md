@@ -55,7 +55,9 @@ Explanation of options:
 4. Set HTTP Request Method (GET/POST)-Set the request method to a GET or POST; Presently only GET is implemented but working on implementing POST requests exported from Burp. 
 5. Set my local Mongo/Shell IP-Set this option if attacking a MongoDB instance directly to the IP of a target Mongo installation to clone victim databases to or open Meterpreter shells to.
 6. Set shell listener port-If opening Meterpreter shells, specify the port.
-7. Back to main menu.
+7. Load options file-Load a previously saved set of settings for 1-6.
+8. Save options file-Save settings 1-6 for future use.
+9. Back to main menu-Use this once the options are set to start your attacks.
 ```
 
-Once options are set head back to the main menu and select DB access attacks or web app attacks as appropriate.  Send emails to tcstool@gmail.com or find me on Twitter [@tcstoolHax0r](https://twitter.com/tcstoolHax0r) if you have any questions or suggestions.  
+Once options are set head back to the main menu and select DB access attacks or web app attacks as appropriate. The rest of the tool is "wizard" based and fairl self explanatory, but send emails to nosqlmap@gmail.com or find me on Twitter [@tcstoolHax0r](https://twitter.com/tcstoolHax0r) if you have any questions or suggestions.  
