@@ -1,8 +1,7 @@
 NoSQLMap 
 ========
 
-v0.1
-http://www.nosqlmap.net
+[http://www.nosqlmap.net](NoSQLMap) v0.1 
 
 Introduction
 ============
@@ -40,14 +39,13 @@ python nosqlmap.py.
 
 ALWAYS USE OPTION 1 FIRST TO SET THE PARAMETERS!
 
-Explanation of options
-1-Set target host/IP-The target web server (i.e. www.google.com) or MongoDB server you want to attack.
-2-Set web app port-TCP port for the web application if a web application is the target
-3-Set URI Path-The portion of the URI containing the page name and any parameters but NOT the host name (e.g. acct.php?acctid=102)
-4-Set HTTP Request Method (GET/POST)-Set the request method to a GET or POST; Presently only GET is implemented but working on implementing POST requests exported from Burp. 
-5-Set my local Mongo/Shell IP-Set this option if attacking a MongoDB instance directly to the IP of a target Mongo installation to clone victim databases to or open Meterpreter shells to.
-6-Set shell listener port-If opening Meterpreter shells, specify the port.
-7-Back to main menu
-```
+Explanation of options:
+#. Set target host/IP-The target web server (i.e. www.google.com) or MongoDB server you want to attack.
+#. Set web app port-TCP port for the web application if a web application is the target
+#. Set URI Path-The portion of the URI containing the page name and any parameters but NOT the host name (e.g. acct.php?acctid=102)
+#. Set HTTP Request Method (GET/POST)-Set the request method to a GET or POST; Presently only GET is implemented but working on implementing POST requests exported from Burp. 
+#. Set my local Mongo/Shell IP-Set this option if attacking a MongoDB instance directly to the IP of a target Mongo installation to clone victim databases to or open Meterpreter shells to.
+#. Set shell listener port-If opening Meterpreter shells, specify the port.
+#. Back to main menu
 
-Once options are set head back to the main menu and select DB access attacks or web app attacks as appropriate.  Send emails to tcstool@gmail.com or find me on Twitter @tcstoolHax0r if you have any questions or suggestions.  
+Once options are set head back to the main menu and select DB access attacks or web app attacks as appropriate.  Send emails to tcstool@gmail.com or find me on Twitter [https://twitter.com/tcstoolHax0r](@tcstoolHax0r) if you have any questions or suggestions.  
