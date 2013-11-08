@@ -1,14 +1,14 @@
 NoSQLMap 
 ========
 
-[http://www.nosqlmap.net](NoSQLMap) v0.1 
+[NoSQLMap](http://www.nosqlmap.net) v0.1 
 
 Introduction
 ============
 
 NoSQLMap is an open source Python tool designed to audit for as well as automate injection attacks and exploit default configuration weaknesses in NoSQL databases as well as web applications using NoSQL in order to disclose data from the database.  
 
-It is named as a tribute to Bernardo Damele and Miroslav's Stampar's popular SQL injection tool [http://sqlmap.org](sqlmap), and its concepts are based on and extensions of Ming Chow's excellent presentation at Defcon 21, "Abusing NoSQL Databases". Presently the tool's exploits are focused around MongoDB, but additional support for other NoSQL based platforms such as CouchDB, Redis, and Cassandra are planned in future releases.
+It is named as a tribute to Bernardo Damele and Miroslav's Stampar's popular SQL injection tool [sqlmap](http://sqlmap.org), and its concepts are based on and extensions of Ming Chow's excellent presentation at Defcon 21, "Abusing NoSQL Databases". Presently the tool's exploits are focused around MongoDB, but additional support for other NoSQL based platforms such as CouchDB, Redis, and Cassandra are planned in future releases.
 
 Requirements 
 ============
@@ -56,4 +56,4 @@ Explanation of options:
 7. Back to main menu.
 ```
 
-Once options are set head back to the main menu and select DB access attacks or web app attacks as appropriate.  Send emails to tcstool@gmail.com or find me on Twitter [https://twitter.com/tcstoolHax0r](@tcstoolHax0r) if you have any questions or suggestions.  
+Once options are set head back to the main menu and select DB access attacks or web app attacks as appropriate.  Send emails to tcstool@gmail.com or find me on Twitter [@tcstoolHax0r](https://twitter.com/tcstoolHax0r) if you have any questions or suggestions.  
