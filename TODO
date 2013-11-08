@@ -1,0 +1,14 @@
+'''TODO: 
+A list:
+- create options.py with options to be set. Options stored in a class
+- separate requests, should only give:
+    1. args (could be query path in a get, parameters in a POST)
+    2. options (where we find method, uri, port etc)
+    3. header (in future we will implement injection in a header)
+- separate metasploit module
+- create exceptions.py
+
+B list:
+- accept manipulation of parameters(ex: we want to base64encode the request before sending it)
+- ???
+'''
