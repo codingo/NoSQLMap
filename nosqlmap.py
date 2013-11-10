@@ -39,8 +39,8 @@ if TEST:
 
 
 #Set a list so we can track whether options are set or not to avoid resetting them in subsequent cals to the options menu.
-global optionSet
-optionSet = [False,False,False,False,False,False]
+# global optionSet
+# optionSet = [False,False,False,False,False,False]
     # global victim
     # global webPort
     # global uri

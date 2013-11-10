@@ -50,7 +50,7 @@ class Options:
             m+= "5-Set my local Mongo/Shell IP (Current: " + str(self.myIP) + ")"+"\n"
             m+= "6-Set shell listener port (Current: " + str(self.myPort) + ")"+"\n"
             m+= "7-Load options file"+"\n"
-            # m+= "8-Save options file"
+            m+= "8-Save options file"+"\n"
             m+= "9-Back to main menu"
             Logger.default(m)
 
@@ -95,6 +95,24 @@ class Options:
                 except FileReadingException:
                     Logger.error("Error while parsing the file, check it")
 
+            elif select == "8":
+                gotit=False
+                while not gotit:
+                    savePath = raw_input("Enter file name to save: ")
+                    try:
+                        with open(savePath):
+                            ans=raw_input("File already exists, overwrite? ")
+                            if ans=="y" or ans == "Y":
+                                gotit=True
+                    except IOError:
+                        gotit=True
+                try:
+                    fo = open(savePath, "wb")
+                    fo.write(str(self.victim) + "," + str(self.webPort) + "," + str(self.uri) + "," + str(self.httpMethod) + "," + str(self.myIP) + "," + str(self.myPort))
+                    fo.close()
+                    print "Options file saved!"
+                except IOError:
+                    print "Couldn't save options file."
             elif select == "9":
                 return
 
