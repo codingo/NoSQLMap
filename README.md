@@ -60,4 +60,11 @@ Explanation of options:
 9. Back to main menu-Use this once the options are set to start your attacks.
 ```
 
-Once options are set head back to the main menu and select DB access attacks or web app attacks as appropriate. The rest of the tool is "wizard" based and fairl self explanatory, but send emails to nosqlmap@gmail.com or find me on Twitter [@tcstoolHax0r](https://twitter.com/tcstoolHax0r) if you have any questions or suggestions.  
+Once options are set head back to the main menu and select DB access attacks or web app attacks as appropriate. The rest of the tool is "wizard" based and fairl self explanatory, but send emails to nosqlmap@gmail.com or find me on Twitter [@tcstoolHax0r](https://twitter.com/tcstoolHax0r) if you have any questions or suggestions. 
+
+Video
+=====
+
+NoSQLMap MongoDB Management Attack Demo.
+
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=xSFi-jxOBwM" target="_blank"><img src="http://img.youtube.com/vi/xSFi-jxOBwM/0.jpg" alt="NoSQLMap MongoDB Management Attack Demo" width="240" height="180" border="10" /></a> 
