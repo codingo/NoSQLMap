@@ -18,7 +18,7 @@ Varies based on features used:
 - Python with PyMongo, 
 - httplib2, 
 - and urllib available.
-- A local, default MongoDB instance for cloning databases to.  Check ["here"](http://docs.mongodb.org/manual/installation/) for installation instructions.
+- A local, default MongoDB instance for cloning databases to.  Check [here](http://docs.mongodb.org/manual/installation/) for installation instructions.
 
 There are some various other libraries required that a normal Python installation should have readily available. Your milage may vary, check the script.  
 
