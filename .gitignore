@@ -213,3 +213,8 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
+
+#AxelrodGunnarson Configuration
+config
+
+nosqlmap.py
