@@ -216,3 +216,5 @@ pip-log.txt
 
 #AxelrodGunnarson Configuration
 config
+
+nosqlmap.py
