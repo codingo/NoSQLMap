@@ -4,8 +4,9 @@
 class Logger :
     ''' Handles logging of debugging and error messages. '''
 
-    DEBUG = 5
-    INFO  = 4
+    DEBUG = 6
+    INFO  = 5
+    SUCCESS = 4
     WARN  = 3
     ERROR = 2
     FATAL = 1
@@ -23,6 +24,11 @@ class Logger :
     @classmethod
     def isLevel( cls, level ) :
         return cls._level >= level
+
+    @classmethod
+    def success( cls, message ) :
+        if cls.isLevel( Logger.SUCCESS ) :
+            print Logger.COLDONE+"SUCCESS:  " + message + Logger.COLENDC
 
     @classmethod
     def debug( cls, message ) :

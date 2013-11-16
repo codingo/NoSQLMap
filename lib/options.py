@@ -18,6 +18,28 @@ class Options:
         self.httpMethod=-1
         self.myIP=""
         self.myPort=-1
+        self.mongoUn=""
+        self.mongoPw=""
+        self.mongoPort=27017
+        self.mongoWebPort=28017
+        #MONGOwebport changes are not implemented, we first have to look at what is useful to
+        
+    def setOptionsRemoteMongo(self):
+        m="Enter port, return for default port (27017)"
+        tmpPort = Logger.logRequest(m)
+        if tmpPort: self.mongoPort = tmpPort
+        m= "Does the database server need credentials? "
+        srvNeedCreds=Logger.logRequest(m)
+        if not srvNeedCreds or srvNeedCreds == "y" or srvNeedCreds == "Y":
+            #ask for username and password
+            self.mongoUn = Logger.logRequest("Enter server username: ")
+            self.mongoPw = Logger.logRequest("Enter server password: ")
+            ack="Username set to %s password to %s" %(self.mongoUn, self.mongoPw)
+            Logger.info(ack)
+        elif srvNeedCreds == "n" or srvNeedCreds == "N":
+            return
+        else:
+            Logger.error("Invalid choice: y/Y for entering credentials, n/N for no credentials")
 
     def setInteractiveOptions(self):
         def setSingleInteractiveOption(checker, message, ack):
