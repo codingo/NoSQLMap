@@ -12,12 +12,12 @@ class Options:
     '''options that will be used throughout the program
     '''
     def __init__(self):
-        self.victim=""
+        self.victim="Not Set"
         self.webPort=80
-        self.uri=""
-        self.httpMethod=-1
-        self.myIP=""
-        self.myPort=-1
+        self.uri="Not Set"
+        self.httpMethod= "Not Set"
+        self.myIP="Not Set"
+        self.myPort="Not Set"
 
     def setInteractiveOptions(self):
         def setSingleInteractiveOption(checker, message, ack):

