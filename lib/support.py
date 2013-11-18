@@ -41,7 +41,7 @@ def checkVictim(p):
 def checkPath(path):
     '''character allowed in path are a finite set + urlencoding'''
     #range A–Z, a–z, 0–9, -, ., _, ~, !, $, &, ', (, ), *, +, ,, ;, =, :, @, %+twohexdigits
-    allowedChars=list(string.letters) + list(string.digits)+['/','-','.','_','~','!','$','&',"'",'(',')','*','+',',',';','=',':','@','%']
+    allowedChars=list(string.letters) + list(string.digits)+['/','-','.','_','~','!','$','&',"'",'(',')','*','+',',',';','=',':','@','%','?']
     if any(c not in allowedChars for c in path):
         return False
     for pos in [i for i, ltr in enumerate(path) if ltr == '%']:
