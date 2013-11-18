@@ -7,3 +7,6 @@ class MongoConnectionError(Exception):
 
 class MinParametersViolation(Exception):
     pass
+
+class ConnectionError(Exception):
+    pass

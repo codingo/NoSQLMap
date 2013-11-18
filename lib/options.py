@@ -22,6 +22,7 @@ class Options:
         self.mongoPw=""
         self.mongoPort=27017
         self.mongoWebPort=28017
+        self.payload={} #will be used in POST
         #MONGOwebport changes are not implemented, we first have to look at what is useful to
         
     def setOptionsRemoteMongo(self):
@@ -82,20 +83,20 @@ class Options:
                 self.victim = setSingleInteractiveOption(support.checkVictim,const_definition.victimIntMessage, const_definition.victimAckMessage)
 
             elif select == "2":
-                self.webPort = setSingleInteractiveOption(support.checkPort,const_definition.portIntMessage, const_definition.portAckMessage)
+                self.webPort = int(setSingleInteractiveOption(support.checkPort,const_definition.portIntMessage, const_definition.portAckMessage))
 
             elif select == "3":
                 self.uri = setSingleInteractiveOption(support.checkPath,const_definition.uriIntMessage, const_definition.uriAckMessage)
 
             #NOT IMPLEMENTED YET FOR USE
             elif select == "4":
-                    self.httpMethod = setSingleInteractiveOption(support.checkMethod, const_definition.methodIntMessage, const_definition.methodAckMessage)
+                    self.httpMethod = int(setSingleInteractiveOption(support.checkMethod, const_definition.methodIntMessage, const_definition.methodAckMessage))
 
             elif select == "5":
                     self.myIP = setSingleInteractiveOption(support.checkIP, const_definition.myIPIntMessage, const_definition.myIPAckMessage)
 
             elif select == "6":
-                    self.myPort = setSingleInteractiveOption(support.checkPort, const_definition.myPortIntMessage, const_definition.myPortAckMessage)
+                    self.myPort = int(setSingleInteractiveOption(support.checkPort, const_definition.myPortIntMessage, const_definition.myPortAckMessage))
 
             elif select == "7":
                 loadPath = setSingleInteractiveOption(support.checkFilePath, const_definition.optionFileIntMessage, const_definition.optionFileAckMessage)
@@ -107,11 +108,11 @@ class Options:
                     if len(optList) != 6:
                         raise FileReadingException
                     self.victim = setSingleFileOption(support.checkVictim,optList[0], const_definition.victimAckMessage)
-                    self.webPort = setSingleFileOption(support.checkPort,optList[1], const_definition.portAckMessage)
+                    self.webPort = int(setSingleFileOption(support.checkPort,optList[1], const_definition.portAckMessage))
                     self.uri = setSingleFileOption(support.checkPath,optList[2], const_definition.uriAckMessage)
-                    self.httpMethod = setSingleFileOption(support.checkMethod,optList[3], const_definition.methodAckMessage)
+                    self.httpMethod = int(setSingleFileOption(support.checkMethod,optList[3], const_definition.methodAckMessage))
                     self.myIP = setSingleFileOption(support.checkIP,optList[4], const_definition.myIPAckMessage)
-                    self.myPort = setSingleFileOption(support.checkPort,optList[5], const_definition.myPortAckMessage)
+                    self.myPort = int(setSingleFileOption(support.checkPort,optList[5], const_definition.myPortAckMessage))
                 except IOError:
                     Logger.error("Couldn't load options file")
                 except FileReadingException:
