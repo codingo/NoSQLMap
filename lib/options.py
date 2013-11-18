@@ -13,12 +13,12 @@ class Options:
     '''
     def __init__(self):
         #change it, maybe put "" and -1 as default then when printing if -1 or void print "Not Set"
-        self.victim="Not Set"
+        self.victim=""
         self.webPort=80
-        self.uri="Not Set"
-        self.httpMethod= "Not Set"
-        self.myIP="Not Set"
-        self.myPort="Not Set"
+        self.uri=""
+        self.httpMethod= -1
+        self.myIP=""
+        self.myPort=-1
 
     def setInteractiveOptions(self):
         def setSingleInteractiveOption(checker, message, ack):
@@ -44,12 +44,18 @@ class Options:
         while select:
             m="\n\n"
             m+= "Options"+"\n"
-            m+= "1-Set target host/IP (Current: " + str(self.victim) + ")"+"\n"
-            m+= "2-Set web app port (Current: " + str(self.webPort) + ")"+"\n"
-            m+= "3-Set App Path (Current: " + str(self.uri) + ")"+"\n"
-            m+= "4-Set HTTP Request Method (1 for GET/ 2 for POST) "+"(Current: "+str(self.httpMethod)+")"+"\n"
-            m+= "5-Set my local Mongo/Shell IP (Current: " + str(self.myIP) + ")"+"\n"
-            m+= "6-Set shell listener port (Current: " + str(self.myPort) + ")"+"\n"
+            vicm = self.victim if self.victim else "Not Set"
+            m+= "1-Set target host/IP (Current: %s)\n" %(vicm)
+            webPortm = self.webPort if self.webPort!=-1 else "Not Set"
+            m+= "2-Set web app port (Current: %s)\n" %(webPortm)
+            urim = self.uri if self.uri else "Not Set"
+            m+= "3-Set App Path (Current: %s)\n" %(urim)
+            methodm = self.httpMethod if self.httpMethod!=-1 else "Not Set"
+            m+= "4-Set HTTP Request Method (1 for GET/ 2 for POST) (Current: %s)\n" %(methodm)
+            myIpm = self.myIP if self.myIP else "Not Set"
+            m+= "5-Set my local Mongo/Shell IP (Current: %s)\n" %(myIpm)
+            myPortm = self.myPort if self.myPort!= -1 else "Not Set"
+            m+= "6-Set shell listener port (Current: %s)\n" %(myPortm)
             m+= "7-Load options file"+"\n"
             m+= "8-Save options file"+"\n"
             m+= "9-Back to main menu"
