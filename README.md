@@ -70,4 +70,7 @@ NoSQLMap MongoDB Management Attack Demo.
 
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=xSFi-jxOBwM" target="_blank"><img src="http://img.youtube.com/vi/xSFi-jxOBwM/0.jpg" alt="NoSQLMap MongoDB Management Attack Demo" width="240" height="180" border="10" /></a> 
 
+Contribute
+==========
 
+If you'd like to contribute, please create [new issue](https://github.com/tcstool/NoSQLMap/issues) or [pull request](https://github.com/tcstool/NoSQLMap/pulls).
