@@ -46,7 +46,7 @@ class Options:
             m+= "1-Set target host/IP (Current: " + str(self.victim) + ")"+"\n"
             m+= "2-Set web app port (Current: " + str(self.webPort) + ")"+"\n"
             m+= "3-Set App Path (Current: " + str(self.uri) + ")"+"\n"
-            m+= "4-Set HTTP Request Method -1 for GET/ 2 for POST- "+"(Current: "+str(self.httpMethod)+")"+"\n"
+            m+= "4-Set HTTP Request Method (1 for GET/ 2 for POST) "+"(Current: "+str(self.httpMethod)+")"+"\n"
             m+= "5-Set my local Mongo/Shell IP (Current: " + str(self.myIP) + ")"+"\n"
             m+= "6-Set shell listener port (Current: " + str(self.myPort) + ")"+"\n"
             m+= "7-Load options file"+"\n"
