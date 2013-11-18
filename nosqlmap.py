@@ -186,7 +186,7 @@ def webApps():
     intTbAttack = False
 
     victim = options.victim
-    webPort = options.port
+    webPort = options.webPort
     uri = options.uri
 
     #Verify app is working.
