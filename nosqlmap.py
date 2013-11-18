@@ -308,13 +308,6 @@ def webApps():
     else:
         print "Injected response was smaller than random response.  Injection may have worked but requires verification."
         possAddrs.append(whereStrUri)
-
-
-
-
-
-
-
     print "\n"
     print "Testing Mongo <2.4 $where Javascript integer escape attack for all records...\n"
     print "Injecting " + whereIntUri
@@ -363,12 +356,6 @@ def webApps():
     else:
         print "Injected response was smaller than random response.  Injection may have worked but requires verification."
         possAddrs.append(whereOneStr)
-
-
-
-
-
-
     print "\n"
     print "Testing Mongo <2.4 $where Javascript integer escape attack for one record...\n"
     print " Injecting " + whereOneInt
@@ -420,13 +407,6 @@ def webApps():
     else:
         print "Injected response was smaller than random response.  Injection may have worked but requires verification."
         possAddrs.append(strThisNeqUri)
-
-
-
-
-
-
-    print "\n"
     print "Testing Mongo this not equals integer escape attack for all records..."
     print " Injecting " + intThisNeqUri
 
