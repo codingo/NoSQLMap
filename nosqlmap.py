@@ -200,31 +200,33 @@ def webApps():
 
     
     victim = options.victim
-    webPort = options.port
+    webPort = options.webPort
     uri = options.uri
 
     #Verify app is working.
 #    print "Checking to see if site at " + str(victim) + ":" + str(webPort) + str(uri) + " is up..."
 
     
-    appURL = "http://%s:%s%s"%(victim, webPort, uri)
+#    appURL = "http://%s:%s%s"%(victim, webPort, uri)
+
+    conn = HTTPconnections.ConnectionManager(options)
 
     try:
 
-        res = HTTPconnections.testConnection(options)
+        res = conn.testConnection()
         appRespCode=res.status_code
         
         #NOTE: it's better to delay timing test to the second request, because of cache servers etc
         #appRespCode = urllib.urlopen(appURL).getcode()
         if appRespCode == 200:
-            normLength = int(len(urllib.urlopen(appURL).read()))
+         #   normLength = int(len(urllib.urlopen(appURL).read()))
         #    timeReq = urllib.urlopen(appURL)
         #    start = time.time()
         #    page = timeReq.read()
         #    end = time.time()
         #    timeReq.close()
         #    timeBase = round((end - start), 3)
-            appUrl=res.url
+#            appUrl=res.url
             m="App is up! Starting injection test.\n"
             Logger.success(m)
         else:
@@ -241,47 +243,47 @@ def webApps():
 
 
 
-    injectSize = raw_input("Baseline test-Enter random string size: ")
-    injectString = injStrings.randInjString(int(injectSize))
-    print "Using " + injectString + " for injection testing.\n"
+#    injectSize = raw_input("Baseline test-Enter random string size: ")
+#    injectString = injStrings.randInjString(int(injectSize))
+#    print "Using " + injectString + " for injection testing.\n"
 
     #Build a random string and insert; if the app handles input correctly, a random string and injected code should be treated the same.
     #Add error handling for Non-200 HTTP response codes if random strings freaks out the app.
-    randomUri = buildUri(appURL,injectString)
-    print "Checking random injected parameter HTTP response size using " + randomUri +"...\n"
-    randLength = int(len(urllib.urlopen(randomUri).read()))
-    print "Got response length of " + str(randLength) + "."
+#    randomUri = buildUri(appURL,injectString)
+#    print "Checking random injected parameter HTTP response size using " + randomUri +"...\n"
+#    randLength = int(len(urllib.urlopen(randomUri).read()))
+#    print "Got response length of " + str(randLength) + "."
 
-    randNormDelta = abs(normLength - randLength)
+#    randNormDelta = abs(normLength - randLength)
 
-    if randNormDelta == 0:
-        print "No change in response size injecting a random parameter..\n"
-    else:
-        print "HTTP response varied " + str(randNormDelta) + " bytes with random parameter value!\n"
-
-
+#    if randNormDelta == 0:
+#        print "No change in response size injecting a random parameter..\n"
+#    else:
+#        print "HTTP response varied " + str(randNormDelta) + " bytes with random parameter value!\n"
 
 
 
-    print "Testing Mongo PHP not equals associative array injection using " + neqUri +"..."
-    injLen = int(len(urllib.urlopen(neqUri).read()))
-    print "Got response length of " + str(injLen) + "."
 
-    randInjDelta = abs(injLen - randLength)
 
-    if (randInjDelta >= 100) and (injLen != 0) :
-        print "Not equals injection response varied " + str(randInjDelta) + " bytes from random parameter value! Injection works!"
-        vulnAddrs.append(neqUri)
-
-    elif (randInjDelta > 0) and (randInjDelta < 100) and (injLen != 0) :
-        print "Response variance was only " + str(randInjDelta) + " bytes. Injection might have worked but difference is too small to be certain. "
-        possAddrs.append(neqUri)
-
-    elif (randInjDelta == 0):
-        print "Random string response size and not equals injection were the same. Injection did not work."
-    else:
-        print "Injected response was smaller than random response.  Injection may have worked but requires verification."
-        possAddrs.append(neqUri)
+#    print "Testing Mongo PHP not equals associative array injection using " + neqUri +"..."
+#    injLen = int(len(urllib.urlopen(neqUri).read()))
+#    print "Got response length of " + str(injLen) + "."
+#
+#    randInjDelta = abs(injLen - randLength)
+#
+#    if (randInjDelta >= 100) and (injLen != 0) :
+#        print "Not equals injection response varied " + str(randInjDelta) + " bytes from random parameter value! Injection works!"
+#        vulnAddrs.append(neqUri)
+#
+#    elif (randInjDelta > 0) and (randInjDelta < 100) and (injLen != 0) :
+#        print "Response variance was only " + str(randInjDelta) + " bytes. Injection might have worked but difference is too small to be certain. "
+#        possAddrs.append(neqUri)
+#
+#    elif (randInjDelta == 0):
+#        print "Random string response size and not equals injection were the same. Injection did not work."
+#    else:
+#        print "Injected response was smaller than random response.  Injection may have worked but requires verification."
+#        possAddrs.append(neqUri)
 
 
 
@@ -547,6 +549,9 @@ def webApps():
 #        chars = string.ascii_letters + string.digits
 #        return ''.join(random.choice(chars) for x in range(size)) + '@' + ''.join(random.choice(chars) for x in range(size)) + '.com'
 
+
+
+#TODO: THIS FUNCTION NEEDS SOME HEAVY REFACTORING!!
 
 def buildUri(origUri, randValue):
     paramName = []
