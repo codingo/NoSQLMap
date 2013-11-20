@@ -35,7 +35,9 @@ class InjectionManager:
 
 
     def mongoPHPNotEqualAssociativeArray():
-        print "Testing Mongo PHP not equals associative array injection using " + neqUri +"..."
+        Logger.info("Testing Mongo PHP not equals associative array injection")
+        m="using %s for injection testing" %(neqUri)
+        Logger.info(m)
         injLen = int(len(urllib.urlopen(neqUri).read()))
         print "Got response length of " + str(injLen) + "."
 

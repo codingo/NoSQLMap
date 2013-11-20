@@ -1,6 +1,5 @@
 import string
 
-
 formatAvailables=[1,2,3,4]
 def randInjString(size, formatStringString):
     if formatString == 1:
