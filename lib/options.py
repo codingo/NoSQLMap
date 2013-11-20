@@ -36,7 +36,8 @@ class Options:
             '''Check an option, raise a FileReadingException if option does not comply with instructions'''
             item=item.strip()
             if not checker(item):
-                Logger.error("Invalid parameter: "+item)
+                what = ack.split("set")[0].strip()
+                Logger.error("Invalid parameter: "+item+"for element "+what)
                 raise FileReadingException
             Logger.info(ack+item)
             return item
