@@ -213,12 +213,11 @@ def webApps():
 
     try:
 
-        res = conn.testConnection()
-        appRespCode=res.status_code
+        res,length = conn.testConnection()
         
         #NOTE: it's better to delay timing test to the second request, because of cache servers etc
         #appRespCode = urllib.urlopen(appURL).getcode()
-        if appRespCode == 200:
+        if res == 200:
          #   normLength = int(len(urllib.urlopen(appURL).read()))
         #    timeReq = urllib.urlopen(appURL)
         #    start = time.time()
@@ -237,6 +236,9 @@ def webApps():
         Logger.error("Looks like the server didn't respond.  Check your options.")
         return
     #if appUp == True:
+
+    '''here we should have the option to run all tests or one at a time'''
+    '''create a InjectionManager obj using conn as parameter, and then run all tests
 
 
 #DIVISION OF INJECTIONS ACCORDING TO THEIR TYPE    

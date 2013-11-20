@@ -1,6 +1,6 @@
 import Logger
 import injStrings
-
+import copy
 
 class InjectionManager:
     AvailableTests={
@@ -10,28 +10,40 @@ class InjectionManager:
             }
 
 
-    def BaselineTestEnterRandomString():
+    def __init__(self, connection, standard_length):
+        self.conn = connection
+        self.dictOfParams = connection.payload
+        self.standardLength = standard_length
+
+
+    def BaselineTestEnterRandomString(self):
         Logger.info("Testing BaselineTestEnterRandomString")
-        for injectSize in xrange(5,31,5):
-            for form in injStrings.formatAvailables:
-                injectString = injStrings.randInjString(injectSize, form)
-                m="Using  %s for injection testing" %(injectString)
-                Logger.info(m)
-                #Build a random string and insert; if the app handles input correctly, a random string and injected code should be treated the same.
-                #Add error handling for Non-200 HTTP response codes if random strings freaks out the app.
+        for params in self.dictOfParams:
+            tmpDic = copy.deepcopy(self.dictOfParams)
+            for injectSize in xrange(5,31,7):
+                for form in injStrings.formatAvailables:
+                    injectString = injStrings.randInjString(injectSize, form)
+                    m="Using  %s for injection testing" %(injectString)
+                    Logger.info(m)
+                    #Build a random string and insert; if the app handles input correctly, a random string and injected code should be treated the same.
+                    #Add error handling for Non-200 HTTP response codes if random strings freaks out the app.
+                    
+                    tmpDic[params]=injectString
 
-
-                #CANT WORK RIGHT NOW
-                randomUri = buildUri(appURL,injectString)
-                randLength = int(len(urllib.urlopen(randomUri).read()))
-                print "Got response length of " + str(randLength) + "."
-                
-                randNormDelta = abs(normLength - randLength)
-                
-                if randNormDelta == 0:
-                    print "No change in response size injecting a random parameter..\n"
-                else:
-                    print "HTTP response varied " + str(randNormDelta) + " bytes with random parameter value!\n"
+                    #CANT WORK RIGHT NOW
+                    randomUri = buildUri(appURL,tmpDic)
+                    
+#TODO: get length from asking to connection
+        
+                    randLength = int(len(urllib.urlopen(randomUri).read()))
+                    print "Got response length of " + str(randLength) + "."
+                    
+                    randNormDelta = abs(normLength - randLength)
+                    
+                    if randNormDelta == 0:
+                        print "No change in response size injecting a random parameter..\n"
+                    else:
+                        print "HTTP response varied " + str(randNormDelta) + " bytes with random parameter value!\n"
 
 
     def mongoPHPNotEqualAssociativeArray():

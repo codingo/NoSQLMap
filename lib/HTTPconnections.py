@@ -1,4 +1,5 @@
 import urllib
+import urllib2
 import urlparse
 from exceptions import ConnectionError
 """update: library should use urllib and urlparse
@@ -13,24 +14,30 @@ class ConnectionManager:
         params = options.uri.split("?")
         self.baseUrl = "http://%s:%s%s"%(options.victim, options.webPort, params[0])
         self.method = options.httpMethod
-        try:
-            self.payload = params[1]
-        except ValueError:
-            self.payload=options.payload
+        try: #GET
+            param = urlparse.parse_qs(params[1])
+        except ValueError: #POST
+            param=urlparse.parse_qs(options.payload)
+        self.payload= param
+
 
     def buildUri(self):
+        tmpPay = urllib.urlencode(self.payload)
         if self.method==1:
-            return self.baseUrl+self.payload
+            return (self.baseUrl+"?"+tmpPay,)
         else:
-            return self.baseUrl
+            return (self.baseUrl, tmpPay)
 
     def testConnection(self):
         try:
-            res = self.method(self.appUrl, self.payload)
-            self.appUrl=res.url
-        except requests.exceptions.ConnectionError:
+            tup=self.buildUri()
+            if self.method==1:
+                res = urllib2.urlopen(tup[0]).read()
+            else:
+                res = urllib2.urlopen(tup[0], data=tup[1]).read()
+        except urllib2.URLError:
             raise ConnectionError
-        return res
+        return res.getcode(),len(res)
 
     def checkLengthHTTPResponse(options):
         '''do connection and return its length'''
