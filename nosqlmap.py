@@ -33,8 +33,9 @@ def mainMenu():
 	select = True
 	while select:
 		os.system('clear')
-		label = subprocess.check_output(["git","describe","--always"])
-		print "NoSQLMap-v0.15 build " + label + "Support: nosqlmap@gmail.com"
+		#label = subprocess.check_output(["git","describe","--always"])
+		print "NoSQLMap-v0.15"
+		print "nosqlmap@gmail.com"
 		print "\n"
 		print "1-Set options (do this first)"
 		print "2-NoSQL DB Access Attacks"
