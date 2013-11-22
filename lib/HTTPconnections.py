@@ -21,16 +21,15 @@ class ConnectionManager:
         self.payload= param
 
 
-    def buildUri(self):
-        tmpPay = urllib.urlencode(self.payload)
+    def buildUri(self, dictOfParams):
+        tmpPay = urllib.urlencode(dictOfParams)
         if self.method==1:
             return (self.baseUrl+"?"+tmpPay,)
         else:
             return (self.baseUrl, tmpPay)
 
-    def testConnection(self):
+    def doConnection(self, tup):
         try:
-            tup=self.buildUri()
             if self.method==1:
                 res = urllib2.urlopen(tup[0]).read()
             else:
@@ -39,6 +38,3 @@ class ConnectionManager:
             raise ConnectionError
         return res.getcode(),len(res)
 
-    def checkLengthHTTPResponse(options):
-        '''do connection and return its length'''
-        pass

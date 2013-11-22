@@ -14,14 +14,15 @@ class InjectionManager:
         self.conn = connection
         self.dictOfParams = connection.payload
         self.standardLength = standard_length
-
+        self.possibleVuln=[]
+        self.sureVuln=[]
 
     def BaselineTestEnterRandomString(self):
         Logger.info("Testing BaselineTestEnterRandomString")
         for params in self.dictOfParams:
-            tmpDic = copy.deepcopy(self.dictOfParams)
             for injectSize in xrange(5,31,7):
                 for form in injStrings.formatAvailables:
+                    tmpDic = copy.deepcopy(self.dictOfParams)
                     injectString = injStrings.randInjString(injectSize, form)
                     m="Using  %s for injection testing" %(injectString)
                     Logger.info(m)
@@ -29,27 +30,31 @@ class InjectionManager:
                     #Add error handling for Non-200 HTTP response codes if random strings freaks out the app.
                     
                     tmpDic[params]=injectString
+                    connParams = self.conn.buildUri(tmpDic)
+                    code, length = self.conn.doConnection(connParams)
+                    if code != 200: #if no good answer pass to successive test
+                        continue
+                    m="Got response length of %s" %(length)
+                    Logger.info(m)
 
-                    #CANT WORK RIGHT NOW
-                    randomUri = buildUri(appURL,tmpDic)
-                    
-#TODO: get length from asking to connection
-        
-                    randLength = int(len(urllib.urlopen(randomUri).read()))
-                    print "Got response length of " + str(randLength) + "."
-                    
                     randNormDelta = abs(normLength - randLength)
                     
                     if randNormDelta == 0:
-                        print "No change in response size injecting a random parameter..\n"
+                        Logger.warn("No change in response size injecting a random parameter..")
                     else:
-                        print "HTTP response varied " + str(randNormDelta) + " bytes with random parameter value!\n"
+                        m="HTTP response varied %s bytes with random parameter value!" %(randNormDelta)
+                        Logger.success(m)
+                        sureVuln.append(connParams)
 
 
-    def mongoPHPNotEqualAssociativeArray():
+    def mongoPHPNotEqualAssociativeArray(self):
         Logger.info("Testing Mongo PHP not equals associative array injection")
-        m="using %s for injection testing" %(neqUri)
+        
+            injectString = injStrings.createNeqString()
+
+            m="using %s for injection testing" %(injectString)
         Logger.info(m)
+
         injLen = int(len(urllib.urlopen(neqUri).read()))
         print "Got response length of " + str(injLen) + "."
 
