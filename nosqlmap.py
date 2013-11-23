@@ -153,8 +153,6 @@ def netAttacks():
 			        menuItem += 1
 			print "\n"
 			
-
-			
 		else:
 			print "REST interface not enabled."
 			
@@ -162,10 +160,16 @@ def netAttacks():
 	print "Got HTTP response code " + str(mgtRespCode) + " from web management."
 
     if mgtOpen == True:
-	#Ths is compiling server info?????
 	print "Server Info:"
-	serverInfo = conn.server_info()
-	print serverInfo
+	mongoVer = conn.server_info()['version']
+	print "MongoDB Version: " + mongoVer
+	mongoDebug = conn.server_info()['debug']
+	print "Debugs enabled : " + str(mongoDebug)
+	mongoPlatform = conn.server_info()['bits']
+	print "Platform: " + str(mongoPlatform) + " bit"
+	
+	
+	#print serverInfo
 
 	print "\n"
 
@@ -642,6 +646,11 @@ def buildUri(origUri, randValue):
     whereOneInt = whereOneInt[:-1]
     timeStrUri = timeStrUri[:-1]
     timeIntUri = timeIntUri[:-1]
+    strThisNeqUri = strThisNeqUri[:-1]
+    intThisNeqUri = intThisNeqUri[:-1]
+    strNullUri = strNullUri[:-1]
+    intNullUri = intNullUri[:-1]
+    
 
     return evilUri
 
