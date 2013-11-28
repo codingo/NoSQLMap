@@ -239,7 +239,7 @@ def webApps():
 
     '''here we should have the option to run all tests or one at a time'''
     '''create a InjectionManager obj using conn as parameter, and then run all tests'''
-
+    '''MUST ASK for vuln param in get, or run tests for all params (check that param exists)'''
     injection = InjectionManager(conn, length)
 
 
@@ -297,47 +297,47 @@ def webApps():
 
 
 
-    print "Testing Mongo <2.4 $where all Javascript string escape attack for all records...\n"
-    print "Injecting " + whereStrUri
-
-    whereStrLen = int(len(urllib.urlopen(whereStrUri).read()))
-    whereStrDelta = abs(whereStrLen - randLength)
-
-    if (whereStrDelta >= 100) and (whereStrLen > 0):
-        print "Java $where escape varied " + str(whereStrDelta)  + " bytes from random parameter value! Where injection works!"
-        vulnAddrs.append(whereStrUri)
-
-    elif (whereStrDelta > 0) and (whereStrDelta < 100) and (whereStrLen - randLength > 0):
-        print " response variance was only " + str(whereStrDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
-        possAddrs.append(whereStrUri)
-
-    elif (whereStrDelta == 0):
-        print "Random string response size and $where injection were the same. Injection did not work."
-
-    else:
-        print "Injected response was smaller than random response.  Injection may have worked but requires verification."
-        possAddrs.append(whereStrUri)
-    print "\n"
-    print "Testing Mongo <2.4 $where Javascript integer escape attack for all records...\n"
-    print "Injecting " + whereIntUri
-
-    whereIntLen = int(len(urllib.urlopen(whereIntUri).read()))
-    whereIntDelta = abs(whereIntLen - randLength)
-
-    if (whereIntDelta >= 100) and (whereIntLen - randLength > 0):
-        print "Java $where escape varied " + str(whereIntDelta)  + " bytes from random parameter! Where injection works!"
-        vulnAddrs.append(whereIntUri)
-
-    elif (whereIntDelta > 0) and (whereIntDelta < 100) and (whereIntLen - randLength > 0):
-        print " response variance was only " + str(whereIntDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
-        possAddrs.append(whereIntUri)
-
-    elif (whereIntDelta == 0):
-        print "Random string response size and $where injection were the same. Injection did not work."
-
-    else:
-        print "Injected response was smaller than random response.  Injection may have worked but requires verification."
-        possAddrs.append(whereIntUri)
+#    print "Testing Mongo <2.4 $where all Javascript string escape attack for all records...\n"
+#    print "Injecting " + whereStrUri
+#
+#    whereStrLen = int(len(urllib.urlopen(whereStrUri).read()))
+#    whereStrDelta = abs(whereStrLen - randLength)
+#
+#    if (whereStrDelta >= 100) and (whereStrLen > 0):
+#        print "Java $where escape varied " + str(whereStrDelta)  + " bytes from random parameter value! Where injection works!"
+#        vulnAddrs.append(whereStrUri)
+#
+#    elif (whereStrDelta > 0) and (whereStrDelta < 100) and (whereStrLen - randLength > 0):
+#        print " response variance was only " + str(whereStrDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
+#        possAddrs.append(whereStrUri)
+#
+#    elif (whereStrDelta == 0):
+#        print "Random string response size and $where injection were the same. Injection did not work."
+#
+#    else:
+#        print "Injected response was smaller than random response.  Injection may have worked but requires verification."
+#        possAddrs.append(whereStrUri)
+#    print "\n"
+#    print "Testing Mongo <2.4 $where Javascript integer escape attack for all records...\n"
+#    print "Injecting " + whereIntUri
+#
+#    whereIntLen = int(len(urllib.urlopen(whereIntUri).read()))
+#    whereIntDelta = abs(whereIntLen - randLength)
+#
+#    if (whereIntDelta >= 100) and (whereIntLen - randLength > 0):
+#        print "Java $where escape varied " + str(whereIntDelta)  + " bytes from random parameter! Where injection works!"
+#        vulnAddrs.append(whereIntUri)
+#
+#    elif (whereIntDelta > 0) and (whereIntDelta < 100) and (whereIntLen - randLength > 0):
+#        print " response variance was only " + str(whereIntDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
+#        possAddrs.append(whereIntUri)
+#
+#    elif (whereIntDelta == 0):
+#        print "Random string response size and $where injection were the same. Injection did not work."
+#
+#    else:
+#        print "Injected response was smaller than random response.  Injection may have worked but requires verification."
+#        possAddrs.append(whereIntUri)
 
 
 
@@ -345,48 +345,48 @@ def webApps():
 
     #Start a single record attack in case the app expects only one record back
 
-    print "Testing Mongo <2.4 $where all Javascript string escape attack for one record...\n"
-    print " Injecting " + whereOneStr
-
-    whereOneStrLen = int(len(urllib.urlopen(whereOneStr).read()))
-    whereOneStrDelta = abs(whereOneStrLen - randLength)
-
-    if (whereOneStrDelta >= 100) and (whereOneStrLen - randLength > 0):
-        print "Java $where escape varied " + str(whereOneStrDelta)  + " bytes from random parameter value! Where injection works!"
-        vulnAddrs.append(whereOneStr)
-
-    elif (whereOneStrDelta > 0) and (whereOneStrDelta < 100) and (whereOneStrLen - randLength > 0):
-        print " response variance was only " + str(whereOneStrDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
-        possAddrs.append(whereOneStr)
-
-    elif (whereOneStrDelta == 0):
-        print "Random string response size and $where single injection were the same. Injection did not work."
-
-    else:
-        print "Injected response was smaller than random response.  Injection may have worked but requires verification."
-        possAddrs.append(whereOneStr)
-    print "\n"
-    print "Testing Mongo <2.4 $where Javascript integer escape attack for one record...\n"
-    print " Injecting " + whereOneInt
-
-
-    whereOneIntLen = int(len(urllib.urlopen(whereOneInt).read()))
-    whereOneIntDelta = abs(whereOneIntLen - randLength)
-
-    if (whereOneIntDelta >= 100) and (whereOneIntLen - randLength > 0):
-        print "Java $where escape varied " + str(whereOneIntDelta)  + " bytes from random parameter! Where injection works!"
-        vulnAddrs.append(whereOneInt)
-
-    elif (whereOneIntDelta > 0) and (whereOneIntDelta < 100) and (whereOneIntLen - randLength > 0):
-        print " response variance was only " + str(whereOneIntDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
-        possAddrs.append(whereOneInt)
-
-    elif (whereOneIntDelta == 0):
-        print "Random string response size and $where single record injection were the same. Injection did not work."
-
-    else:
-        print "Injected response was smaller than random response.  Injection may have worked but requires verification."
-        possAddrs.append(whereOneInt)
+#    print "Testing Mongo <2.4 $where all Javascript string escape attack for one record...\n"
+#    print " Injecting " + whereOneStr
+#
+#    whereOneStrLen = int(len(urllib.urlopen(whereOneStr).read()))
+#    whereOneStrDelta = abs(whereOneStrLen - randLength)
+#
+#    if (whereOneStrDelta >= 100) and (whereOneStrLen - randLength > 0):
+#        print "Java $where escape varied " + str(whereOneStrDelta)  + " bytes from random parameter value! Where injection works!"
+#        vulnAddrs.append(whereOneStr)
+#
+#    elif (whereOneStrDelta > 0) and (whereOneStrDelta < 100) and (whereOneStrLen - randLength > 0):
+#        print " response variance was only " + str(whereOneStrDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
+#        possAddrs.append(whereOneStr)
+#
+#    elif (whereOneStrDelta == 0):
+#        print "Random string response size and $where single injection were the same. Injection did not work."
+#
+#    else:
+#        print "Injected response was smaller than random response.  Injection may have worked but requires verification."
+#        possAddrs.append(whereOneStr)
+#    print "\n"
+#    print "Testing Mongo <2.4 $where Javascript integer escape attack for one record...\n"
+#    print " Injecting " + whereOneInt
+#
+#
+#    whereOneIntLen = int(len(urllib.urlopen(whereOneInt).read()))
+#    whereOneIntDelta = abs(whereOneIntLen - randLength)
+#
+#    if (whereOneIntDelta >= 100) and (whereOneIntLen - randLength > 0):
+#        print "Java $where escape varied " + str(whereOneIntDelta)  + " bytes from random parameter! Where injection works!"
+#        vulnAddrs.append(whereOneInt)
+#
+#    elif (whereOneIntDelta > 0) and (whereOneIntDelta < 100) and (whereOneIntLen - randLength > 0):
+#        print " response variance was only " + str(whereOneIntDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
+#        possAddrs.append(whereOneInt)
+#
+#    elif (whereOneIntDelta == 0):
+#        print "Random string response size and $where single record injection were the same. Injection did not work."
+#
+#    else:
+#        print "Injected response was smaller than random response.  Injection may have worked but requires verification."
+#        possAddrs.append(whereOneInt)
 
 
 
