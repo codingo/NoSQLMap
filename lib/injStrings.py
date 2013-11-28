@@ -42,7 +42,7 @@ def createWhereStrString():
     ]
 
     for st in itertools.product(leftPart, informations, rightPart):
-        yield st
+        yield "%s%s%s" % st
 
 #def createWhereOneStrString():
 #    return "=1; return db.a.findOne(); var dummy='!"
