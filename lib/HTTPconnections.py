@@ -16,9 +16,16 @@ class ConnectionManager:
         self.method = options.httpMethod
         try: #GET
             param = urlparse.parse_qs(params[1])
-        except ValueError: #POST
+        except IndexError: #POST
             param=urlparse.parse_qs(options.payload)
-        self.payload= param
+        pars = {}
+        for el in param:
+            if len(param[el]) == 1:
+                pars[el] = param[el][0]
+            else:
+                pars[el] = param[el][:]
+        self.payload= pars
+        print self.payload
 
 
     def buildUri(self, dictOfParams):
@@ -31,10 +38,15 @@ class ConnectionManager:
     def doConnection(self, tup):
         try:
             if self.method==1:
-                res = urllib2.urlopen(tup[0]).read()
+                con =  urllib2.urlopen(tup[0])
+                print tup[0]
             else:
-                res = urllib2.urlopen(tup[0], data=tup[1]).read()
+                print tup[0]
+                print tup[1]
+                con = urllib2.urlopen(tup[0], data=tup[1])
+            cod = con.getcode()
+            res = con.read()
         except urllib2.URLError:
             raise ConnectionError
-        return res.getcode(),len(res)
+        return cod,len(res)
 

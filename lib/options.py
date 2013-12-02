@@ -70,7 +70,7 @@ class Options:
             m+= "1-Set target host/IP (Current: " + str(self.victim) + ")"+"\n"
             m+= "2-Set web app port (Current: " + str(self.webPort) + ")"+"\n"
             m+= "3-Set App Path (Current: " + str(self.uri) + ")"+"\n"
-            m+= "4-Set HTTP Request Method -1 for GET/ 2 for POST- "+"(Current: "+str(self.httpMethod)+")"+"\n"
+            m+= "4-Set HTTP Request Method -1 for GET / 2 for POST- "+"(Current: "+str(self.httpMethod)+")"+"\n"
             m+= "5-Set my local Mongo/Shell IP (Current: " + str(self.myIP) + ")"+"\n"
             m+= "6-Set shell listener port (Current: " + str(self.myPort) + ")"+"\n"
             m+= "7-Load options file"+"\n"
@@ -92,6 +92,9 @@ class Options:
             #NOT IMPLEMENTED YET FOR USE
             elif select == "4":
                     self.httpMethod = int(setSingleInteractiveOption(support.checkMethod, const_definition.methodIntMessage, const_definition.methodAckMessage))
+                    if self.httpMethod == 2:
+                        self.payload = setSingleInteractiveOption(support.checkPOST, const_definition.contentPOSTIntMessage, const_definition.contentPOSTAckMessage)
+
 
             elif select == "5":
                     self.myIP = setSingleInteractiveOption(support.checkIP, const_definition.myIPIntMessage, const_definition.myIPAckMessage)

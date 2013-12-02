@@ -32,6 +32,8 @@ import lib.connections as connections
 from lib.log import Logger
 import lib.metasploit as metasploit
 import lib.HTTPconnections as HTTPconnections
+import lib.injection as InjectionManager
+
 TEST=False
 
 options=Options()
@@ -212,8 +214,8 @@ def webApps():
     conn = HTTPconnections.ConnectionManager(options)
 
     try:
-
-        res,length = conn.doConnection(conn.payload)
+        connParams = conn.buildUri(conn.payload)
+        res,length = conn.doConnection(connParams)
         
         #NOTE: it's better to delay timing test to the second request, because of cache servers etc
         #appRespCode = urllib.urlopen(appURL).getcode()
@@ -240,11 +242,12 @@ def webApps():
     '''here we should have the option to run all tests or one at a time'''
     '''create a InjectionManager obj using conn as parameter, and then run all tests'''
     '''MUST ASK for vuln param in get, or run tests for all params (check that param exists)'''
-    injection = InjectionManager(conn, length)
 
+    injection = InjectionManager.InjectionManager(conn, length)
 
-
-
+    injection.baselineTestEnterRandomString()
+    injection.mongoPHPNotEqualAssociativeArray()
+    injection.mongoWhereInjection()
 
 #DIVISION OF INJECTIONS ACCORDING TO THEIR TYPE    
 
@@ -698,13 +701,12 @@ def buildUri(origUri, randValue):
 if "-a" in sys.argv:
     #automatic, just for testing purposes
     #TODO: for automatization of testing
-    options.victim = "192.168.178.166" 
-    options.webPort = 80 
-    options.uri = ""
-    options.httpMethod = 1
-    options.myIP =  "192.168.178.1"
-    options.myPort = 27017
-    netAttacks()
+    options.victim = "127.0.0.1" 
+    options.webPort = 8085
+    options.uri = "/number/"
+    options.httpMethod = 2
+    options.payload="user=bravo&article=1"
+    webApps()
 
 mainMenu()
 

@@ -1,10 +1,10 @@
-import Logger
+from log import Logger
 import injStrings
 import copy
 
 class InjectionManager:
     AvailableTests={
-            1: "BaselineTestEnterRandomString",
+            1: "baselineTestEnterRandomString",
             2: "mongoPHPNotEqualAssociativeArray",
             3: "mongoWhereInjection",
             #ADD OTHER TESTS AS SOON AS WE COPY THEM FROM THE MAIN
@@ -19,10 +19,11 @@ class InjectionManager:
         else:
             self.testingParams = connection.payload
         self.standardLength = standard_length
+        self.injStringCreator=injStrings.InjectionStringCreator()
         self.possibleVuln=[]
         self.sureVuln=[]
 
-    def __performInjection(self, injParam)
+    def __performInjection(self, injParam, injectString):
         def testWorking(injLength, normLength):
             if injLength == normLength:
                 Logger.error("Injection Failed")
@@ -31,7 +32,7 @@ class InjectionManager:
                 Logger.success("Injection succedeed")
                 return True
         tmpDic = copy.deepcopy(self.dictOfParams)
-        tmpDic[params]=injectString
+        tmpDic[injParam]=injectString
         connParams = self.conn.buildUri(tmpDic)
         code, length = self.conn.doConnection(connParams)
         if code != 200: #if no good answer pass to successive test
@@ -40,44 +41,34 @@ class InjectionManager:
         Logger.info(m)
         return testWorking(length, self.standardLength)
 
-
-
-    def BaselineTestEnterRandomString(self):
+    def baselineTestEnterRandomString(self):
         Logger.info("Testing BaselineTestEnterRandomString")
+
         for params in self.testingParams:
-            for injectSize in xrange(5,31,7):
-                for form in injStrings.formatAvailables:
-                    injectString = injStrings.randInjString(injectSize, form)
-                    m="Using  %s for injection testing" %(injectString)
-                    Logger.info(m)
-                    #Build a random string and insert; if the app handles input correctly, a random string and injected code should be treated the same.
-                    #Add error handling for Non-200 HTTP response codes if random strings freaks out the app.
-                    if self.__performInjection(injectString):
-                        sureVuln.append(connParams)
+            for injectString in injStrings.createIdString():
+                m="Using  %s for injection testing" %(injectString)
+                Logger.info(m)
+                #Build a random string and insert; if the app handles input correctly, a random string and injected code should be treated the same.
+                #Add error handling for Non-200 HTTP response codes if random strings freaks out the app.
+                if self.__performInjection(params, injectString):
+                    sureVuln.append(connParams)
 
     def mongoPHPNotEqualAssociativeArray(self):
         Logger.info("Testing Mongo PHP not equals associative array injection")
 
         for params in self.testingParams:
-            for injectSize in xrange(5,31,7):
-                for form in injStrings.formatAvailables:
-                    injectString = injStrings.createNeqString(injectSize, form)
-                    m="using %s for injection testing" %(injectString)
-                    Logger.info(m)
-                    if self.__performInjection(injectString):
-                        sureVuln.append(connParams)
+            injectString = injStrings.createNeqString(injectSize, form)
+            m="using %s for injection testing" %(injectString)
+            Logger.info(m)
+            if self.__performInjection(injectString):
+                sureVuln.append(connParams)
 
     def mongoWhereInjection(self):
         Logger.info("Testing Mongo <2.4 $where all Javascript escape attack")
-        basic = injStrings.createWhereStrString()
         for params in self.testingParams:
-            try:
-                while 1:
-                    injectString = next(basic)
-                    m="using %s for injection testing" %(injectString)
-                    Logger.info(m)
-                    if self.__performInjection(injectString):
-                        sureVuln.append(connParams)
-            except StopIteration:
-                continue
+            for injectString in injStrings.createWhereStrString():
+                m="using %s for injection testing" %(injectString)
+                Logger.info(m)
+                if self.__performInjection(injectString):
+                    sureVuln.append(connParams)
         
