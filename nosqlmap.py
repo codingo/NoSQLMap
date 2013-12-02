@@ -702,9 +702,18 @@ def stealDBs():
 	    return()
 
     except:
-	raw_input ("Something went wrong.  Are you sure your MongoDB is running and options are set? Press enter to return...")
+#	print sys.exc_info()[0]
+#	print sys.exc_info()[1]
+#	Check to see if we moved the database, but indexing was enabled on the victim but not our host.
+	indexOn = str(sys.exc_info()[1]).find('text search not enabled')
+	
+	if indexOn != -1:
+		raw_input("Source database cloned, but indexing is not enabled on the attacker database.  Indexes not moved.  Press enter to return...")
+		mainMenu()
 
-	mainMenu()                              
+	else:
+		raw_input ("Something went wrong.  Are you sure your MongoDB is running and options are set? Press enter to return...")
+		mainMenu()                              
     
 mainMenu()
 
