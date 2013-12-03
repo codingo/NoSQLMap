@@ -703,9 +703,9 @@ if "-a" in sys.argv:
     #TODO: for automatization of testing
     options.victim = "127.0.0.1" 
     options.webPort = 8085
-    options.uri = "/number/"
+    options.uri = "/where/"
     options.httpMethod = 2
-    options.payload="user=bravo&article=1"
+    options.payload="user=user&password=password"
     webApps()
 
 mainMenu()

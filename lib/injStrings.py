@@ -1,7 +1,8 @@
 import string
 import itertools
+import random
 
-def randInjString(formatString, size):
+def randInjString(size, formatString):
     
     if formatString == 1:
         chars = string.ascii_letters + string.digits
