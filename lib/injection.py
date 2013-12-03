@@ -45,7 +45,7 @@ class InjectionManager:
         Logger.info("Testing BaselineTestEnterRandomString")
 
         for params in self.testingParams:
-            for injectString in injStrings.createIdString():
+            for injectString in self.injStringCreator.createIdString():
                 m="Using  %s for injection testing" %(injectString)
                 Logger.info(m)
                 #Build a random string and insert; if the app handles input correctly, a random string and injected code should be treated the same.
