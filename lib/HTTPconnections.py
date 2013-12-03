@@ -25,7 +25,6 @@ class ConnectionManager:
             else:
                 pars[el] = param[el][:]
         self.payload= pars
-        print self.payload
 
 
     def buildUri(self, dictOfParams):

@@ -42,11 +42,11 @@ class InjectionStringCreator:
         self.formats = formats
 
     def createIdString(self):
-        for st in itertools.product(self.sizes, self,formats):
+        for st in itertools.product(self.sizes, self.formats):
             yield "%s" %(randInjString(st[0], st[1]))
 
     def createNeqString(self):
-        for st in itertools.product(self.sizes, self,formats):
+        for st in itertools.product(self.sizes, self.formats):
             yield "%s%s" %("[$ne]=",randInjString(st[0], st[1]))
 
     def createWhereStrString(self):
