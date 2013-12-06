@@ -13,7 +13,7 @@
 #You should have received a copy of the GNU General Public License
 #along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-####_mitm_####
+####_sniff_and_brute_####
 from scapy.all import *
 import re
 import hashlib
@@ -46,7 +46,7 @@ def mainMenu():
 		print "1-Set options (do this first)"
 		print "2-NoSQL DB Access Attacks"
 		print "3-NoSQL Web App attacks"
-		print "4-NoSQL MongoDB MiTM sniff and brute password"
+		print "4-NoSQL MongoDB sniff and brute password"
 		print "99-Exit"
 
 		select = raw_input("Select an option:")
@@ -56,7 +56,7 @@ def mainMenu():
 
 		##
 		if select == "4":
-			mitm()
+			sniff_and_brute()
 		##
 
 		elif select == "2":
@@ -769,12 +769,12 @@ def stealDBs(myDB):
 		mainMenu()								
 
 
-####__MiTM__####
+####__sniff_and_brute__####
 ###cyber-punk###
 
-def mitm():
+def sniff_and_brute():
 	
-	class mitm(object):
+	class msniff_and_brute(object):
 	    
 		def get_packets(self, port, iface, count):
 			
@@ -857,8 +857,8 @@ def mitm():
 
 	start = raw_input("Start? (Y/N)")
 	if start == "y" or start == "Y":
-		MiTM = mitm()
-		MiTM.brute_pass(port, iface, dictionary)
+		sniff_brute = sniff_and_brute()
+		sniff_brute.brute_pass(port, iface, dictionary)
 	
 
 ################
