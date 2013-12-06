@@ -774,7 +774,7 @@ def stealDBs(myDB):
 
 def sniff_and_brute():
 	
-	class msniff_and_brute(object):
+	class sniff_and_brute(object):
 	    
 		def get_packets(self, port, iface, count):
 			
