@@ -22,21 +22,43 @@ class InjectionManager:
         self.injStringCreator=injStrings.InjectionStringCreator()
         self.possibleVuln=[]
         self.sureVuln=[]
-
-    def __performInjection(self, injParam, injectString):
+    
+    def removeEqual(tup, injParam):
+        l=[]
+        for el in tup:
+            ele = el
+            pos=el.find(injParam)
+            stLen=len(injParam)
+            if pos != -1 and el[pos+stLen]=="=":
+                ele = el[:pos+stLen]+el[pos+stLen+1:]
+            l.append(ele)
+        return l
+    def __performInjection(self, injParam, injectString, removeEqual=False):
         def testWorking(injLength, normLength):
             if injLength==0:
                 Logger.error("Injection Failed")
                 return False
-            if injLength == normLength:
-                Logger.error("Injection Failed")
-                return False
-            else:
+            if injLength > normLength:
                 Logger.success("Injection succedeed")
                 return True
+            else:
+                Logger.error("Injection Failed")
+                return False
+        def removeEqual(tup, injParam):
+            l=[]    
+            for el in tup:
+                ele = el
+                pos=el.find(injParam)
+                stLen=len(injParam)
+                if pos != -1 and el[pos+stLen]=="=":
+                    ele = el[:pos+stLen]+el[pos+stLen+1:]
+                l.append(ele)
+            return l
         tmpDic = copy.deepcopy(self.dictOfParams)
         tmpDic[injParam]=injectString
         connParams = self.conn.buildUri(tmpDic)
+        if removeEqual:
+            connParams = removeEqual(connParams, injParam)
         code, length = self.conn.doConnection(connParams)
         if code != 200: #if no good answer pass to successive test
             return False
@@ -64,7 +86,7 @@ class InjectionManager:
             for injectString in self.injStringCreator.createNeqString():
                 m="using %s for injection testing" %(injectString)
                 Logger.info(m)
-                res,connParams=self.__performInjection(params, injectString)
+                res,connParams=self.__performInjection(params, injectString, True)
                 if res:
                     self.sureVuln.append(connParams)
 
@@ -77,4 +99,13 @@ class InjectionManager:
                 res,connParams=self.__performInjection(params, injectString)
                 if res:
                     self.sureVuln.append(connParams)
-        
+    def mongoThisNotEqualEscape(self):
+        Logger.info("Testing Mongo PHP not equals associative array injection")
+
+        for params in self.testingParams:
+            for injectString in self.injStringCreator.createBlindNeqString():
+                m="using %s for injection testing" %(injectString)
+                Logger.info(m)
+                res,connParams=self.__performInjection(params, injectString)
+                if res:
+                    self.sureVuln.append(connParams)        

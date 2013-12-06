@@ -30,9 +30,9 @@ class ConnectionManager:
     def buildUri(self, dictOfParams):
         tmpPay = urllib.urlencode(dictOfParams)
         if self.method==1:
-            return (self.baseUrl+"?"+tmpPay,)
+            return [self.baseUrl+"?"+tmpPay,]
         else:
-            return (self.baseUrl, tmpPay)
+            return [self.baseUrl, tmpPay]
 
     def doConnection(self, tup):
         try:

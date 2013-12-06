@@ -23,9 +23,9 @@ def randInjString(size, formatString):
 class InjectionStringCreator:
 
     leftPart = [
-        "=a\';",
-        "=a\";",
-        "=1;"
+        "a\';",
+        "a\";",
+        "1;"
         ]    
 
     rightPart = [
