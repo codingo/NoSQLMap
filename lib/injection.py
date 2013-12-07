@@ -22,7 +22,7 @@ class InjectionManager:
         self.injStringCreator=injStrings.InjectionStringCreator()
         self.possibleVuln=[]
         self.sureVuln=[]
-    
+        self.successfulAttacks = {} 
     def removeEqual(tup, injParam):
         l=[]
         for el in tup:
@@ -33,7 +33,14 @@ class InjectionManager:
                 ele = el[:pos+stLen]+el[pos+stLen+1:]
             l.append(ele)
         return l
-    def __performInjection(self, injParam, injectString, removeEqual=False):
+
+    def __addSuccessful(self, suc, funcName):
+        if suc:
+            self.successfulAttacks[funcName]=True
+        else:
+            self.successfulAttacks[funcName]=False
+
+    def __performInjection(self, injParam="", injectString="", removeEqual=False, dummyInjection=False):
         def testWorking(injLength, normLength):
             if injLength==0:
                 Logger.error("Injection Failed")
@@ -55,7 +62,8 @@ class InjectionManager:
                 l.append(ele)
             return l
         tmpDic = copy.deepcopy(self.dictOfParams)
-        tmpDic[injParam]=injectString
+        if not dummyInjection:
+            tmpDic[injParam]=injectString
         connParams = self.conn.buildUri(tmpDic)
         if removeEqual:
             connParams = removeEqual(connParams, injParam)
@@ -67,6 +75,8 @@ class InjectionManager:
         return testWorking(length, self.standardLength),connParams
 
     def baselineTestEnterRandomString(self):
+
+        funcName="baselineTestEnterRandomString"
         Logger.info("Testing BaselineTestEnterRandomString")
 
         for params in self.testingParams:
@@ -78,8 +88,13 @@ class InjectionManager:
                 res,connParams=self.__performInjection(params, injectString)
                 if res:
                     self.sureVuln.append(connParams)
+                    suc=True
+
+        self.__addSuccessful(suc,funcName)
 
     def mongoPHPNotEqualAssociativeArray(self):
+
+        funcName="mongoPHPNotEqualAssociativeArray"
         Logger.info("Testing Mongo PHP not equals associative array injection")
 
         for params in self.testingParams:
@@ -89,8 +104,13 @@ class InjectionManager:
                 res,connParams=self.__performInjection(params, injectString, True)
                 if res:
                     self.sureVuln.append(connParams)
+                    suc=True
+        
+        self.__addSuccessful(suc,funcName)
 
     def mongoWhereInjection(self):
+
+        funcName="mongoWhereInjection"
         Logger.info("Testing Mongo <2.4 $where all Javascript escape attack")
         for params in self.testingParams:
             for injectString in self.injStringCreator.createWhereStrString():
@@ -99,7 +119,10 @@ class InjectionManager:
                 res,connParams=self.__performInjection(params, injectString)
                 if res:
                     self.sureVuln.append(connParams)
+
     def mongoThisNotEqualEscape(self):
+
+        funcName="MongoThisNotEqualEscape"
         Logger.info("Testing Mongo PHP not equals associative array injection")
 
         for params in self.testingParams:
@@ -108,4 +131,29 @@ class InjectionManager:
                 Logger.info(m)
                 res,connParams=self.__performInjection(params, injectString)
                 if res:
-                    self.sureVuln.append(connParams)        
+                    self.sureVuln.append(connParams)
+
+        self.__addSuccessful(suc,funcName)
+
+    def mongoTimeBasedInjection(self):
+        #VERY NAIVE IMPLEMENTATION, IMPROVE WITH MORE TESTING
+
+        funcName="mongoTimeBasedInjection"
+        Logger.info("Testing time based injection")
+        start=time.time()
+        res,connParams = self.__performInjection(dummyInjection=True)
+        end = time.time()
+        for params in self.testingParams:
+            for injectString in self.injStringCreator.createTimeString():
+                startTest = time.time()
+                res,connParams=self.__performInjection(params, injectString)
+                endTest = time.time()
+        #TIME TESTING PERFORMED LOCALLY TODO: CREATE AN ABSTRACT FACTORY FOR TET WORKING 
+                strTimeDelta = (int(round((end - start), 3)) - timeBase)
+                if strTimeDelta > 25:
+                    m="HTTP load time variance was %s seconds! Injection succeeded" %(strTimeDelta)
+                    Logger.success(m)
+                    suc=True
+                    self.sureVuln.append(connParams)
+
+        self.__addSuccessful(suc,funcName)
