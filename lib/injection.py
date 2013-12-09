@@ -20,7 +20,7 @@ class InjectionManager:
             self.testingParams = connection.payload
         self.standardLength = standard_length
         self.injStringCreator=injStrings.InjectionStringCreator()
-        self.possibleVuln=[]
+        self.possVuln=[]
         self.sureVuln=[]
         self.successfulAttacks = {} 
     def removeEqual(tup, injParam):
@@ -40,17 +40,26 @@ class InjectionManager:
         else:
             self.successfulAttacks[funcName]=False
 
-    def __performInjection(self, injParam="", injectString="", removeEqual=False, dummyInjection=False):
-        def testWorking(injLength, normLength):
-            if injLength==0:
-                Logger.error("Injection Failed")
-                return False
-            if injLength > normLength:
-                Logger.success("Injection succedeed")
-                return True
-            else:
-                Logger.error("Injection Failed")
-                return False
+    def __logResult(self, result):
+        if result==-1:
+            Logger.error("Injection Failed")
+        if result==0:
+            Logger.warning("Injection possibly Succeeded")
+        else:
+            Logger.success("Injection Succeeded")
+
+    def __saveResult(self, result, connParams):
+        if result==-1:
+            return False
+        elif result==0:
+            self.possVuln.append(connParams)
+            return True
+        else:
+            self.sureVuln.append(connParams)
+            return True
+
+
+    def __performInjection(self, injParam="", injectString="", verificationFunction, removeEqual=False, dummyInjection=False):
         def removeEqual(tup, injParam):
             l=[]    
             for el in tup:
@@ -72,68 +81,102 @@ class InjectionManager:
             return False
         m="Got response length of %s" %(length)
         Logger.info(m)
-        return testWorking(length, self.standardLength),connParams
+        result = verificationFunction(length)
+        return result,connParams
 
-    def baselineTestEnterRandomString(self):
+    def baselineTestEnterRandomString(self, params, injectString):
+        '''this function is needed by other functions in order to test things (ex for mongoPHP not equal)'''
+        def checkLength(length):
+            delta = length - self.standardLength
+            self.injectStringLength = length
+            if delta == 0:
+                return -1
+            else:
+                return 1
 
-        funcName="baselineTestEnterRandomString"
-        Logger.info("Testing BaselineTestEnterRandomString")
-
-        for params in self.testingParams:
-            for injectString in self.injStringCreator.createIdString():
-                m="Using  %s for injection testing" %(injectString)
-                Logger.info(m)
-                #Build a random string and insert; if the app handles input correctly, a random string and injected code should be treated the same.
-                #Add error handling for Non-200 HTTP response codes if random strings freaks out the app.
-                res,connParams=self.__performInjection(params, injectString)
-                if res:
-                    self.sureVuln.append(connParams)
-                    suc=True
-
-        self.__addSuccessful(suc,funcName)
+        res, connParams = self.__performInjection(params, injectString, checkLength)
+        return res,connParams
 
     def mongoPHPNotEqualAssociativeArray(self):
 
+        def verifyFunction(length):
+            randInjDelta = abs(length - self.injectStringLength)
+            if (randInjDelta >= 100) and (length != 0) :
+                return 1
+
+            elif (randInjDelta > 0) and (randInjDelta < 100) and (length != 0) :
+                return 0
+            elif (randInjDelta == 0):
+                return -1    
+            else:
+                return 0
         funcName="mongoPHPNotEqualAssociativeArray"
         Logger.info("Testing Mongo PHP not equals associative array injection")
-
+        cic = False
         for params in self.testingParams:
-            for injectString in self.injStringCreator.createNeqString():
-                m="using %s for injection testing" %(injectString)
+            for injectString in self.injStringCreator.createIdString():
+                injectNeqString = self.injStringCreator.makeNeqString(injectString)
+                m="using %s for injection testing" %(injectNeqString)
                 Logger.info(m)
-                res,connParams=self.__performInjection(params, injectString, True)
-                if res:
-                    self.sureVuln.append(connParams)
-                    suc=True
-        
-        self.__addSuccessful(suc,funcName)
-
+                origRes, origConnParams = self.baselineTestEnterRandomString(params, injectString)
+                res,connParams=self.__performInjection(params, injectNeqString, True)
+                cic = cic || self.__saveResult(res, connParams)
+                self.__logResult(res)
+        self.successfulAttacks[funcName]= cic
     def mongoWhereInjection(self):
 
+        def verifyFunction(length):
+            randInjDelta = abs(length - self.injectStringLength)
+            if (randInjDelta >= 100) and (length != 0) :
+                return 1
+
+            elif (randInjDelta > 0) and (randInjDelta < 100) and (length != 0) :
+                return 0
+            elif (randInjDelta == 0):
+                return -1
+            else:
+                return 0
         funcName="mongoWhereInjection"
         Logger.info("Testing Mongo <2.4 $where all Javascript escape attack")
+        cic = False
         for params in self.testingParams:
-            for injectString in self.injStringCreator.createWhereStrString():
-                m="using %s for injection testing" %(injectString)
-                Logger.info(m)
-                res,connParams=self.__performInjection(params, injectString)
-                if res:
-                    self.sureVuln.append(connParams)
+            for injectString in self.injStringCreator.createIdString():
+                for injectWhereString in self.injStringCreator.makeWhereString(injectString)
+                    m="using %s for injection testing" %(injectWhereString)
+                    Logger.info(m)
+                    origRes, origConnParams = self.baselineTestEnterRandomString(params, injectString)
+                    res,connParams=self.__performInjection(params, injectWhereString, False)
+                    cic = cic || self.__saveResult(res, connParams)
+                    self.__logResult(res)
+        self.successfulAttacks[funcName]= cic
 
     def mongoThisNotEqualEscape(self):
 
+        def verifyFunction(length):
+            randInjDelta = abs(length - self.injectStringLength)
+            if (randInjDelta >= 100) and (length != 0) :
+                return 1
+
+            elif (randInjDelta > 0) and (randInjDelta < 100) and (length != 0) :
+                return 0
+            elif (randInjDelta == 0):
+                return -1
+            else:
+                return 0
         funcName="MongoThisNotEqualEscape"
-        Logger.info("Testing Mongo PHP not equals associative array injection")
-
+        Logger.info("Testing Mongo this not equals escape attack")
+        cic = False
         for params in self.testingParams:
-            for injectString in self.injStringCreator.createBlindNeqString():
-                m="using %s for injection testing" %(injectString)
-                Logger.info(m)
-                res,connParams=self.__performInjection(params, injectString)
-                if res:
-                    self.sureVuln.append(connParams)
+            for injectString in self.injStringCreator.createIdString():
+                for injectWhereString in self.injStringCreator.makeWhereString(injectString)
+                    m="using %s for injection testing" %(injectWhereString)
+                    Logger.info(m)
+                    origRes, origConnParams = self.baselineTestEnterRandomString(params, injectString)
+                    res,connParams=self.__performInjection(params, injectWhereString, False)
+                    cic = cic || self.__saveResult(res, connParams)
+                    self.__logResult(res)
+        self.successfulAttacks[funcName]= cic
 
-        self.__addSuccessful(suc,funcName)
 
     def mongoTimeBasedInjection(self):
         #VERY NAIVE IMPLEMENTATION, IMPROVE WITH MORE TESTING
