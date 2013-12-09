@@ -4,6 +4,7 @@
 
 import string
 import os.path
+import urlparse
 
 def checkIP(ip):
     '''ip check: must be 4 octets, each <256'''
@@ -15,6 +16,13 @@ def checkIP(ip):
         return len(ip) == 4 and all(octet.isdigit() and int(octet) < 256 for octet in ip)
     except ValueError:
         return False
+
+def checkPOST(st):
+    try:
+        urlparse.parse_qs(st)
+    except:
+        return False
+    return st
 
 def checkPort(port):
     '''port must be 0<x<65536'''

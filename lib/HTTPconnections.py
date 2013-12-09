@@ -1,3 +1,4 @@
+import urllib
 import urllib2
 import urlparse
 from exceptions import ConnectionError
@@ -13,33 +14,38 @@ class ConnectionManager:
         params = options.uri.split("?")
         self.baseUrl = "http://%s:%s%s"%(options.victim, options.webPort, params[0])
         self.method = options.httpMethod
-        try:
-            #it's a get
-            param=urlparse.parse_qs(params[1])
-        except ValueError:
-            #it's a post
+        try: #GET
+            param = urlparse.parse_qs(params[1])
+        except IndexError: #POST
             param=urlparse.parse_qs(options.payload)
-        self.payload=param
+        pars = {}
+        for el in param:
+            if len(param[el]) == 1:
+                pars[el] = param[el][0]
+            else:
+                pars[el] = param[el][:]
+        self.payload= pars
 
-    def buildUri(self, injection):
-        '''create a tuple with 1/2 elems, if 1 then it's a get if 2 it's a post. accept an injection param as a dictionary'''
-        inj=urllib2.urlencode(injection)
+
+    def buildUri(self, dictOfParams):
+        tmpPay = urllib.urlencode(dictOfParams)
         if self.method==1:
-            return (self.baseUrl+"?"+inj,)
+            return [self.baseUrl+"?"+tmpPay,]
         else:
-            return (self.baseUrl,inj)
+            return [self.baseUrl, tmpPay]
 
-    def testConnection(self):
-        tup=self.buildUri(self.payload) 
+    def doConnection(self, tup):
         try:
-            if self.method==1: #GET
-                res=urllib2.urlopen(tup[0]).read()
-            else: #POST
-                res = urllib2.urlopen(tup[0],data=tup[1]).read()
+            if self.method==1:
+                con =  urllib2.urlopen(tup[0])
+                print tup[0]
+            else:
+                print tup[0]
+                print tup[1]
+                con = urllib2.urlopen(tup[0], data=tup[1])
+            cod = con.getcode()
+            res = con.read()
         except urllib2.URLError:
             raise ConnectionError
-        return res
+        return cod,len(res)
 
-    def checkLengthHTTPResponse(options):
-        '''do connection and return its length'''
-        pass
