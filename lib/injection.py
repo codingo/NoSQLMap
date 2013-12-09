@@ -60,7 +60,7 @@ class InjectionManager:
             return True
 
 
-    def __performInjection(self, injParam="", injectString="", verificationFunction, removeEqual=False, dummyInjection=False):
+    def __performInjection(self, verificationFunction, injParam="", injectString="", removeEqual=False, dummyInjection=False):
         def removeEqual(tup, injParam):
             l=[]    
             for el in tup:
@@ -95,7 +95,7 @@ class InjectionManager:
             else:
                 return 1
 
-        res, connParams = self.__performInjection(params, injectString, checkLength)
+        res, connParams = self.__performInjection(checkLength, params, injectString)
         return res,connParams
 
     def mongoPHPNotEqualAssociativeArray(self):
@@ -120,8 +120,8 @@ class InjectionManager:
                 m="using %s for injection testing" %(injectNeqString)
                 Logger.info(m)
                 origRes, origConnParams = self.baselineTestEnterRandomString(params, injectString)
-                res,connParams=self.__performInjection(params, injectNeqString, True)
-                cic = cic || self.__saveResult(res, connParams)
+                res,connParams=self.__performInjection(verifyFunction, params, injectNeqString, True)
+                cic = cic or self.__saveResult(res, connParams)
                 self.__logResult(res)
         self.successfulAttacks[funcName]= cic
     def mongoWhereInjection(self):
@@ -142,12 +142,12 @@ class InjectionManager:
         cic = False
         for params in self.testingParams:
             for injectString in self.injStringCreator.createIdString():
-                for injectWhereString in self.injStringCreator.makeWhereString(injectString)
+                for injectWhereString in self.injStringCreator.makeWhereString(injectString):
                     m="using %s for injection testing" %(injectWhereString)
                     Logger.info(m)
                     origRes, origConnParams = self.baselineTestEnterRandomString(params, injectString)
-                    res,connParams=self.__performInjection(params, injectWhereString, False)
-                    cic = cic || self.__saveResult(res, connParams)
+                    res,connParams=self.__performInjection(verifyFunction, params, injectWhereString, False)
+                    cic = cic or self.__saveResult(res, connParams)
                     self.__logResult(res)
         self.successfulAttacks[funcName]= cic
 
@@ -169,28 +169,29 @@ class InjectionManager:
         cic = False
         for params in self.testingParams:
             for injectString in self.injStringCreator.createIdString():
-                for injectWhereString in self.injStringCreator.makeWhereString(injectString)
+                for injectThisString in self.injStringCreator.makeBlindNeqString(injectString):
                     m="using %s for injection testing" %(injectWhereString)
                     Logger.info(m)
                     origRes, origConnParams = self.baselineTestEnterRandomString(params, injectString)
-                    res,connParams=self.__performInjection(params, injectWhereString, False)
-                    cic = cic || self.__saveResult(res, connParams)
+                    res,connParams=self.__performInjection(verifyFunction,params, injectThisString, False)
+                    cic = cic or self.__saveResult(res, connParams)
                     self.__logResult(res)
         self.successfulAttacks[funcName]= cic
 
 
     def mongoTimeBasedInjection(self):
         #VERY NAIVE IMPLEMENTATION, IMPROVE WITH MORE TESTING
-
+        dummyF(l):
+            return 0
         funcName="mongoTimeBasedInjection"
         Logger.info("Testing time based injection")
         start=time.time()
-        res,connParams = self.__performInjection(dummyInjection=True)
+        res,connParams = self.__performInjection(dummyF, dummyInjection=True)
         end = time.time()
         for params in self.testingParams:
             for injectString in self.injStringCreator.createTimeString():
                 startTest = time.time()
-                res,connParams=self.__performInjection(params, injectString)
+                res,connParams=self.__performInjection(dummyF, params, injectString)
                 endTest = time.time()
         #TIME TESTING PERFORMED LOCALLY TODO: CREATE AN ABSTRACT FACTORY FOR TET WORKING 
                 strTimeDelta = (int(round((end - start), 3)) - timeBase)
