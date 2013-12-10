@@ -870,7 +870,7 @@ usedTests=[2]
 if "-a" in sys.argv:
     #automatic, just for testing purposes
     #TODO: for automatization of testing
-    options.victim = "192.168.178.166" 
+    options.victim = "192.168.178.162" 
     options.webPort = 80
     options.uri = "/payments/acct.php"
     options.httpMethod = 1

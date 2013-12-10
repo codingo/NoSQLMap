@@ -198,7 +198,7 @@ class InjectionManager:
 
     def mongoTimeBasedInjection(self):
         #VERY NAIVE IMPLEMENTATION, IMPROVE WITH MORE TESTING
-        dummyF(l):
+        def dummyF(l):
             return 0
         funcName="mongoTimeBasedInjection"
         Logger.info("Testing time based injection")

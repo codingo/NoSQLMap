@@ -66,3 +66,7 @@ class ConnectionManager:
             raise ConnectionError
         return cod,len(res)
 
+    def checkVulnParam(self, param):
+        if param:
+            return param in self.payload
+
