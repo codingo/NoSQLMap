@@ -99,6 +99,13 @@ class MongoConnection:
             m+="\n%s" %(el)
         return m+"\n"
 
+    def getCollectionList(self):
+        self.collList=self.doSingleOperation("collection_names")
+        m=""
+        for el in self.collList:
+            m+="\n%s" %(el)
+        return m+"\n"
+
 class WebConnection:
     def __init__(self,options):
         if options.victim=="":
