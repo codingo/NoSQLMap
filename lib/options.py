@@ -43,7 +43,7 @@ class Options:
         #MONGOwebport changes are not implemented, we first have to look at what is useful to
         
     def setOptionsRemoteMongo(self):
-        m="Enter port, return for default port (27017)"
+        m="Enter port or press return for default port (27017)"
         tmpPort = Logger.logRequest(m)
         if tmpPort: self.mongoPort = tmpPort
         m= "Does the database server need credentials? "
