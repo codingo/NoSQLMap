@@ -238,19 +238,20 @@ def netAttacks():
     Logger.success("List of databases:"+dbList)
 
     Logger.success("List of collections:")
-    try:
-        for dbItem in dbList:
-            db = conn[dbItem]
-            colls = db.collection_names()
-            print dbItem + ":"
-            print "\n".join(colls)
-            if 'system.users' in colls:
-                users = list(db.system.users.find())
-                print "Database Users and Password Hashes:"
-                #print dbItem
-                print str(users)
-    except:
-        print "Error:  Couldn't list collections.  The provided credentials may not have rights."
+    connList = conn.getCollectionList()
+#    try:
+#        for dbItem in conn.dbList:
+#            db = conn[dbItem]
+#            colls = db.collection_names()
+#            print dbItem + ":"
+#            print "\n".join(colls)
+#            if 'system.users' in colls:
+#                users = list(db.system.users.find())
+#                print "Database Users and Password Hashes:"
+#                #print dbItem
+#                print str(users)
+#    except:
+#        print "Error:  Couldn't list collections.  The provided credentials may not have rights."
 
 
 
