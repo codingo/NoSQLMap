@@ -827,10 +827,9 @@ def webApps():
     checkParam=False
     while not checkParam:
         vulnParam=Logger.logRequest("Insert vulnerable parameter (leave empty for running on all): ")
-        checkParam = conn.checkVulnParam(vulnParam)
+        checkParam = True if not vulnParam else conn.checkVulnParam(vulnParam)
 
-
-    injection = InjectionManager.InjectionManager(conn, length)
+    injection = InjectionManager.InjectionManager(conn, length, vulnParam)
     
     tests = {
             1:injection.mongoPHPNotEqualAssociativeArray,

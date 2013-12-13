@@ -30,7 +30,7 @@ class Options:
     def __init__(self):
         #change it, maybe put "" and -1 as default then when printing if -1 or void print "Not Set"
         self.victim=""
-        self.webPort=-1
+        self.webPort=80
         self.uri=""
         self.httpMethod= -1
         self.myIP=""

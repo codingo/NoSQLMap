@@ -22,7 +22,18 @@ import requests
 from log import Logger
 
 class MongoConnection:
+    """
+    Class for interacting with a mongoDB server.
+    """
+    
+    
     def __init__(self, options):
+        """
+        Take as input an options object
+        Set victim, username, password, target port etc in the object and test connection.
+        Raise MongoConnectionError if connection is impossible.
+        Raise MinParametersViolation if not enough parameters are set in options object.
+        """
 
         if options.victim=="":
             raise MinParametersViolation
@@ -41,6 +52,14 @@ class MongoConnection:
         Logger.info("Connection established")
 
     def doSingleOperation(self, func):
+        """
+        Perform a single operation on a mongoDb database.
+        Receives as input the name of the operation.
+        Manages eventual reconnections
+        Return the result from the operation provided.
+        Raise MongoConnectionError if something went wrong
+        """
+
         try:
             info = getattr(self.conn, func)()
         except mongoError.AutoReconnect:
@@ -54,13 +73,16 @@ class MongoConnection:
         return info
 
     def getServerInfo(self):
+        """
+        ask server for interesting info (sysinfo, version, bits).
+        Return a string with values requested.
+        Call the function "server_info" using doSingleOperation
+        """
+        
         self.serverInfo = self.doSingleOperation("server_info")
         interestingData=["sysInfo","version","bits",]
         m="\n"
-        #for el in self.serverInfo:
-        #    m+="\n%s: %s" %(el, self.serverInfo[el])
         for el in interestingData:
-            #m+="\n%s: %s" %(el, self.serverInfo[el])
             if el == "sysInfo":
                 m+= "Mongo Build Info: " + str(self.serverInfo["sysInfo"]) + "\n"
             
@@ -72,6 +94,15 @@ class MongoConnection:
         return m+"\n"
         
     def stealDBs(self, options):
+        """
+        TODO: function not working.
+        Function able to steal databases from a mongoDB and copy them to the objective.
+        1 - get the list of databases
+        2 - asks for which database to steal
+        3 - steal the db
+
+        raise MinParametersViolation if destination ip or port are omitted, or if no victim is set
+        """
 
         if options.myIP=="" or options.myPort==-1 or options.victim=="":
             raise MinParametersViolation
@@ -110,13 +141,23 @@ class MongoConnection:
                 print "something went wrong.  Verify your MongoDB is running and the database does not already exist."
 
     def getDbList(self):
+        """
+        Take a database list by calling database_names function.
+        Return a string including a list of dbs.
+        """
+
         self.dbList=self.doSingleOperation("database_names")
         m=""
         for el in self.dbList:
             m+="\n%s" %(el)
         return m+"\n"
 
-    def getCollectionList(self):
+    def getCollectionList(self, db):
+        """
+        TODO: NOT WORKING.
+        Iterate on all the db, collecting collection_names and putting them in a list
+
+        """
         self.collList=self.doSingleOperation("collection_names")
         m=""
         for el in self.collList:
@@ -124,6 +165,12 @@ class MongoConnection:
         return m+"\n"
 
 class WebConnection:
+    """
+    Class used for connection to mongoDB if a web interface for DB is available.
+    Right now is not doing anything,
+    in the future maybe add a parser for the web interface.
+
+    """
     def __init__(self,options):
         if options.victim=="":
             raise MinParametersViolation
