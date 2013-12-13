@@ -34,7 +34,7 @@ def mainMenu():
 	while select:
 		os.system('clear')
 		#label = subprocess.check_output(["git","describe","--always"])
-		print "NoSQLMap-v0.15"
+		print "NoSQLMap-v0.15a"
 		print "nosqlmap@gmail.com"
 		print "\n"
 		print "1-Set options (do this first)"
@@ -483,7 +483,7 @@ def webApps():
 			print " response variance was only " + str(whereThisStrDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
 			possAddrs.append(strThisNeqUri)
 			
-		elif (WhereThisStrDelta == 0):
+		elif (whereThisStrDelta == 0):
 			print "Random string response size and this return response size were the same. Injection did not work."
 			
 		else:	
@@ -708,6 +708,8 @@ def buildUri(origUri, randValue):
 	whereIntUri = whereIntUri[:-1]
 	whereOneStr = whereOneStr[:-1]
 	whereOneInt = whereOneInt[:-1]
+	strThisNeqUri = strThisNeqUri[:-1]
+	intThisNeqUri = intThisNeqUri[:-1]
 	timeStrUri = timeStrUri[:-1]
 	timeIntUri = timeIntUri[:-1]
 	
