@@ -23,6 +23,7 @@ import httplib2
 import urllib
 import pymongo
 import subprocess
+import json
 
 #Set a list so we can track whether options are set or not to avoid resetting them in subsequent cals to the options menu.
 global optionSet
@@ -109,8 +110,9 @@ def options():
 		print "5-Set my local Mongo/Shell IP (Current: " + str(myIP) + ")"
 		print "6-Set shell listener port (Current: " + str(myPort) + ")"
 		print "7-Load options file"
-		print "8-Save options file"
-		print "9-Back to main menu"
+		print "8-Load options from saved Burp request"
+		print "9-Save options file"
+		print "x-Back to main menu"
 
 		select = raw_input("Select an option: ")
 		
@@ -188,8 +190,35 @@ def options():
 			except:
 				print "Couldn't load options file!"
 			options()
-			
+		
 		elif select == "8":
+			loadPath = raw_input("Enter path to Burp request file: ")
+
+			try:
+				fo = open(loadPath,"r")
+				reqData = fo.readlines()
+				
+			except:
+				raw_input("error reading file.  Press enter to continue...")
+				mainMenu()
+
+			methodPath = reqData[0].split(" ")
+
+			if methodPath[0] == "GET":
+				httpMethod = "GET"
+			
+			elif methodPath[0] == "POST":
+				httpMethod = "POST"
+				postData = reqData[len(reqData)-1]
+			else:
+				print "unsupported method in request header."
+			
+			victim = reqData[1].split( " ")[1].replace("\r\n","")
+			optionSet[0] = True
+			uri = methodPath[1].replace("\r\n","")
+			optList[2] = True			
+			
+		elif select == "9":
 			savePath = raw_input("Enter file name to save: ")
 			try:
 				fo = open(savePath, "wb")
@@ -198,9 +227,10 @@ def options():
 				print "Options file saved!"
 			except:
 				print "Couldn't save options file."
-		elif select == "9":
-			mainMenu()
 
+		elif select == "x":
+			mainMenu()
+			
 def netAttacks(target):
 	mgtOpen = False
 	webOpen = False
@@ -217,10 +247,7 @@ def netAttacks(target):
 			mgtOpen = True
 	
 		except:
-			print "MongoDB port closed."
-		
-		
-	
+			print "MongoDB port closed."					
 	
 	elif srvNeedCreds == "y" or srvNeedCreds == "Y":
 		srvUser = raw_input("Enter server username: ")
@@ -243,17 +270,41 @@ def netAttacks(target):
 		mgtRespCode = urllib.urlopen(mgtUrl).getcode()
 		if mgtRespCode == 200:
 			print "MongoDB web management open at " + mgtUrl + ".  No authentication required!"
+			testRest = raw_input("Start tests for REST Interface? ")
+
+		if testRest == "y" or testRest == "Y":
+			restUrl = mgtUrl + "/listDatabases?text=1"
+			restResp = urllib.urlopen(restUrl).read()
+			restOn = restResp.find('REST is not enabled.')
+
+			if restOn == -1:
+				print "REST interface enabled!"
+				dbs = json.loads(restResp)
+				menuItem = 1
+				print "List of databases from REST API:"
+
+				for x in range(0,len(dbs['databases'])):
+					dbTemp= dbs['databases'][x]['name']
+					print str(menuItem) + "-" + dbTemp
+					menuItem += 1
+			print "\n"
+
+		else:
+			print "REST interface not enabled." 
 			
 	except:
 		
-		print "MongoDB web management closed or requires authentication."
+		print "MongoDB web management closed or requires authentication."	
 		
 	if mgtOpen == True:
 		#Ths is compiling server info?????
 		print "Server Info:"
-		serverInfo = conn.server_info()
-		print serverInfo
-
+		mongoVer = conn.server_info()['version']
+		print "MongoDB Version: " + mongoVer
+		mongoDebug = conn.server_info()['debug']
+		print "Debugs enabled : " + str(mongoDebug)
+		mongoPlatform = conn.server_info()['bits']
+		print "Platform: " + str(mongoPlatform) + " bit"
 		print "\n"
 		
 		try:
@@ -512,8 +563,8 @@ def webApps():
 			print "Injected response was smaller than random response.  Injection may have worked but requires verification."								
 			possAddrs.append(intThisNeqUri)
 			
-			
-		doTimeAttack = raw_input("Start timing based tests?")
+		print "\n"
+		doTimeAttack = raw_input("Start timing based tests? ")
 		
 		if doTimeAttack == "y" or doTimeAttack == "Y":
 			print "Starting Javascript string escape time based injection..."
