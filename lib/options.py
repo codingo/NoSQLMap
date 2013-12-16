@@ -69,7 +69,7 @@ class Options:
                     passed = True
                 else:
                     Logger.error("Invalid parameter.")
-            Logger.info(ack+test)
+            Logger.info(ack + test)
             return test
         def setSingleFileOption(checker, item, ack):
             '''Check an option, raise a FileReadingException if option does not comply with instructions'''
@@ -78,7 +78,7 @@ class Options:
                 what = ack.split("set")[0].strip()
                 Logger.error("Invalid parameter: " + item + "for element " + what)
                 raise FileReadingException
-            Logger.info(ack+item)
+            Logger.info(ack + item)
             return item
         select = True
         while select:			
@@ -106,49 +106,48 @@ class Options:
 
             select = Logger.logRequest("Select an option: ")
 
-            if select == "1":
-                self.victim = setSingleInteractiveOption(support.checkVictim,const_definition.victimIntMessage, const_definition.victimAckMessage)
+            def setVictim():
+                self.victim = setSingleInteractiveOption(support.checkVictim, const_definition.victimIntMessage, const_definition.victimAckMessage)
 
-            elif select == "2":
-                self.webPort = int(setSingleInteractiveOption(support.checkPort,const_definition.portIntMessage, const_definition.portAckMessage))
+            def setWebAppPort():
+                self.webPort = int(setSingleInteractiveOption(support.checkPort, const_definition.portIntMessage, const_definition.portAckMessage))
 
-            elif select == "3":
-                self.uri = setSingleInteractiveOption(support.checkPath,const_definition.uriIntMessage, const_definition.uriAckMessage)
+            def setAppPath():
+                self.uri = setSingleInteractiveOption(support.checkPath, const_definition.uriIntMessage, const_definition.uriAckMessage)
 
             #NOT IMPLEMENTED YET FOR USE
-            elif select == "4":
+            def setHTTPRequestMethod():
                     self.httpMethod = int(setSingleInteractiveOption(support.checkMethod, const_definition.methodIntMessage, const_definition.methodAckMessage))
                     if self.httpMethod == 2:
                         self.payload = setSingleInteractiveOption(support.checkPOST, const_definition.contentPOSTIntMessage, const_definition.contentPOSTAckMessage)
 
-
-            elif select == "5":
+            def setLocalMongoIP():
                     self.myIP = setSingleInteractiveOption(support.checkIP, const_definition.myIPIntMessage, const_definition.myIPAckMessage)
 
-            elif select == "6":
+            def setShellListener():
                     self.myPort = int(setSingleInteractiveOption(support.checkPort, const_definition.myPortIntMessage, const_definition.myPortAckMessage))
 
-            elif select == "7":
+            def loadOptFile():
                 loadPath = setSingleInteractiveOption(support.checkFilePath, const_definition.optionFileIntMessage, const_definition.optionFileAckMessage)
                 try:
-                    fo = open(loadPath,"r" )
+                    fo = open(loadPath, "r")
                     csvOpt = fo.read()
                     fo.close()
                     optList = csvOpt.split(",")
                     if len(optList) != 6:
                         raise FileReadingException
-                    self.victim = setSingleFileOption(support.checkVictim,optList[0], const_definition.victimAckMessage)
-                    self.webPort = int(setSingleFileOption(support.checkPort,optList[1], const_definition.portAckMessage))
-                    self.uri = setSingleFileOption(support.checkPath,optList[2], const_definition.uriAckMessage)
+                    self.victim = setSingleFileOption(support.checkVictim, optList[0], const_definition.victimAckMessage)
+                    self.webPort = int(setSingleFileOption(support.checkPort, optList[1], const_definition.portAckMessage))
+                    self.uri = setSingleFileOption(support.checkPath, optList[2], const_definition.uriAckMessage)
                     self.httpMethod = int(setSingleFileOption(support.checkMethod,optList[3], const_definition.methodAckMessage))
-                    self.myIP = setSingleFileOption(support.checkIP,optList[4], const_definition.myIPAckMessage)
-                    self.myPort = int(setSingleFileOption(support.checkPort,optList[5], const_definition.myPortAckMessage))
+                    self.myIP = setSingleFileOption(support.checkIP, optList[4], const_definition.myIPAckMessage)
+                    self.myPort = int(setSingleFileOption(support.checkPort, optList[5], const_definition.myPortAckMessage))
                 except IOError:
                     Logger.error("Couldn't load options file")
                 except FileReadingException:
                     Logger.error("Error while parsing the file, check it")
 
-            elif select == "8":
+            def saveOptFile():
                 gotit = False
                 while not gotit:
                     savePath = raw_input("Enter file name to save: ")
@@ -166,9 +165,23 @@ class Options:
                     Logger.info("Options file saved!")
                 except IOError:
                     Logger.error("Couldn't save options file.")
+                
+            opts = { 1: setVictim,
+                     2: setWebAppPort,
+                     3: setAppPath,
+                     4: setHTTPRequestMethod,
+                     5: setLocalMongoIP,
+                     6: setShellListener,
+                     7: loadOptFile,
+                     8: saveOptFile
+                    }
                     
-            elif select == "9":
-                return
+            if select == "9": return
+            
+            try:
+                opts[int(select)]() 
+            except (KeyError, ValueError):
+                pass
 
     def minRequirementsForNetAttack(self):
         '''check if victim is set, only req for net attack'''
