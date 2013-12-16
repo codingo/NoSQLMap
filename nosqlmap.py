@@ -51,7 +51,6 @@ if TEST:
     # global myIP
     # global myPort
 
-
 def mainMenu():
     select = True
     while select:
@@ -84,17 +83,13 @@ def mainMenu():
             #Check minimum required options
             if options.minRequirementsForWebApps():
                 webApps()
-
             else:
                 raw_input("Options not set! Check Host and URI path.  Press enter to continue...")
 
         elif select == "4":
             sys.exit()
-
         else:
             raw_input("Invalid Selection.  Press enter to continue.")
-
-
 
 def netAttacks():
     '''min necessary: a target'''
@@ -221,7 +216,7 @@ def netAttacks():
     #NOTE target === VICTIM
     options.setOptionsRemoteMongo() 
     try:
-        conn=connections.MongoConnection(options)
+        conn = connections.MongoConnection(options)
     except MongoConnectionError:
         Logger.error("Error connecting to remote MongoDB server.")
     except MinParametersViolation:
@@ -237,9 +232,9 @@ def netAttacks():
     Logger.success("Server Info:"+serverInfo)
 
     dbList = conn.getDbList()
-    Logger.success("List of databases:"+dbList)
+    Logger.success("List of databases: " + dbList)
 
-    Logger.success("List of collections:")
+    Logger.success("List of collections: ")
     connList = conn.getCollectionList()
 #    try:
 #        for dbItem in conn.dbList:
@@ -832,26 +827,24 @@ def webApps():
     injection = InjectionManager.InjectionManager(conn, length, vulnParam)
     
     tests = {
-            1:injection.mongoPHPNotEqualAssociativeArray,
-            2:injection.mongoWhereInjection,
-            3:injection.mongoThisNotEqualEscape,
-            4:injection.mongoTimeBasedInjection,
+            1: injection.mongoPHPNotEqualAssociativeArray,
+            2: injection.mongoWhereInjection,
+            3: injection.mongoThisNotEqualEscape,
+            4: injection.mongoTimeBasedInjection,
             }
     for t in usedTests:
         tests[t]()
 
-    print "\n"
-    print "Vunerable URLs:"
+    print "\nVunerable URLs:"
     print "\n".join(injection.vulnAddrs)
-    print "\n"
-    print "Possibly vulnerable URLs:"
-    print"\n".join(injection.possAddrs)
+    print "\nPossibly vulnerable URLs:"
+    print "\n".join(injection.possAddrs)
     print "\n"
 
     for el in injection.successfulAttacks:
-        print "%s -> %s" %(el,injection.successfulAttacks[el])
+        print "%s -> %s" % (el, injection.successfulAttacks[el])
 
-    fileOut = raw_input("Save results to file?")
+    fileOut = raw_input("Save results to file? [y/n]")
 
     if fileOut == "y" or fileOut == "Y":
         savePath = raw_input("Enter output file name: ")

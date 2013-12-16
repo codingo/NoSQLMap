@@ -90,7 +90,7 @@ class InjectionStringCreator:
         """
 
         for st in itertools.product(self.sizes, self.formats):
-            yield "%s" %(randInjString(st[0], st[1]))
+            yield "%s" % (randInjString(st[0], st[1]))
 
     def makeNeqString(self, origString):
         """

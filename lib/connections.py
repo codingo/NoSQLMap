@@ -36,6 +36,7 @@ class MongoConnection:
 
         if options.victim == "":
             raise MinParametersViolation
+            Logger.error("Missing parameter: target host.")
         self.username = options.mongoUn
         self.password = options.mongoPw
         self.target = options.victim
@@ -48,6 +49,7 @@ class MongoConnection:
             self.conn = MongoClient(self.uri)
         except mongoError.ConnectionFailure:
             raise MongoConnectionError
+            Logger.error("Error connecting to local MongoDB.")
         Logger.info("Connection established")
 
     def doSingleOperation(self, func):
@@ -67,8 +69,10 @@ class MongoConnection:
                 info = getattr(self.conn, func)()
             except mongoError.ConnectionFailure:
                 raise MongoConnectionError
+                Logger.error("Error connecting to local MongoDB.")
         except mongoError.ConnectionFailure:
             raise MongoConnectionError
+            Logger.error("Error connecting to local MongoDB.")
         return info
 
     def getServerInfo(self):
@@ -79,18 +83,18 @@ class MongoConnection:
         """
         
         self.serverInfo = self.doSingleOperation("server_info")
-        interestingData=["sysInfo","version","bits",]
-        m="\n"
+        interestingData = ["sysInfo", "version", "bits"]
+        m = "\n"
         for el in interestingData:
             if el == "sysInfo":
-                m+= "Mongo Build Info: " + str(self.serverInfo["sysInfo"]) + "\n"
+                m += "Mongo Build Info: " + str(self.serverInfo["sysInfo"]) + "\n"
             
             elif el == "version":
-                m+= "Mongo DB Version: " + str(self.serverInfo["version"]) + "\n"
+                m += "Mongo DB Version: " + str(self.serverInfo["version"]) + "\n"
             
             elif el == "bits":
-                m+= "Platform: " + str(self.serverInfo["bits"]) + " bit\n"
-        return m+"\n"
+                m += "Platform: " + str(self.serverInfo["bits"]) + " bit\n"
+        return m +"\n"
         
     def stealDBs(self, options):
         """
@@ -105,6 +109,7 @@ class MongoConnection:
 
         if options.myIP == "" or options.myPort == -1 or options.victim == "":
             raise MinParametersViolation
+            Logger.error("Missing parameter: specify IP, host or port number.")
 
         if not hasattr(self, "dbList"):
             self.getDbList()
@@ -157,10 +162,10 @@ class MongoConnection:
         Iterate on all the db, collecting collection_names and putting them in a list
 
         """
-        self.collList=self.doSingleOperation("collection_names")
+        self.collList = self.doSingleOperation("collection_names")
         m = ""
         for el in self.collList:
-            m += "\n%s" %(el)
+            m += "\n%s" % (el)
         return m + "\n"
 
 class WebConnection:
@@ -173,6 +178,7 @@ class WebConnection:
     def __init__(self,options):
         if options.victim == "":
             raise MinParametersViolation
+            Logger.error("Missing parameter: target host.")
         self.target = options.victim
         self.port = options.mongoWebPort
         self.uri = "http://%s:%s/" % (self.target, self.port)

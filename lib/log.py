@@ -53,7 +53,7 @@ class Logger :
     @classmethod
     def info(cls, message) :
         if cls.isLevel(Logger.INFO) :
-            print Logger.COLINFO+"INFO :  " + message + Logger.COLENDC
+            print Logger.COLINFO + "INFO :  " + message + Logger.COLENDC
 
     @classmethod
     def warn(cls, message) :
