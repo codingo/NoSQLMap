@@ -40,7 +40,7 @@ class MongoConnection:
         self.password = options.mongoPw
         self.target = options.victim
         self.port = options.mongoPort
-        if self.username and self.pasword:
+        if self.username and self.password:
             self.uri = "mongodb://%s:%s@%s:%s/" % (self.username, self.password, self.target, self.port)
         else:
             self.uri = "mongodb://%s:%s/" % (self.target, self.port)
