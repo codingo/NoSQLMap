@@ -19,7 +19,6 @@ from log import Logger
 import injStrings
 import copy
 
-
 class InjectionManager:
     """
     This class provides injections tests.

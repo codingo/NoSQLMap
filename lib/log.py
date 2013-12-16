@@ -33,42 +33,42 @@ class Logger :
     COLENDC = '\033[0m'    #ENDCOLOR
     _level = DEBUG
 
-    def __init__( self ) :
+    def __init__(self) :
         Logger._level = Logger.DEBUG
 
     @classmethod
-    def isLevel( cls, level ) :
+    def isLevel(cls, level) :
         return cls._level >= level
 
     @classmethod
-    def success( cls, message ) :
-        if cls.isLevel( Logger.SUCCESS ) :
-            print Logger.COLDONE+"SUCCESS:  " + message + Logger.COLENDC
+    def success(cls, message) :
+        if cls.isLevel(Logger.SUCCESS) :
+            print Logger.COLDONE + "SUCCESS:  " + message + Logger.COLENDC
 
     @classmethod
-    def debug( cls, message ) :
-        if cls.isLevel( Logger.DEBUG ) :
-            print Logger.COLHEADER+"DEBUG:  " + message + Logger.COLENDC
+    def debug(cls, message) :
+        if cls.isLevel(Logger.DEBUG) :
+            print Logger.COLHEADER + "DEBUG:  " + message + Logger.COLENDC
 
     @classmethod
-    def info( cls, message ) :
-        if cls.isLevel( Logger.INFO ) :
+    def info(cls, message) :
+        if cls.isLevel(Logger.INFO) :
             print Logger.COLINFO+"INFO :  " + message + Logger.COLENDC
 
     @classmethod
-    def warn( cls, message ) :
-        if cls.isLevel( Logger.WARN ) :
-            print Logger.COLWARNING+"WARN :  " + message + Logger.COLENDC
+    def warn(cls, message) :
+        if cls.isLevel(Logger.WARN) :
+            print Logger.COLWARNING + "WARN :  " + message + Logger.COLENDC
 
     @classmethod
-    def error( cls, message ) :
-        if cls.isLevel( Logger.ERROR ) :
-            print Logger.COLFAIL+"ERROR:  " + message + Logger.COLENDC
+    def error(cls, message) :
+        if cls.isLevel(Logger.ERROR) :
+            print Logger.COLFAIL + "ERROR:  " + message + Logger.COLENDC
 
     @classmethod
-    def fatal( cls, message ) :
-        if cls.isLevel( Logger.FATAL ) :
-            print Logger.COLFAIL+"FATAL:  " + message + Logger.COLENDC
+    def fatal(cls, message) :
+        if cls.isLevel(Logger.FATAL) :
+            print Logger.COLFAIL + "FATAL:  " + message + Logger.COLENDC
 
     @classmethod
     def default(cls, message):
@@ -76,6 +76,5 @@ class Logger :
 
     @classmethod
     def logRequest(cls, message):
-        m=Logger.COLHEADER + message + Logger.COLENDC
+        m = Logger.COLHEADER + message + Logger.COLENDC
         return raw_input(m)
-

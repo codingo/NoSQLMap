@@ -21,7 +21,7 @@ import random
 
 def randInjString(size, formatString):
     """
-    supporting function, reutrn a random string of size size and using characters from formatString decision.
+    supporting function, return a random string of size size and using characters from formatString decision.
     Possible formats:
     1: letters+digits
     2: letters
@@ -70,7 +70,7 @@ class InjectionStringCreator:
         "var d=1"
         ]
 
-    formatAvailables=[1,2,3,4]
+    formatAvailables = [1,2,3,4]
 
     standardSizes = [5,12,19,26,31]
 
@@ -80,7 +80,7 @@ class InjectionStringCreator:
         Otherwise, sizes and formats will be the standard ones (as defined as class elements)
         """
 
-        self.sizes=size
+        self.sizes = size
         self.formats = formats
 
     def createIdString(self):
@@ -96,7 +96,7 @@ class InjectionStringCreator:
         """
         Prepend the string with a "[$ne]=" attribute
         """
-        return "%s%s" %("[$ne]=",origString)
+        return "%s%s" % ("[$ne]=", origString)
 
     def makeWhereString(self, injString):
         """
@@ -113,7 +113,7 @@ class InjectionStringCreator:
         ]
 
         for st in itertools.product(self.leftPart, informations, self.rightPart):
-            central = st[1] %(injString)
+            central = st[1] % (injString)
             yield "%s%s%s" % (st[0],central,st[2])
 
     def createTimeString(self):
@@ -126,7 +126,7 @@ class InjectionStringCreator:
             'var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return;'
                 ]
         for st in itertools.product(self.leftPart, informations, self.rightPart):
-            yield "%s%s%s" %(st[0],st[1],st[2])
+            yield "%s%s%s" % (st[0], st[1], st[2])
 
     def createBlindNeqString(self, injString):
         """
@@ -141,6 +141,5 @@ class InjectionStringCreator:
         ]
         randCentral = rand(injString(5,2))
         for st in itertools.product(self.leftPart, informations, self.rightPart):
-            central = st[1] %(randCentral)
-            yield "%s%s%s%s" %(st[0],central,injString,st[2])
-
+            central = st[1] % (randCentral)
+            yield "%s%s%s%s" % (st[0], central, injString, st[2])

@@ -15,7 +15,6 @@
 #You should have received a copy of the GNU General Public License
 #along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
 import json
 from log import Logger
 import support
@@ -25,34 +24,35 @@ import const_definition
 #insert loading from json file
 
 class Options:
-    '''options that will be used throughout the program
+    '''
+    options that will be used throughout the program
     '''
     def __init__(self):
         #change it, maybe put "" and -1 as default then when printing if -1 or void print "Not Set"
-        self.victim=""
-        self.webPort=80
-        self.uri=""
-        self.httpMethod= -1
-        self.myIP=""
-        self.myPort=-1
-        self.mongoUn=""
-        self.mongoPw=""
-        self.mongoPort=27017
-        self.mongoWebPort=28017
-        self.payload={} #will be used in POST
+        self.victim = ""
+        self.webPort = 80
+        self.uri = ""
+        self.httpMethod = -1
+        self.myIP = ""
+        self.myPort = -1
+        self.mongoUn = ""
+        self.mongoPw = ""
+        self.mongoPort = 27017
+        self.mongoWebPort = 28017
+        self.payload = {} #will be used in POST
         #MONGOwebport changes are not implemented, we first have to look at what is useful to
         
     def setOptionsRemoteMongo(self):
-        m="Enter port or press return for default port (27017)"
+        m = "Enter port or press return for default port (27017)"
         tmpPort = Logger.logRequest(m)
         if tmpPort: self.mongoPort = tmpPort
-        m= "Does the database server need credentials? "
+        m = "Does the database server need credentials? [y/n] "
         srvNeedCreds=Logger.logRequest(m)
         if not srvNeedCreds or srvNeedCreds == "y" or srvNeedCreds == "Y":
             #ask for username and password
             self.mongoUn = Logger.logRequest("Enter server username: ")
             self.mongoPw = Logger.logRequest("Enter server password: ")
-            ack="Username set to %s password to %s" %(self.mongoUn, self.mongoPw)
+            ack = "Username set to %s password to %s" % (self.mongoUn, self.mongoPw)
             Logger.info(ack)
         elif srvNeedCreds == "n" or srvNeedCreds == "N":
             return
@@ -62,43 +62,46 @@ class Options:
     def setInteractiveOptions(self):
         def setSingleInteractiveOption(checker, message, ack):
             '''set a single option'''
-            passed=False
+            passed = False
             while not passed:
                 test = Logger.logRequest(message)
                 if checker(test):
-                    passed=True
+                    passed = True
                 else:
-                    Logger.error("Invalid Parameter")
+                    Logger.error("Invalid parameter.")
             Logger.info(ack+test)
             return test
         def setSingleFileOption(checker, item, ack):
             '''Check an option, raise a FileReadingException if option does not comply with instructions'''
-            item=item.strip()
+            item = item.strip()
             if not checker(item):
                 what = ack.split("set")[0].strip()
-                Logger.error("Invalid parameter: "+item+"for element "+what)
+                Logger.error("Invalid parameter: " + item + "for element " + what)
                 raise FileReadingException
             Logger.info(ack+item)
             return item
         select = True
-        while select:
-            m="\n\n"
-            m+= "Options"+"\n"
+        while select:			
             vicm = self.victim if self.victim else "Not Set"
-            m+= "1-Set target host/IP (Current: %s)\n" %(vicm)
-            webPortm = self.webPort if self.webPort!=-1 else "Not Set"
-            m+= "2-Set web app port (Current: %s)\n" %(webPortm)
+            webPortm = self.webPort if self.webPort != -1 else "Not Set"
             urim = self.uri if self.uri else "Not Set"
-            m+= "3-Set App Path (Current: %s)\n" %(urim)
-            methodm = self.httpMethod if self.httpMethod!=-1 else "Not Set"
-            m+= "4-Set HTTP Request Method (1 for GET/ 2 for POST) (Current: %s)\n" %(methodm)
+            methodm = self.httpMethod if self.httpMethod != -1 else "Not Set"
             myIpm = self.myIP if self.myIP else "Not Set"
-            m+= "5-Set my local Mongo/Shell IP (Current: %s)\n" %(myIpm)
-            myPortm = self.myPort if self.myPort!= -1 else "Not Set"
-            m+= "6-Set shell listener port (Current: %s)\n" %(myPortm)
-            m+= "7-Load options file"+"\n"
-            m+= "8-Save options file"+"\n"
-            m+= "9-Back to main menu"
+            myPortm = self.myPort if self.myPort != -1 else "Not Set"
+			
+            m = ''' \n
+            Options\n
+            1- Set target host/IP (Current: %s)
+            2- Set web app port (Current: %s)
+            3- Set App Path (Current: %s)
+            4- Set HTTP Request Method (1 for GET/ 2 for POST) \n\t    (Current: %s)
+            5- Set my local Mongo/Shell IP (Current: %s)
+            6- Set shell listener port (Current: %s)
+            7- Load options file
+            8- Save options file
+            9- Back to main menu
+            ''' % (vicm, webPortm, urim, methodm, myIpm, myPortm)
+            
             Logger.default(m)
 
             select = Logger.logRequest("Select an option: ")
@@ -146,35 +149,37 @@ class Options:
                     Logger.error("Error while parsing the file, check it")
 
             elif select == "8":
-                gotit=False
+                gotit = False
                 while not gotit:
                     savePath = raw_input("Enter file name to save: ")
                     try:
                         with open(savePath):
-                            ans=raw_input("File already exists, overwrite? ")
-                            if ans=="y" or ans == "Y":
-                                gotit=True
+                            ans = raw_input("File already exists, overwrite? [y/n] ")
+                            if ans == "y" or ans == "Y":
+                                gotit = True
                     except IOError:
-                        gotit=True
+                        gotit = True
                 try:
                     fo = open(savePath, "wb")
                     fo.write(str(self.victim) + "," + str(self.webPort) + "," + str(self.uri) + "," + str(self.httpMethod) + "," + str(self.myIP) + "," + str(self.myPort))
                     fo.close()
-                    print "Options file saved!"
+                    Logger.info("Options file saved!")
                 except IOError:
-                    print "Couldn't save options file."
+                    Logger.error("Couldn't save options file.")
+                    
             elif select == "9":
                 return
 
     def minRequirementsForNetAttack(self):
         '''check if victim is set, only req for net attack'''
-        if len(self.victim)>0:
+        if len(self.victim) > 0:
             return True
         else:
             return False
+            
     def minRequirementsForWebApps(self):
         '''check if victim is set, only req for web app (uri can also be null in case of a post)'''
-        if len(self.victim)>0:
+        if len(self.victim) > 0:
             return True
         else:
             return False

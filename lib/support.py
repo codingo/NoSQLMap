@@ -15,7 +15,6 @@
 #You should have received a copy of the GNU General Public License
 #along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
 '''support library for checking and other stuff'''
 
 import string
@@ -61,25 +60,24 @@ def checkVictim(p):
             return True
     return False
 
-
 def checkPath(path):
     '''character allowed in path are a finite set + urlencoding'''
     #range A–Z, a–z, 0–9, -, ., _, ~, !, $, &, ', (, ), *, +, ,, ;, =, :, @, %+twohexdigits
-    allowedChars=list(string.letters) + list(string.digits)+['/','-','.','_','~','!','$','&',"'",'(',')','*','+',',',';','=',':','@','%','?']
+    allowedChars = list(string.letters) + list(string.digits) + ['/','-','.','_','~','!','$','&',"'",'(',')','*','+',',',';','=',':','@','%','?']
     if any(c not in allowedChars for c in path):
         return False
     for pos in [i for i, ltr in enumerate(path) if ltr == '%']:
-        if path[pos+1] not in string.hexdigits or path[pos+2] not in string.hexdigits:
+        if path[pos + 1] not in string.hexdigits or path[pos + 2] not in string.hexdigits:
             return False
     return True
 
 def checkMethod(method):
     '''get with 1, post with 2'''
     try:
-        method=int(method)
+        method = int(method)
     except ValueError:
         return False
-    return method==1 or method == 2
+    return method == 1 or method == 2
 
 def checkFilePath(path):
     '''check if file does exist'''

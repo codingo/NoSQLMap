@@ -15,8 +15,6 @@
 #You should have received a copy of the GNU General Public License
 #along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
 import sys
 import string
 import random
@@ -35,9 +33,9 @@ import lib.metasploit as metasploit
 import lib.HTTPconnections as HTTPconnections
 import lib.injection as InjectionManager
 
-TEST=False
+TEST = False
 
-options=Options()
+options = Options()
 
 if TEST:
     import testing
@@ -57,15 +55,19 @@ if TEST:
 def mainMenu():
     select = True
     while select:
-        os.system('clear')
-        print "NoSQLMap v0.2DEV-nosqlmap@gmail.com"
-        print "\n"
-        print "1-Set options (do this first)"
-        print "2-NoSQL DB Access Attacks"
-        print "3-NoSQL Web App attacks"
-        print "4-Exit"
-
-        select = raw_input("Select an option:")
+        if sys.platform.startswith('linux') or sys.platform.startswith('freebsd'):
+             os.system('clear')
+        elif sys.platform.startswith('win'):
+             os.system('cls')
+        print "NoSQLMap v0.2DEV-nosqlmap@gmail.com\n"
+        print '''
+        1- Set options (do this first)
+        2- NoSQL DB Access Attacks
+        3- NoSQL Web App attacks
+        4- Exit
+        '''
+        
+        select = raw_input("Select an option: ")
 
         if select == "1":
             options.setInteractiveOptions()
@@ -257,20 +259,20 @@ def netAttacks():
 
     #TODO: restructure this part, with a menu?
 
-    menu="Direct Access to DB completed:\n"
-    menu+="1-Steal DB\n"
-    menu+="2-Get a shell\n"
-    menu+="\n"
+    menu = "Direct Access to DB completed:\n"
+    menu += "1-Steal DB\n"
+    menu += "2-Get a shell\n"
+    menu += "\n"
 
     choice = 0
     while choice not in ["1","2"]:
         choice = Logger.logRequest(menu)
-        if choice=="1":
+        if choice == "1":
             try:
                 conn.stealDBs(options)
             except MinParametersViolation:
                 Logger.error("Missing parameters. Please check options.")
-        elif choice=="2":
+        elif choice == "2":
             try:
                 metasploit.metasploitMongoShell(options)
             except MinParametersViolation:
@@ -286,8 +288,6 @@ def netAttacks():
 
     raw_input("Press enter to continue...")
     return()
-
-
 
 def webApps():
     paramName = []
@@ -796,7 +796,7 @@ def webApps():
 
     try:
         connParams = conn.buildUri(conn.payload)
-        res,length = conn.doConnection(connParams)
+        res, length = conn.doConnection(connParams)
         
         #NOTE: it's better to delay timing test to the second request, because of cache servers etc
         #appRespCode = urllib.urlopen(appURL).getcode()
@@ -809,10 +809,10 @@ def webApps():
         #    timeReq.close()
         #    timeBase = round((end - start), 3)
 #            appUrl=res.url
-            m="App is up! Starting injection test.\n"
+            m = "App is up! Starting injection test.\n"
             Logger.success(m)
         else:
-            m = "Page returned HTTP error code %s, please check options" %(appRespCode)
+            m = "Page returned HTTP error code %s, please check options" % (appRespCode)
             Logger.error(m)
             return
     except ConnectionError:
@@ -824,9 +824,9 @@ def webApps():
     '''create a InjectionManager obj using conn as parameter, and then run all tests'''
     '''MUST ASK for vuln param in get, or run tests for all params (check that param exists)'''
 
-    checkParam=False
+    checkParam = False
     while not checkParam:
-        vulnParam=Logger.logRequest("Insert vulnerable parameter (leave empty for running on all): ")
+        vulnParam = Logger.logRequest("Insert vulnerable parameter (leave empty for running on all): ")
         checkParam = True if not vulnParam else conn.checkVulnParam(vulnParam)
 
     injection = InjectionManager.InjectionManager(conn, length, vulnParam)
@@ -839,7 +839,6 @@ def webApps():
             }
     for t in usedTests:
         tests[t]()
-
 
     print "\n"
     print "Vunerable URLs:"
@@ -874,13 +873,8 @@ if "-a" in sys.argv:
     options.webPort = 80
     options.uri = "/payments/acct.php"
     options.httpMethod = 1
-    options.payload="acctid=1"
+    options.payload = "acctid=1"
 
     webApps()
 
 mainMenu()
-
-
-
-
-
