@@ -334,6 +334,9 @@ def netAttacks(target):
 		
 		except:
 			print "Error:  Couldn't list collections.  The provided credentials may not have rights."
+		
+		#Start GridFS enumeration
+		
 			
 		stealDB = raw_input("Steal a database? (Requires your own Mongo instance): ")
 		
