@@ -34,7 +34,7 @@ def mainMenu():
 	while select:
 		os.system('clear')
 		#label = subprocess.check_output(["git","describe","--always"])
-		print "NoSQLMap-v0.15a"
+		print "NoSQLMap-v0.15b"
 		print "nosqlmap@gmail.com"
 		print "\n"
 		print "1-Set options (do this first)"
@@ -639,9 +639,14 @@ def buildUri(origUri, randValue):
 	injOpt = ""
 	
 	#Split the string between the path and parameters, and then split each parameter
-	split_uri = origUri.split("?")
-	params = split_uri[1].split("&")
+	try:
+		split_uri = origUri.split("?")
+		params = split_uri[1].split("&")
 	
+	except:
+		raw_input("Not able to parse the URL and parameters.  Check options settings.  Press enter to return to main menu...")
+		mainMenu()
+		
 	for item in params:
 		index = item.find("=")
 		paramName.append(item[0:index])
