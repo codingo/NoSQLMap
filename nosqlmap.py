@@ -24,6 +24,7 @@ import urllib
 import pymongo
 import subprocess
 import json
+import gridfs
 
 #Set a list so we can track whether options are set or not to avoid resetting them in subsequent cals to the options menu.
 global optionSet
@@ -335,9 +336,24 @@ def netAttacks(target):
 		except:
 			print "Error:  Couldn't list collections.  The provided credentials may not have rights."
 		
+		print "\n"
 		#Start GridFS enumeration
 		
-			
+		testGrid = raw_input("Check for GridFS? ")
+		
+		if testGrid == "y" or testGrid == "Y":
+			for dbItem in dbList:
+				try:
+					db = conn[dbItem]
+					fs = gridfs.GridFS(db)
+					files = fs.list()
+					print "GridFS enabled on database " + str(dbItem)
+					print " list of files:"
+					print "\n".join(files)
+					
+				except:
+					print "GridFS not enabled on " + str(dbItem) + "."
+							
 		stealDB = raw_input("Steal a database? (Requires your own Mongo instance): ")
 		
 		if stealDB == "y" or stealDB == "Y":
