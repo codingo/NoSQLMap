@@ -29,6 +29,12 @@ import gridfs
 #Set a list so we can track whether options are set or not to avoid resetting them in subsequent cals to the options menu.
 global optionSet
 optionSet = [False,False,False,False,False,False]
+global victim
+global webPort
+global uri
+global httpMethod
+global myIP
+global myPort
 
 
 def mainMenu():
@@ -39,10 +45,11 @@ def mainMenu():
 		print "NoSQLMap-v0.15b"
 		print "nosqlmap@gmail.com"
 		print "\n"
-		print "1-Set options (do this first)"
+		print "1-Set options"
 		print "2-NoSQL DB Access Attacks"
 		print "3-NoSQL Web App attacks"
-		print "4-Exit"
+		print "4-Scan for Anonymous MongoDB Access"
+		print "5-Exit"
 
 		select = raw_input("Select an option: ")
 
@@ -67,8 +74,11 @@ def mainMenu():
 			else:
 				raw_input("Options not set! Check Host and URI path.  Press enter to continue...")
 				mainMenu()
-
+				
 		elif select == "4":
+			massMongo()
+
+		elif select == "5":
 			sys.exit()
 			
 		else:
@@ -83,7 +93,6 @@ def options():
 	global httpMethod
 	global myIP
 	global myPort
-	
 	#Set default value if needed
 	if optionSet[0] == False:
 		victim = "Not Set"
@@ -829,6 +838,57 @@ def stealDBs(myDB):
 	
 	except:
 		raw_input ("Something went wrong.  Are you sure your MongoDB is running and options are set? Press enter to return...")
-		mainMenu()								
+		mainMenu()
+	
+def massMongo():
+	global victim
+	success = []
+	print "\n"
+	print "Massmongo-Scan for default access to MongoDB servers"
+	print "===================================================="
+	loadPath = raw_input("Enter file name with IP list to scan: ")
+
+	with open (loadPath) as f:
+	        ipList = f.readlines()
+
+
+	for target in ipList:
+	        try:
+	                conn = pymongo.MongoClient(target,27017)
+			print " Connected to " + target[:-1]
+			dbList = conn.database_names()
+			
+			print "Successful admin access to " + target[:-1]
+			target = target[:-1]
+			success.append(target)
+			conn.disconnect()
+
+		except:
+		        print "Failed to connect to " + target + " or credentials required."
+
+	print "\n\n"
+	print "Discovered MongoDB Servers:"
+	
+	menuItem = 1
+	print "List of servers:"
+	for server in success:
+		print str(menuItem) + "-" + server
+		menuItem += 1
+	
+	select = True
+	while select:
+		select = raw_input("Select a NoSQLMap target or press x to exit: ")
+	
+		if select == "x" or select == "X":
+			mainMenu()
+	
+		elif select.isdigit() == True:
+			victim = success[int(select) - 1]
+			optionSet[0] = True
+			raw_input("New target set! Press enter to return to the main menu.")
+			mainMenu()
+	
+		else:
+			raw_input("Invalid selection.")				
 	
 mainMenu()
