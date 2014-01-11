@@ -42,14 +42,14 @@ def mainMenu():
 	while select:
 		os.system('clear')
 		#label = subprocess.check_output(["git","describe","--always"])
-		print "NoSQLMap-v0.15b"
+		print "NoSQLMap-v0.2"
 		print "nosqlmap@gmail.com"
 		print "\n"
 		print "1-Set options"
 		print "2-NoSQL DB Access Attacks"
 		print "3-NoSQL Web App attacks"
 		print "4-Scan for Anonymous MongoDB Access"
-		print "5-Exit"
+		print "x-Exit"
 
 		select = raw_input("Select an option: ")
 
@@ -78,7 +78,7 @@ def mainMenu():
 		elif select == "4":
 			massMongo()
 
-		elif select == "5":
+		elif select == "x":
 			sys.exit()
 			
 		else:
@@ -684,23 +684,30 @@ def randInjString(size):
 	print "2-Letters only"
 	print "3-Numbers only"
 	print "4-Email address"
-	format = raw_input("Select an option: ")
+	format = True
 	
-	if format == "1":
-		chars = string.ascii_letters + string.digits
-		return ''.join(random.choice(chars) for x in range(size))
+	while format:
+		format = raw_input("Select an option: ")
 	
-	elif format == "2":
-		chars = string.ascii_letters
-		return ''.join(random.choice(chars) for x in range(size))
+		if format == "1":
+			chars = string.ascii_letters + string.digits
+			return ''.join(random.choice(chars) for x in range(size))
 	
-	elif format == "3":
-		chars = string.digits
-		return ''.join(random.choice(chars) for x in range(size))
+		elif format == "2":
+			chars = string.ascii_letters
+			return ''.join(random.choice(chars) for x in range(size))
 	
-	elif format == "4":
-		chars = string.ascii_letters + string.digits
-		return ''.join(random.choice(chars) for x in range(size)) + '@' + ''.join(random.choice(chars) for x in range(size)) + '.com'
+		elif format == "3":
+			chars = string.digits
+			return ''.join(random.choice(chars) for x in range(size))
+	
+		elif format == "4":
+			chars = string.ascii_letters + string.digits
+			return ''.join(random.choice(chars) for x in range(size)) + '@' + ''.join(random.choice(chars) for x in range(size)) + '.com'
+		
+		else:
+			format = True
+			print "Invalid selection."
 	
 
 def buildUri(origUri, randValue):
