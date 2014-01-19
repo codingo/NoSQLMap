@@ -1,7 +1,7 @@
 NoSQLMap 
 ========
 
-[NoSQLMap](http://www.nosqlmap.net) v0.15b
+[NoSQLMap](http://www.nosqlmap.net) v0.2
 
 Introduction
 ============
@@ -43,7 +43,8 @@ NoSQLMap uses a menu based system for building attacks.  Upon starting NoSQLMap 
 1-Set options (do this first)
 2-NoSQL DB Access Attacks
 3-NoSQL Web App attacks
-4-Exit
+4-Scan for Anonymous MongoDB Access
+x-Exit
 ```
 
 **ALWAYS USE OPTION 1 FIRST TO SET THE PARAMETERS!**
@@ -57,8 +58,9 @@ Explanation of options:
 5. Set my local Mongo/Shell IP-Set this option if attacking a MongoDB instance directly to the IP of a target Mongo installation to clone victim databases to or open Meterpreter shells to.
 6. Set shell listener port-If opening Meterpreter shells, specify the port.
 7. Load options file-Load a previously saved set of settings for 1-6.
-8. Save options file-Save settings 1-6 for future use.
-9. Back to main menu-Use this once the options are set to start your attacks.
+8. Load options from saved Burp request-Parse a request saved from Burp Suite and populate the web application options.
+9. Save options file-Save settings 1-6 for future use.
+x. Back to main menu-Use this once the options are set to start your attacks.
 ```
 
 Once options are set head back to the main menu and select DB access attacks or web app attacks as appropriate for whether you are attacking a NoSQL management port or web application. The rest of the tool is "wizard" based and fairly self explanatory, but send emails to nosqlmap@gmail.com or find me on Twitter [@tcstoolHax0r](https://twitter.com/tcstoolHax0r) if you have any questions or suggestions. 
