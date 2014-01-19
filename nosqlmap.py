@@ -25,6 +25,7 @@ import pymongo
 import subprocess
 import json
 import gridfs
+import ipcalc
 from hashlib import md5
 
 #Set a list so we can track whether options are set or not to avoid resetting them in subsequent cals to the options menu.
@@ -879,37 +880,62 @@ def stealDBs(myDB):
 	
 def massMongo():
 	global victim
+	optCheck = True
 	loadCheck = False
 	success = []
+	ipList = []
 	print "\n"
 	print "MongoDB Default Access Scanner"
 	print "=============================="
+	print "1-Scan a subnet for default MongoDB access"
+	print "2-Loads IPs to scan from a file"
 	
-	while loadCheck == False:
-		loadPath = raw_input("Enter file name with IP list to scan: ")
+	while optCheck:
+		loadOpt = raw_input("Select a scan method: ")
+		
+	
+		if loadOpt == "1":
+			subnet = raw_input("Enter subnet to scan: ")
+		
+			try:
+				for ip in ipcalc.Network(subnet):
+					ipList.append(str(ip))
+				optCheck = False
+			except:
+				raw_input("Not a valid subnet.  Press enter to return to main menu.")
+				mainMenu()
+				
+	
+		print "Debug:"
+		print ipList
+	
+		if loadOpt == "2":
+			while loadCheck == False:
+				loadPath = raw_input("Enter file name with IP list to scan: ")
 
-		try:
-			with open (loadPath) as f:
-			        ipList = f.readlines()
-			loadCheck = True
-		except:
-			print "Couldn't open file."
+				try:
+					with open (loadPath) as f:
+					        ipList = f.readlines()
+					loadCheck = True
+					optCheck = False
+				except:
+					print "Couldn't open file."
 			
 
 	print "\n"
 	for target in ipList:
 	        try:
 	                conn = pymongo.MongoClient(target,27017)
-			print "Connected to " + target[:-1] + "!"
+			print "Connected to " + target
 			dbList = conn.database_names()
 			
-			print "Successful admin access on " + target[:-1] + ".\n"
+			print "Successful default access on " + target
 			target = target[:-1]
 			success.append(target)
 			conn.disconnect()
 
 		except:
-		        print "Failed to connect to " + target[:-1] + " or credentials required."
+		        print "Failed to connect to or need credentials for " + target 
 
 	print "\n\n"
 	print "Discovered MongoDB Servers:"
