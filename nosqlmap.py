@@ -879,14 +879,22 @@ def stealDBs(myDB):
 	
 def massMongo():
 	global victim
+	loadCheck = False
 	success = []
 	print "\n"
 	print "MongoDB Default Access Scanner"
 	print "=============================="
-	loadPath = raw_input("Enter file name with IP list to scan: ")
+	
+	while loadCheck == False:
+		loadPath = raw_input("Enter file name with IP list to scan: ")
 
-	with open (loadPath) as f:
-	        ipList = f.readlines()
+		try:
+			with open (loadPath) as f:
+			        ipList = f.readlines()
+			loadCheck = True
+		except:
+			print "Couldn't open file."
+			
 
 	print "\n"
 	for target in ipList:
@@ -933,18 +941,22 @@ def gen_pass(user, passw):
 
 
 def brute_pass(user,key):
-	dictionary = raw_input("Enter path to password dictionary: ")
-	#print user
-	#print key
-	print "Preparing dictionary attack..."
-	with open (dictionary) as f:
-	        passList = f.readlines()
-		
-	print "debug: " + str(passList)
-
+	loadCheck = False
+	
+	while loadCheck == False:
+		dictionary = raw_input("Enter path to password dictionary: ")
+		try:
+			with open (dictionary) as f:
+			       passList = f.readlines()
+			loadCheck = True
+		except:
+			print " Couldn't load file."
+	
+	
+	print "Running dictionary attack..."
 	for passGuess in passList:
 		temp = passGuess.split("\n")[0]
-		#print "debug: " + temp
+		
 		if gen_pass(user, temp) == key:
 			print "\nFound - "+user+":"+passGuess
 			return passGuess
