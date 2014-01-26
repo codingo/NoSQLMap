@@ -89,25 +89,26 @@ def mainMenu():
 			
 
 def options():
-	global victim
-	global webPort
-	global uri
-	global httpMethod
-	global myIP
-	global myPort
+	
 	#Set default value if needed
 	if optionSet[0] == False:
+		global victim
 		victim = "Not Set"
 	if optionSet[1] == False:
+		global webPort
 		webPort = 80
 		optionSet[1] = True
 	if optionSet[2] == False:
+		global uri
 		uri = "Not Set"
 	if optionSet[3] == False:
+		global httpMethod
 		httpMethod = "GET"
 	if optionSet[4] == False:
+		global myIP
 		myIP = "Not Set"
 	if optionSet[5] == False:
+		global myPort
 		myPort = "Not Set"
 	
 	select = True
@@ -228,7 +229,7 @@ def options():
 			victim = reqData[1].split( " ")[1].replace("\r\n","")
 			optionSet[0] = True
 			uri = methodPath[1].replace("\r\n","")
-			optList[2] = True			
+			optionSet[2] = True			
 			
 		elif select == "9":
 			savePath = raw_input("Enter file name to save: ")
@@ -836,7 +837,10 @@ def buildUri(origUri, randValue):
 	return uriArray[0]
 
 def stealDBs(myDB):
-	menuItem = 1	
+	menuItem = 1
+	if optionSet[4] == False:
+		raw_input("No destination database set! Press enter to return to the main menu.")
+		mainMenu()
 	
 	for dbName in dbList:
 		print str(menuItem) + "-" + dbName
@@ -875,8 +879,12 @@ def stealDBs(myDB):
 			return()
 	
 	except:
-		raw_input ("Something went wrong.  Are you sure your MongoDB is running and options are set? Press enter to return...")
-		mainMenu()
+		if str(sys.exc_info()).find('text search not enabled') != 1:
+			raw_input("Database copied, but text indexing was not enabled on the target.  Indexes not moved.  Press enter to return...")
+			mainMenu()
+		else:
+			raw_input ("Something went wrong.  Are you sure your MongoDB is running and options are set? Press enter to return...")
+			mainMenu()
 	
 def massMongo():
 	global victim
@@ -906,8 +914,8 @@ def massMongo():
 				mainMenu()
 				
 	
-		print "Debug:"
-		print ipList
+		#print "Debug:"
+		#print ipList
 	
 		if loadOpt == "2":
 			while loadCheck == False:
