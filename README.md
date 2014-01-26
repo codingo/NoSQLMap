@@ -12,6 +12,7 @@ It is named as a tribute to Bernardo Damele and Miroslav's Stampar's popular SQL
 
 Requirements 
 ============
+On a Debian or Red Hat based system, the setup.sh script may be run as root to automate the installation of NoSQLMap's dependencies.  
 
 Varies based on features used:
 - Metasploit Framework,
