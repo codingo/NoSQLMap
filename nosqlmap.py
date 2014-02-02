@@ -44,7 +44,7 @@ def mainMenu():
 	while select:
 		os.system('clear')
 		#label = subprocess.check_output(["git","describe","--always"])
-		print "NoSQLMap-v0.2"
+		print "NoSQLMap-v0.3"
 		print "nosqlmap@gmail.com"
 		print "\n"
 		print "1-Set options"
@@ -163,6 +163,12 @@ def options():
 				elif httpMethod == "2":
 					print "POST request set"
 					optionSet[3] = True
+					postDataIn = raw_input("Enter POST data in a comma separated list (i.e. param name 1,value1,param name 2,value2)\n")
+					pdArray = postDataIn.split(",")
+					paramNames = pdArray[0::2]
+					paramValues = pdArray[1::2]
+					postData = dict(zip(paramNames,paramValues))
+					raw_input("Debug: " + str(postData))
 					options()
 				else:
 					print "Invalid selection"
@@ -931,6 +937,7 @@ def massMongo():
 	print "=============================="
 	print "1-Scan a subnet for default MongoDB access"
 	print "2-Loads IPs to scan from a file"
+	print "x-Return to main menu"
 	
 	while optCheck:
 		loadOpt = raw_input("Select a scan method: ")
@@ -962,6 +969,9 @@ def massMongo():
 					optCheck = False
 				except:
 					print "Couldn't open file."
+					
+		if loadOpt == "x":
+			mainMenu()
 			
 
 	print "\n"
