@@ -879,7 +879,7 @@ def stealDBs(myDB):
 			return()
 	
 	except:
-		if str(sys.exc_info()).find('text search not enabled') != 1:
+		if str(sys.exc_info()).find('text search not enabled') != -1:
 			raw_input("Database copied, but text indexing was not enabled on the target.  Indexes not moved.  Press enter to return...")
 			mainMenu()
 		else:
