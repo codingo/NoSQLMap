@@ -118,7 +118,7 @@ def options():
 		print "1-Set target host/IP (Current: " + str(victim) + ")"
 		print "2-Set web app port (Current: " + str(webPort) + ")" 
 		print "3-Set App Path (Current: " + str(uri) + ")"
-		print "4-Set HTTP Request Method (GET/POST)"
+		print "4-Set HTTP Request Method (GET/POST) (Current: " + httpMethod + ")"
 		print "5-Set my local Mongo/Shell IP (Current: " + str(myIP) + ")"
 		print "6-Set shell listener port (Current: " + str(myPort) + ")"
 		print "7-Load options file"
@@ -168,7 +168,7 @@ def options():
 					paramNames = pdArray[0::2]
 					paramValues = pdArray[1::2]
 					postData = dict(zip(paramNames,paramValues))
-					raw_input("Debug: " + str(postData))
+					#raw_input("Debug: " + str(postData))
 					options()
 				else:
 					print "Invalid selection"
@@ -226,15 +226,27 @@ def options():
 				httpMethod = "GET"
 			
 			elif methodPath[0] == "POST":
+				paramNames = []
+				paramValues = []
 				httpMethod = "POST"
 				postData = reqData[len(reqData)-1]
+				#split the POST parameters up into individual items
+				paramsNvalues = postData.split("&")
+				
+				for item in paramsNvalues:
+					tempList = item.split("=")
+					paramNames.append(tempList[0])
+					paramValues.append(tempList[1])
+				
+				postData = dict(zip(paramNames,paramValues))
+				
 			else:
 				print "unsupported method in request header."
 			
 			victim = reqData[1].split( " ")[1].replace("\r\n","")
 			optionSet[0] = True
 			uri = methodPath[1].replace("\r\n","")
-			optList[2] = True			
+			optionSet[2] = True			
 			
 		elif select == "9":
 			savePath = raw_input("Enter file name to save: ")
