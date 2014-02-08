@@ -44,6 +44,14 @@ def mainMenu():
 	while select:
 		os.system('clear')
 		#label = subprocess.check_output(["git","describe","--always"])
+		print "===================================================="
+		print " _   _       _____  _____ _     ___  ___            "
+		print "| \ | |     /  ___||  _  | |    |  \/  |            "
+		print "|  \| | ___ \ `--. | | | | |    | .  . | __ _ _ __  "
+		print "| . ` |/ _ \ `--. \| | | | |    | |\/| |/ _` | '_ \ "
+		print "| |\  | (_) /\__/ /\ \/' / |____| |  | | (_| | |_) |"
+		print "\_| \_/\___/\____/  \_/\_\_____/\_|  |_/\__,_| .__/"
+		print "===================================================="
 		print "NoSQLMap-v0.3"
 		print "nosqlmap@gmail.com"
 		print "\n"
@@ -168,7 +176,7 @@ def options():
 					paramNames = pdArray[0::2]
 					paramValues = pdArray[1::2]
 					postData = dict(zip(paramNames,paramValues))
-					#raw_input("Debug: " + str(postData))
+					httpMethod = "POST"
 					options()
 				else:
 					print "Invalid selection"
@@ -189,15 +197,21 @@ def options():
 			loadPath = raw_input("Enter file name to load: ")
 			try:
 				fo = open(loadPath,"r" )
-				csvOpt = fo.read()
+				csvOpt = fo.readlines()
 				fo.close()
-				optList = csvOpt.split(",")
+				optList = csvOpt[0].split(",")
 				victim = optList[0]
 				webPort = optList[1]
 				uri = optList[2]
 				httpMethod = optList[3]
 				myIP = optList[4]
 				myPort = optList[5]
+				
+				if httpMethod == "POST":
+					postData = csvOpt[1]
+				
+				
+				
 			
 				#Set option checking array based on what was loaded
 				x = 0
@@ -207,6 +221,7 @@ def options():
 					x += 1
 			except:
 				print "Couldn't load options file!"
+				#print str(sys.exc_info())	Debug
 			options()
 		
 		elif select == "8":
@@ -252,7 +267,10 @@ def options():
 			savePath = raw_input("Enter file name to save: ")
 			try:
 				fo = open(savePath, "wb")
-				fo.write(str(victim) + "," + str(webPort) + "," + str(uri) + "," + str(httpMethod) + "," + str(myIP) + "," + str(myPort)) 
+				fo.write(str(victim) + "," + str(webPort) + "," + str(uri) + "," + str(httpMethod) + "," + str(myIP) + "," + str(myPort))
+				
+				if httpMethod == "POST":
+					fo.write(",\n"+ str(postData))
 				fo.close()
 				print "Options file saved!"
 			except:
