@@ -137,7 +137,7 @@ def options():
 		select = raw_input("Select an option: ")
 		
 		if select == "1":
-			#Unset the boolean since we're setting it again.
+			#Unset the boolean if it's set since we're setting it again.
 			optionSet[0] = False
 			goodLen = False
 			goodDigits = False
@@ -209,10 +209,41 @@ def options():
 					print "Invalid selection"
 
 		elif select == "5":
-			myIP = raw_input("Enter host IP for my Mongo/Shells: ")
-			print "Shell IP set to " + myIP + "\n"
-			optionSet[4] = True
+			#Unset the setting boolean since we're setting it again.
+			optionSet[4] = False
+			goodLen = False
+			goodDigits = False
+			while optionSet[4] == False:
+				myIP = raw_input("Enter the host IP for my Mongo/Shells: ")
+				#make sure we got a valid IP
+				octets = myIP.split(".")
+				#If there aren't 4 octets, toss an error.
+				if len(octets) != 4:
+					print "Invalid IP length."
+				
+				else:
+					goodLen = True
+				
+				if goodLen == True:	
+				#If the format of the IP is good, check and make sure the octets are all within acceptable ranges.
+					for item in octets:
+						if int(item) < 0 or int(item) > 255:
+							print "Bad octet in IP address."
+							goodDigits = False
+						
+						else:
+							goodDigits = True
+						
+				
+				#If everything checks out set the IP and break the loop
+				if goodLen == True and goodDigits == True:
+					print "\nShell/DB listener set to " + myIP + "\n"
+					optionSet[4] = True
 			options()
+			#myIP = raw_input("Enter host IP for my Mongo/Shells: ")
+			#print "Shell IP set to " + myIP + "\n"
+			#optionSet[4] = True
+			#options()
 		
 		elif select == "6":
 			myPort = raw_input("Enter TCP listener for shells: ")
