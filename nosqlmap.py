@@ -1015,9 +1015,12 @@ def stealDBs(myDB):
 			return()
 	
 	except:
-		#print str(sys.exc_info())
-		raw_input ("Something went wrong.  Are you sure your MongoDB is running and options are set? Press enter to return...")
-		mainMenu()
+		if str(sys.exc_info()).find('text search not enabled') != -1:
+			raw_input("Database copied, but text indexing was not enabled on the target.  Indexes not moved.  Press enter to return...")
+			mainMenu()
+		else:	
+			raw_input ("Something went wrong.  Are you sure your MongoDB is running and options are set? Press enter to return...")
+			mainMenu()
 	
 def massMongo():
 	global victim
