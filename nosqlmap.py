@@ -258,13 +258,11 @@ def options():
 				print "Verbose output enabled."
 				verb = "ON"
 				optionSet[6] = True
-				options()
 			
-			if verb == "ON":
+			elif verb == "ON":
 				print "Verbose output disabled."
 				verb = "OFF"
 				optionSet[6] = True
-				options()
 			
 		elif select == "8":
 			loadPath = raw_input("Enter file name to load: ")
