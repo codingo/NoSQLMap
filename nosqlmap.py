@@ -34,7 +34,7 @@ from hashlib import md5
 
 #Set a list so we can track whether options are set or not to avoid resetting them in subsequent cals to the options menu.
 global optionSet
-optionSet = [False,False,False,False,False,False,False]
+optionSet = [False,False,False,False,False,False,False,False]
 global victim
 global webPort
 global uri
@@ -112,6 +112,7 @@ def options():
 	global myPort
 	global verb
 	global mmSelect
+	global dbPort
 	
 	#Set default value if needed
 	if optionSet[0] == False:
@@ -129,7 +130,8 @@ def options():
 		myPort = "Not Set"
 	if optionSet[6] == False:
 		verb = "OFF"
-	
+	if optionSet[7] == False:
+		dbPort = 27017
 	optSelect = True
 	
 	while optSelect:	
@@ -138,13 +140,14 @@ def options():
 		print "1-Set target host/IP (Current: " + str(victim) + ")"
 		print "2-Set web app port (Current: " + str(webPort) + ")" 
 		print "3-Set App Path (Current: " + str(uri) + ")"
-		print "4-Set HTTP Request Method (GET/POST) (Current: " + httpMethod + ")"
-		print "5-Set my local Mongo/Shell IP (Current: " + str(myIP) + ")"
-		print "6-Set shell listener port (Current: " + str(myPort) + ")"
-		print "7-Toggle Verbose Mode: (Current: " + str(verb) + ")"
-		print "8-Load options file"
-		print "9-Load options from saved Burp request"
-		print "0-Save options file"
+		print "4-Set MongoDB Port (Current : " + str(dbPort) + ")"
+		print "5-Set HTTP Request Method (GET/POST) (Current: " + httpMethod + ")"
+		print "6-Set my local Mongo/Shell IP (Current: " + str(myIP) + ")"
+		print "7-Set shell listener port (Current: " + str(myPort) + ")"
+		print "8-Toggle Verbose Mode: (Current: " + str(verb) + ")"
+		print "9-Load options file"
+		print "0-Load options from saved Burp request"
+		print "a-Save options file"
 		print "x-Back to main menu"
 
 		select = raw_input("Select an option: ")
@@ -152,32 +155,34 @@ def options():
 		if select == "1":
 			#Unset the boolean if it's set since we're setting it again.
 			optionSet[0] = False
-			goodLen = False
-			goodDigits = False
+			ipLen = False
+			
 			while optionSet[0] == False:
+				goodDigits = True
+				notDNS = True
 				victim = raw_input("Enter the host IP/DNS name: ")
 				#make sure we got a valid IP
 				octets = victim.split(".")
-				#If there aren't 4 octets, toss an error.
+				
 				if len(octets) != 4:
-					print "Invalid IP length."
+					#Treat this as a DNS name
+					optionSet[0] = True
+					notDNS = False
 				
-				else:
-					goodLen = True
-				
-				if goodLen == True:	
 				#If the format of the IP is good, check and make sure the octets are all within acceptable ranges.
-					for item in octets:
+				for item in octets:
+					try:
 						if int(item) < 0 or int(item) > 255:
 							print "Bad octet in IP address."
 							goodDigits = False
+									
+					except:
+						#Must be a DNS name (for now)
 						
-						else:
-							goodDigits = True
-						
+						notDNS = False
 				
 				#If everything checks out set the IP and break the loop
-				if goodLen == True and goodDigits == True:
+				if goodDigits == True or notDNS == False:
 					print "\nTarget set to " + victim + "\n"
 					optionSet[0] = True
 			
@@ -190,8 +195,13 @@ def options():
 			uri = raw_input("Enter URI Path (Press enter for no URI): ")
 			print "\nURI Path set to " + uri + "\n"
 			optionSet[2] = True
-
+		
 		elif select == "4":
+			dbPort = int(raw_input("Enter target MongoDB port: "))
+			print "\nTarget Mongo Port set to " + str(dbPort) + "\n"
+			optionSet[7] = True
+
+		elif select == "5":
 			httpMethod = True
 			while httpMethod == True:
 
@@ -216,7 +226,7 @@ def options():
 				else:
 					print "Invalid selection"
 
-		elif select == "5":
+		elif select == "6":
 			#Unset the setting boolean since we're setting it again.
 			optionSet[4] = False
 			goodLen = False
@@ -248,12 +258,12 @@ def options():
 					print "\nShell/DB listener set to " + myIP + "\n"
 					optionSet[4] = True
 		
-		elif select == "6":
+		elif select == "7":
 			myPort = raw_input("Enter TCP listener for shells: ")
 			print "Shell TCP listener set to " + myPort + "\n"
 			optionSet[5] = True
 		
-		elif select == "7":
+		elif select == "8":
 			if verb == "OFF":
 				print "Verbose output enabled."
 				verb = "ON"
@@ -264,7 +274,7 @@ def options():
 				verb = "OFF"
 				optionSet[6] = True
 			
-		elif select == "8":
+		elif select == "9":
 			loadPath = raw_input("Enter file name to load: ")
 			try:
 				fo = open(loadPath,"r" )
@@ -290,7 +300,7 @@ def options():
 			except:
 				print "Couldn't load options file!"
 		
-		elif select == "9":
+		elif select == "0":
 			loadPath = raw_input("Enter path to Burp request file: ")
 
 			try:
@@ -329,7 +339,7 @@ def options():
 			uri = methodPath[1].replace("\r\n","")
 			optionSet[2] = True			
 			
-		elif select == "0":
+		elif select == "a":
 			savePath = raw_input("Enter file name to save: ")
 			try:
 				fo = open(savePath, "wb")
@@ -352,14 +362,15 @@ def netAttacks(target):
 	webOpen = False
 	#This is a global for future use with other modules; may change
 	global dbList
+	global dbPort
 	
 	srvNeedCreds = raw_input("Does the database server need credentials (y/n)? ")
 	
 	if srvNeedCreds == "n" or srvNeedCreds == "N":
 		
 		try:
-			conn = pymongo.MongoClient(target,27017)
-			print "MongoDB port open on " + target + ":27017!"
+			conn = pymongo.MongoClient(target,dbPort)
+			print "MongoDB port open on " + target + ":" + str(dbPort)
 			mgtOpen = True
 	
 		except:
