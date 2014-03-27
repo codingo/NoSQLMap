@@ -363,6 +363,7 @@ def netAttacks(target):
 	#This is a global for future use with other modules; may change
 	global dbList
 	global dbPort
+	dbList = []
 	
 	srvNeedCreds = raw_input("Does the database server need credentials (y/n)? ")
 	
