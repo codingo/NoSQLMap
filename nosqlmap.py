@@ -1265,15 +1265,13 @@ def buildUri(origUri, randValue):
 	
 def stealDBs(myDB):
 	menuItem = 1
-<<<<<<< HEAD
 	if optionSet[4] == False:
 		raw_input("No destination database set! Press enter to return to the main menu.")
 		mainMenu()
-=======
+
 	if len(dbList) == 0:
 		print "Can't get a list of databases to steal.  The provided credentials may not have rights."
 		return
->>>>>>> 0.3
 	
 	for dbName in dbList:
 		print str(menuItem) + "-" + dbName
@@ -1318,17 +1316,11 @@ def stealDBs(myDB):
 	except:
 		if str(sys.exc_info()).find('text search not enabled') != -1:
 			raw_input("Database copied, but text indexing was not enabled on the target.  Indexes not moved.  Press enter to return...")
-<<<<<<< HEAD
-			mainMenu()
-		else:
-			raw_input ("Something went wrong.  Are you sure your MongoDB is running and options are set? Press enter to return...")
-			mainMenu()
-=======
 			return
+		
 		else:	
 			raw_input ("Something went wrong.  Are you sure your MongoDB is running and options are set? Press enter to return...")
 			return
->>>>>>> 0.3
 	
 def massMongo():
 	global victim
@@ -1357,13 +1349,6 @@ def massMongo():
 				raw_input("Not a valid subnet.  Press enter to return to main menu.")
 				return
 				
-<<<<<<< HEAD
-	
-		#print "Debug:"
-		#print ipList
-	
-=======
->>>>>>> 0.3
 		if loadOpt == "2":
 			while loadCheck == False:
 				loadPath = raw_input("Enter file name with IP list to scan: ")
