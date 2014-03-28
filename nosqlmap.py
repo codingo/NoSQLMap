@@ -103,7 +103,6 @@ def mainMenu():
 			
 
 def options():
-<<<<<<< HEAD
 =======
 	global victim
 	global webPort
@@ -115,7 +114,6 @@ def options():
 	global verb
 	global mmSelect
 	global dbPort
->>>>>>> 0.3
 	
 	#Set default value if needed
 	if optionSet[0] == False:
