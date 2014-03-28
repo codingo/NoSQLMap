@@ -981,7 +981,7 @@ def getApps():
 				strTbAttack = True
 			
 			else:
-				print "HTTP load time variance was only " + str(strTimeDelta) + ".  Injection probably didn't work."
+				print "HTTP load time variance was only " + str(strTimeDelta) + " seconds.  Injection probably didn't work."
 				strTbAttack = False
 			
 			print "Starting Javascript integer escape time based injection..."
@@ -999,7 +999,7 @@ def getApps():
 				intTbAttack = True
 			
 			else:
-				print "HTTP load time variance was only " + str(intTimeDelta) + "seconds.  Injection probably didn't work."
+				print "HTTP load time variance was only " + str(intTimeDelta) + " seconds.  Injection probably didn't work."
 				intTbAttack = False
 		
 		if lt24 == True:
