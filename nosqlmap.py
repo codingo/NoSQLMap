@@ -1,5 +1,5 @@
 #!/usr/bin/python
-#NoSQLMap Copyright 2013 Russell Butturini
+#NoSQLMap Copyright 2014 Russell Butturini
 #This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 #the Free Software Foundation, either version 3 of the License, or
@@ -974,7 +974,7 @@ def getApps():
 				strTbAttack = True
 			
 			else:
-				print "HTTP load time variance was only " + str(strTimeDelta) + ".  Injection probably didn't work."
+				print "HTTP load time variance was only " + str(strTimeDelta) + " seconds.  Injection probably didn't work."
 				strTbAttack = False
 			
 			print "Starting Javascript integer escape time based injection..."
@@ -992,7 +992,7 @@ def getApps():
 				intTbAttack = True
 			
 			else:
-				print "HTTP load time variance was only " + str(intTimeDelta) + "seconds.  Injection probably didn't work."
+				print "HTTP load time variance was only " + str(intTimeDelta) + " seconds.  Injection probably didn't work."
 				intTbAttack = False
 		
 		if lt24 == True:

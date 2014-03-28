@@ -1,7 +1,7 @@
 NoSQLMap 
 ========
 
-[NoSQLMap](http://www.nosqlmap.net) v0.2
+[NoSQLMap](http://www.nosqlmap.net) v0.3
 
 Introduction
 ============
@@ -22,6 +22,10 @@ Varies based on features used:
 
 There are some various other libraries required that a normal Python installation should have readily available. Your milage may vary, check the script.  
 
+Setup
+============
+An experimental setup.sh script for Debian and Red Hat based systems is included.  Any feedback or suggestions on improving this process is welcome.
+  
 Usage
 =====
 
@@ -47,7 +51,6 @@ NoSQLMap uses a menu based system for building attacks.  Upon starting NoSQLMap 
 x-Exit
 ```
 
-**ALWAYS USE OPTION 1 FIRST TO SET THE PARAMETERS!**
 
 Explanation of options:
 ```
