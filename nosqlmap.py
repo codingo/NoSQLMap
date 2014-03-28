@@ -103,7 +103,6 @@ def mainMenu():
 			
 
 def options():
-=======
 	global victim
 	global webPort
 	global uri
