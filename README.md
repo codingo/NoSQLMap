@@ -1,7 +1,7 @@
 NoSQLMap 
 ========
 
-[NoSQLMap](http://www.nosqlmap.net) v0.2
+[NoSQLMap](http://www.nosqlmap.net) v0.3
 
 Introduction
 ============
