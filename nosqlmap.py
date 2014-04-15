@@ -968,7 +968,7 @@ def getApps():
 		print "\n"
 		doTimeAttack = raw_input("Start timing based tests (y/n)? ")
 		
-		if doTimeAttack in yes_tags:
+		if doTimeAttack in yes_tag:
 			print "Starting Javascript string escape time based injection..."
 			start = time.time()
 			strTimeInj = urllib.urlopen(uriArray[8])
