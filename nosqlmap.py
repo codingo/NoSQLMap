@@ -60,7 +60,7 @@ def mainMenu():
 		print "| |\  | (_) /\__/ /\ \/' / |____| |  | | (_| | |_) |"
 		print "\_| \_/\___/\____/  \_/\_\_____/\_|  |_/\__,_| .__/"
 		print "===================================================="
-		print "NoSQLMap-v0.3"
+		print "NoSQLMap-v0.31"
 		print "nosqlmap@gmail.com"
 		print "\n"
 		print "1-Set options"
@@ -567,7 +567,7 @@ def postApps():
 				print "App is up!"
 			appUp = True
 		else:
-			print "Got " + appRespCode + "from the app, check your options."
+			print "Got " + str(appRespCode) + "from the app, check your options."
 	
 	except:
 		print "Looks like the server didn't respond.  Check your options."
@@ -863,7 +863,7 @@ def getApps():
 			appUp = True
 		
 		else:
-			print "Got " + appRespCode + "from the app, check your options."
+			print "Got " + str(appRespCode) + "from the app, check your options."
 	except:
 		print "Looks like the server didn't respond.  Check your options."
 	
@@ -968,7 +968,7 @@ def getApps():
 		print "\n"
 		doTimeAttack = raw_input("Start timing based tests (y/n)? ")
 		
-		if doTimeAttack in yes_tags:
+		if doTimeAttack in yes_tag:
 			print "Starting Javascript string escape time based injection..."
 			start = time.time()
 			strTimeInj = urllib.urlopen(uriArray[8])
