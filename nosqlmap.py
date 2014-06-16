@@ -380,7 +380,7 @@ def netAttacks(target):
 	dbList = []
 	
 	print "Checking to see if credentials are needed..."
-	needCreds = accessCheck(target,dbPort)
+	needCreds = accessCheck(target,dbPort,False)
 	
 	if needCreds == 0:
 		conn = pymongo.MongoClient(target,dbPort)
@@ -1335,32 +1335,61 @@ def stealDBs(myDB):
 			raw_input ("Something went wrong.  Are you sure your MongoDB is running and options are set? Press enter to return...")
 			return
 	
-def accessCheck(ip,port):
-	try:
-		conn = pymongo.MongoClient(ip,port)
+def accessCheck(ip,port,pingIt):
+	
+	if pingIt == True:
+		test = os.system("ping -w 0.1 -c 1 " + ip + ">/dev/null")
 		
-		try:
-			dbList = conn.database_names()
-			conn.disconnect()
-			return 0
+		if test == 0:	
+			try:
+				conn = pymongo.MongoClient(ip,port)
 		
-		except:
-			if str(sys.exc_info()).find('need to login') != -1:
-				conn.disconnect()
-				return 1
+				try:
+					dbList = conn.database_names()
+					conn.disconnect()
+					return 0
+		
+				except:
+					if str(sys.exc_info()).find('need to login') != -1:
+						conn.disconnect()
+						return 1
 			
-			else:
-				conn.disconnect()
-				return 2
+					else:
+						conn.disconnect()
+						return 2
 
-	except:
-		return 3
-			
+			except:
+				return 3
 		
+		else:
+			return 4
+	else:
+		try:
+			conn = pymongo.MongoClient(ip,port)
+		
+			try:
+				dbList = conn.database_names()
+				conn.disconnect()
+				return 0
+		
+			except:
+				if str(sys.exc_info()).find('need to login') != -1:
+					conn.disconnect()
+					return 1
+			
+				else:
+					conn.disconnect()
+					return 2
+
+		except:
+			return 3	
+		
+
 def massMongo():
 	global victim
 	optCheck = True
 	loadCheck = False
+	ping = False
 	success = []
 	creds = []
 	ipList = []
@@ -1369,10 +1398,11 @@ def massMongo():
 	print "=============================="
 	print "1-Scan a subnet for default MongoDB access"
 	print "2-Loads IPs to scan from a file"
+	print "3-Enable/disable host pings before attempting connection"
 	print "x-Return to main menu"
 	
 	while optCheck:
-		loadOpt = raw_input("Select a scan method: ")
+		loadOpt = raw_input("Select an option: ")
 		
 		if loadOpt == "1":
 			subnet = raw_input("Enter subnet to scan: ")
@@ -1396,6 +1426,15 @@ def massMongo():
 					optCheck = False
 				except:
 					print "Couldn't open file."
+		
+		if loadOpt == "3":
+			if ping == False:
+				ping = True
+				print "Scan will ping host before connection attempt."
+			
+			elif ping == True:
+				ping = False
+				print "Scan will not ping host before connection attempt."
 					
 		if loadOpt == "x":
 			return
@@ -1403,7 +1442,7 @@ def massMongo():
 
 	print "\n"
 	for target in ipList:
-		result = accessCheck(target,27017)
+		result = accessCheck(target,27017,ping)
 			
 		if result == 0:
 			print "Successful default access on " + target + "."
@@ -1419,6 +1458,9 @@ def massMongo():
 		
 		elif result == 3:
 			print "Couldn't connect to " + target + "."
+		
+		elif result == 4:
+			print target + " didn't respond to ping."
 
 
 	print "\n\n"
