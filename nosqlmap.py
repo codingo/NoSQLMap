@@ -1338,11 +1338,11 @@ def stealDBs(myDB):
 def accessCheck(ip,port,pingIt):
 	
 	if pingIt == True:
-		test = os.system("ping -w 0.1 -c 1 " + ip + ">/dev/null")
+		test = os.system("ping -c 1 -n -W 1 " + ip + ">/dev/null")
 		
 		if test == 0:	
 			try:
-				conn = pymongo.MongoClient(ip,port)
+				conn = pymongo.MongoClient(ip,port,connectTimeoutMS=4000,socketTimeoutMS=4000)
 		
 				try:
 					dbList = conn.database_names()
@@ -1365,7 +1365,7 @@ def accessCheck(ip,port,pingIt):
 			return 4
 	else:
 		try:
-			conn = pymongo.MongoClient(ip,port)
+			conn = pymongo.MongoClient(ip,port,connectTimeoutMS=2000)
 		
 			try:
 				dbList = conn.database_names()
@@ -1442,14 +1442,14 @@ def massMongo():
 
 	print "\n"
 	for target in ipList:
-		result = accessCheck(target,27017,ping)
+		result = accessCheck(target.rstrip(),27017,ping)
 			
 		if result == 0:
-			print "Successful default access on " + target + "."
+			print "Successful default access on " + target.rstrip() + "."
 			success.append(target)
 			
 		elif result == 1:
-			print "MongoDB running but credentials required on " + target + "."
+			print "MongoDB running but credentials required on " + target.rstrip() + "."
 			success.append(target)
 			
 		elif result == 2:
@@ -1457,10 +1457,10 @@ def massMongo():
 			success.append(target)
 		
 		elif result == 3:
-			print "Couldn't connect to " + target + "."
+			print "Couldn't connect to " + target.rstrip() + "."
 		
 		elif result == 4:
-			print target + " didn't respond to ping."
+			print target.rstrip() + " didn't respond to ping."
 
 
 	print "\n\n"
