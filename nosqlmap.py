@@ -1365,7 +1365,7 @@ def accessCheck(ip,port,pingIt):
 			return 4
 	else:
 		try:
-			conn = pymongo.MongoClient(ip,port,connectTimeoutMS=2000)
+			conn = pymongo.MongoClient(ip,port,connectTimeoutMS=4000,socketTimeoutMS=4000)
 		
 			try:
 				dbList = conn.database_names()
