@@ -1418,6 +1418,7 @@ def massMongo():
 	ping = False
 	success = []
 	creds = []
+	commError = []
 	ipList = []
 	print "\n"
 	print "MongoDB Default Access Scanner"
@@ -1476,11 +1477,11 @@ def massMongo():
 			
 		elif result == 1:
 			print "MongoDB running but credentials required on " + target.rstrip() + "."
-			success.append(target)
+			creds.append(target)
 			
 		elif result == 2:
 			print "Successful MongoDB connection to " + target.rstrip() + " but error executing command."
-			success.append(target)
+			commError.append(target)
 		
 		elif result == 3:
 			print "Couldn't connect to " + target.rstrip() + "."
@@ -1490,13 +1491,13 @@ def massMongo():
 
 
 	print "\n\n"
-	print "Discovered MongoDB Servers:"
+	print "Discovered MongoDB Servers with No Auth:"
 	
 	menuItem = 1
 	
 	for server in success:
 		print str(menuItem) + "-" + server
-		menuItem += 1
+		menuItem += 1		
 	
 	select = True
 	print "\n"
