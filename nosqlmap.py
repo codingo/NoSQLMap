@@ -34,6 +34,7 @@ import itertools
 import re
 from hashlib import md5
 from threading import Thread
+import Queue
 
 #Set a list so we can track whether options are set or not to avoid resetting them in subsequent cals to the options menu.
 global optionSet
@@ -1498,6 +1499,10 @@ def stealDBs(myDB,mongoConn):
 			return
 	
 def accessCheck(ip,port,pingIt):
+	global success
+	global versions
+	global creds
+	global commError
 	
 	if pingIt == True:
 		test = os.system("ping -c 1 -n -W 1 " + ip + ">/dev/null")
@@ -1510,22 +1515,32 @@ def accessCheck(ip,port,pingIt):
 					dbList = conn.database_names()
 					dbVer = conn.server_info()['version']
 					conn.disconnect()
-					return [0,dbVer]
+					print "Successful default access on " + ip.rstrip() + "(Mongo Version: " + dbVer + ")."
+					success.append(ip.rstrip())
+					versions.append(dbVer)
+					return
 		
 				except:
 					if str(sys.exc_info()).find('need to login') != -1:
 						conn.disconnect()
-						return [1,None]
+						print "MongoDB running but credentials required on " + ip.rstrip() + "."
+						creds.append(ip.rstrip()) #Future use
+						return
 			
 					else:
 						conn.disconnect()
-						return [2,None]
+						print "Successful MongoDB connection to " + ip.rstrip() + " but error executing command."
+						commError.append(ip.rstrip())
+						return
 
 			except:
-				return [3,None]
+				print "Couldn't connect to " + ip.rstrip() + "."
+				return
+		
 		
 		else:
-			return [4,None]
+			print target.rstrip() + " didn't respond to ping."
+			return
 	else:
 		try:
 			conn = pymongo.MongoClient(ip,port,connectTimeoutMS=4000,socketTimeoutMS=4000)
@@ -1534,19 +1549,27 @@ def accessCheck(ip,port,pingIt):
 				dbList = conn.database_names()
 				dbVer = conn.server_info()['version']
 				conn.disconnect()
-				return [0,dbVer]
+				print "Successful default access on " + ip.rstrip() + "(Mongo Version: " + dbVer + ")."
+				success.append(ip.rstrip())
+				versions.append(dbVer)
+				return
 		
 			except:
 				if str(sys.exc_info()).find('need to login') != -1:
 					conn.disconnect()
-					return [1,None]
+					print "MongoDB running but credentials required on " + ip.rstrip() + "."
+					creds.append(ip.rstrip()) #Future use
+					return
 			
 				else:
 					conn.disconnect()
-					return [2,None]
+					print "Successful MongoDB connection to " + ip.rstrip() + " but error executing command."
+					commError.append(ip.rstrip())
+					return
 
 		except:
-			return [3,None]	
+			print "Couldn't connect to " + ip.rstrip() + "."
+			return
 		
 
 def massMongo():
@@ -1554,6 +1577,10 @@ def massMongo():
 	optCheck = True
 	loadCheck = False
 	ping = False
+	global success
+	global versions
+	global creds
+	global commError
 	success = []
 	versions = []
 	creds = []
@@ -1608,27 +1635,10 @@ def massMongo():
 
 	print "\n"
 	for target in ipList:
-		result = accessCheck(target.rstrip(),27017,ping)
-			
-		if result[0] == 0:
-			print "Successful default access on " + target.rstrip() + "(Mongo Version: " + result[1] + ")."
-			success.append(target.rstrip())
-			versions.append(result[1])
-			
-		elif result[0] == 1:
-			print "MongoDB running but credentials required on " + target.rstrip() + "."
-			creds.append(target.rstrip()) #Future use
-			
-		elif result[0] == 2:
-			print "Successful MongoDB connection to " + target.rstrip() + " but error executing command."
-			commError.append(target.rstrip()) #Future use
+		#result = accessCheck(target.rstrip(),27017,ping)
 		
-		elif result[0] == 3:
-			print "Couldn't connect to " + target.rstrip() + "."
-		
-		elif result[0] == 4:
-			print target.rstrip() + " didn't respond to ping."
-
+		t = Thread(target=accessCheck, args = (target.rstrip(), 27017, ping))
+		t.start()
 	
 	print "\n\n"
 	select = True
