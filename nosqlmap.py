@@ -1640,6 +1640,7 @@ def massMongo():
 			outCounter = 0
 			try:
 				fo = open(savePath, "wb")
+				fo.write("IP Address,MongoDB Version\n")
 				for server in success:
 					fo.write(server + "," + versions[outCounter] + "\n" )
 					outCounter += 1				
