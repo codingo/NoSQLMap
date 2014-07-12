@@ -67,7 +67,7 @@ def mainMenu():
 		print "| |\  | (_) /\__/ /\ \/' / |____| |  | | (_| | |_) |"
 		print "\_| \_/\___/\____/  \_/\_\_____/\_|  |_/\__,_| .__/"
 		print "===================================================="
-		print "NoSQLMap-v0.4DEV"
+		print "NoSQLMap-v0.4"
 		print "nosqlmap@gmail.com"
 		print "\n"
 		print "1-Set options"
@@ -1705,7 +1705,10 @@ def passCrack (user, encPass):
 
 def gen_pass(user, passw, hashVal):
 	if md5(user + ":mongo:" + str(passw)).hexdigest() == hashVal:
-		print "\nFound - " + user + ":" + passw
+		print "Found - " + user + ":" + passw
+		return True
+	else:
+		return False
 
 def dict_pass(user,key):
 	loadCheck = False
@@ -1722,8 +1725,10 @@ def dict_pass(user,key):
 	print "Running dictionary attack..."
 	for passGuess in passList:
 		temp = passGuess.split("\n")[0]
-		t = Thread(target=gen_pass, args = (user, temp, key))
-		t.start()
+		gotIt = gen_pass (user, temp, key)
+		
+		if gotIt == True:
+			break
 	return
 
 def genBrute(chars, maxLen):
