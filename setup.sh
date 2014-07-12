@@ -21,7 +21,10 @@ if  [ "$doIt" = "y" ] || [ "$doIt" = "Y" ]; then
 		pip install httplib2
 		pip install urllib
 		pip install hashlib
-
+		pip install itertools
+		pip install re
+		pip install threading
+		pip install ast
 		echo "All done.  Check output for errors. Have fun!"
 
 	elif [ -f /etc/redhat-release ]; then
@@ -35,15 +38,18 @@ if  [ "$doIt" = "y" ] || [ "$doIt" = "Y" ]; then
 			wget http://mirror-fpt-telecom.fpt.net/fedora/epel/6/i386/epel-release-6-8.noarch.rpm
 			rpm -ivh epel-release-6-8.noarch.rpm
 			yum -y install python-pip
-			pip install pymongo
-        	        pip install gridfs
-	                pip install ipcalc
-                	pip install hashlib
-                	pip install json
-                	pip install httplib2
-                	pip install urllib
-                	pip install hashlib
-
+							pip install pymongo
+							pip install gridfs
+							pip install ipcalc
+							pip install hashlib
+							pip install json
+							pip install httplib2
+							pip install urllib
+							pip install hashlib
+							pip install itertools
+							pip install re
+							pip install threading
+							pip install ast
 			echo "All done.  Check output for errors. Have fun!"
 
 
@@ -55,14 +61,18 @@ if  [ "$doIt" = "y" ] || [ "$doIt" = "Y" ]; then
 			wget http://download.fedoraproject.org/pub/epel/5/i386/epel-release-5-4.noarch.rpm
 			rpm -ivh epel-release-5-4.noarch.rpm
 		        yum -y install python-pip
-                        pip install pymongo
-                        pip install gridfs
-                        pip install ipcalc
-                        pip install hashlib
-                        pip install json
-                        pip install httplib2
-                        pip install urllib
-                        pip install hashlib
+                		pip install pymongo
+						pip install gridfs
+						pip install ipcalc
+						pip install hashlib
+						pip install json
+						pip install httplib2
+						pip install urllib
+						pip install hashlib
+						pip install itertools
+						pip install re
+						pip install threading
+						pip install ast
 			
 			echo "All done.	 Check output for errors. Have fun!"
 
