@@ -20,7 +20,6 @@ if  [ "$doIt" = "y" ] || [ "$doIt" = "Y" ]; then
 		pip install json
 		pip install httplib2
 		pip install urllib
-		pip install hashlib
 		pip install itertools
 		pip install re
 		pip install threading
@@ -67,7 +66,6 @@ if  [ "$doIt" = "y" ] || [ "$doIt" = "Y" ]; then
 						pip install json
 						pip install httplib2
 						pip install urllib
-						pip install hashlib
 						pip install itertools
 						pip install re
 						pip install threading
