@@ -35,25 +35,29 @@ import re
 from hashlib import md5
 from threading import Thread
 
-#Set a list so we can track whether options are set or not to avoid resetting them in subsequent cals to the options menu.
-global optionSet
-optionSet = [False,False,False,False,False,False,False,False,False]
-global yes_tag
-global no_tag
-yes_tag = ['y', 'Y']
-no_tag = ['n', 'N']
-global victim
-global webPort
-global uri
-global httpMethod
-global https
-global myIP
-global myPort
-global verb
-global scanNeedCreds
-global dbPort
-dbPort = 27017
 
+def main():
+	signal.signal(signal.SIGINT, signal_handler)
+	global optionSet
+	#Set a list so we can track whether options are set or not to avoid resetting them in subsequent cals to the options menu.
+	optionSet = [False,False,False,False,False,False,False,False,False]
+	global yes_tag
+	global no_tag
+	yes_tag = ['y', 'Y']
+	no_tag = ['n', 'N']
+	global victim
+	global webPort
+	global uri
+	global httpMethod
+	global https
+	global myIP
+	global myPort
+	global verb
+	global scanNeedCreds
+	global dbPort
+	dbPort = 27017
+	mainMenu()
+	
 def mainMenu():
 	mmSelect = True
 	while mmSelect:
@@ -67,7 +71,7 @@ def mainMenu():
 		print "| |\  | (_) /\__/ /\ \/' / |____| |  | | (_| | |_) |"
 		print "\_| \_/\___/\____/  \_/\_\_____/\_|  |_/\__,_| .__/"
 		print "===================================================="
-		print "NoSQLMap-v0.4"
+		print "NoSQLMap-v0.4a-DEV"
 		print "nosqlmap@gmail.com"
 		print "\n"
 		print "1-Set options"
@@ -1439,10 +1443,11 @@ def buildUri(origUri, randValue):
 	
 def stealDBs(myDB,mongoConn):
 	dbList = mongoConn.database_names()
+	dbLoot = True
 	menuItem = 1
 	if optionSet[4] == False:
-		raw_input("No destination database set! Press enter to return to the main menu.")
-		mainMenu()
+		raw_input("No destination database set! Press enter to return.")
+		return
 
 	if len(dbList) == 0:
 		print "Can't get a list of databases to steal.  The provided credentials may not have rights."
@@ -1452,12 +1457,14 @@ def stealDBs(myDB,mongoConn):
 		print str(menuItem) + "-" + dbName
 		menuItem += 1
 	
-	try:
+	while dbLoot:
 		dbLoot = raw_input("Select a database to steal:")
-	
-	except:
-		print "Invalid selection."
-		stealDBs(myDB)
+		
+		if dbLoot > menuItem:
+			print "Invalid selection."
+		
+		else:
+			dbLoot = False
 		
 	try:
 		#Mongo can only pull, not push, connect to my instance and pull from verified open remote instance.
@@ -1990,5 +1997,5 @@ def signal_handler(signal, frame):
     print "CTRL+C detected.  Exiting."
     sys.exit()
 
-signal.signal(signal.SIGINT, signal_handler)
-mainMenu()
+if __name__ == '__main__':
+	main()
