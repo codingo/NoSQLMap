@@ -1984,7 +1984,7 @@ def getDBInfo():
 			menuItem +=1
 				
 		userIndex = raw_input("Select user hash to crack: ")
-		dict_pass(users[int(userIndex)-1],hashes[int(userIndex)-1])
+		passCrack(users[int(userIndex)-1],hashes[int(userIndex)-1])
 		
 		crackHash = raw_input("Crack another hash (y/n)?")		
 	raw_input("Press enter to continue...")
