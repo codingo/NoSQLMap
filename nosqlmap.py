@@ -1997,10 +1997,5 @@ def signal_handler(signal, frame):
     print "CTRL+C detected.  Exiting."
     sys.exit()
 
-<<<<<<< HEAD
-signal.signal(signal.SIGINT, signal_handler)
-mainMenu()
-=======
 if __name__ == '__main__':
 	main()
->>>>>>> 0.4
