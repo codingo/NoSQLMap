@@ -71,7 +71,7 @@ def mainMenu():
 		print "| |\  | (_) /\__/ /\ \/' / |____| |  | | (_| | |_) |"
 		print "\_| \_/\___/\____/  \_/\_\_____/\_|  |_/\__,_| .__/"
 		print "===================================================="
-		print "NoSQLMap-v0.4a"
+		print "NoSQLMap-v0.5-DEV"
 		print "nosqlmap@gmail.com"
 		print "\n"
 		print "1-Set options"
