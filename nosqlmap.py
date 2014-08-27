@@ -226,7 +226,7 @@ def options():
 				https = "ON"
 				optionSet[8] = True
 			
-			elif verb == "ON":
+			elif https == "ON":
 				print "HTTPS disabled."
 				https = "OFF"
 				optionSet[8] = True
