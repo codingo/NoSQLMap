@@ -1646,7 +1646,7 @@ def massScan():
 			result = accessCheck(target.rstrip(),27017,ping)
 		
 		elif platform == "CouchDB":
-			result = nsmcouch.couchScan(target.rstrip,5984,ping)
+			result = nsmcouch.couchScan(target.rstrip(),5984,ping)
 			
 		if result[0] == 0:
 			print "Successful default access on " + target.rstrip() + "(" + platform + " Version: " + result[1] + ")."
