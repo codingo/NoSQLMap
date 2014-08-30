@@ -15,6 +15,7 @@
 
 
 import sys
+import nsmcouch
 import string
 import random
 import os
@@ -49,12 +50,14 @@ def main():
 	global webPort
 	global uri
 	global httpMethod
+	global platform
 	global https
 	global myIP
 	global myPort
 	global verb
 	global scanNeedCreds
 	global dbPort
+	platform = "MongoDB"
 	dbPort = 27017
 	mainMenu()
 	
@@ -77,7 +80,8 @@ def mainMenu():
 		print "1-Set options"
 		print "2-NoSQL DB Access Attacks"
 		print "3-NoSQL Web App attacks"
-		print "4-Scan for Anonymous MongoDB Access"
+		print "4-Scan for Anonymous " + platform + " Access"
+		print "5-Change Platform (Current: " + platform + ")"
 		print "x-Exit"
 
 		select = raw_input("Select an option: ")
@@ -108,14 +112,36 @@ def mainMenu():
 				
 				
 		elif select == "4":
-			massMongo()
+			massScan()
+			
+		elif select == "5":
+			platSel()
 
 		elif select == "x":
 			sys.exit()
 			
 		else:
 			raw_input("Invalid selection.  Press enter to continue.")
-			
+
+def platSel():
+	global platform
+	pSel = True
+	print "\n"
+	while pSel:
+		print "1-MongoDB"
+		print "2-CouchDB"
+		pSel = raw_input("Select a platform: ")
+
+		if pSel == "1":
+			platform = "MongoDB"
+			return
+	
+		elif pSel == "2":
+			platform = "CouchDB"
+			return
+		else:
+			psel = True
+			raw_input("Invalid selection.  Press enter to continue.")
 
 def options():
 	global victim
@@ -1555,8 +1581,9 @@ def accessCheck(ip,port,pingIt):
 			return [3,None]	
 		
 
-def massMongo():
+def massScan():
 	global victim
+	global platform
 	optCheck = True
 	loadCheck = False
 	ping = False
@@ -1566,9 +1593,9 @@ def massMongo():
 	commError = []
 	ipList = []
 	print "\n"
-	print "MongoDB Default Access Scanner"
+	print platform + " Default Access Scanner"
 	print "=============================="
-	print "1-Scan a subnet for default MongoDB access"
+	print "1-Scan a subnet for default " + platform + " access"
 	print "2-Loads IPs to scan from a file"
 	print "3-Enable/disable host pings before attempting connection"
 	print "x-Return to main menu"
@@ -1614,19 +1641,24 @@ def massMongo():
 
 	print "\n"
 	for target in ipList:
-		result = accessCheck(target.rstrip(),27017,ping)
+		
+		if platform == "MongoDB":
+			result = accessCheck(target.rstrip(),27017,ping)
+		
+		elif platform == "CouchDB":
+			result = nsmcouch.couchScan(target.rstrip,5984,ping)
 			
 		if result[0] == 0:
-			print "Successful default access on " + target.rstrip() + "(Mongo Version: " + result[1] + ")."
+			print "Successful default access on " + target.rstrip() + "(" + platform + " Version: " + result[1] + ")."
 			success.append(target.rstrip())
 			versions.append(result[1])
 			
 		elif result[0] == 1:
-			print "MongoDB running but credentials required on " + target.rstrip() + "."
+			print platform + " running but credentials required on " + target.rstrip() + "."
 			creds.append(target.rstrip()) #Future use
 			
 		elif result[0] == 2:
-			print "Successful MongoDB connection to " + target.rstrip() + " but error executing command."
+			print "Successful " + platform + " connection to " + target.rstrip() + " but error executing command."
 			commError.append(target.rstrip()) #Future use
 		
 		elif result[0] == 3:
@@ -1646,7 +1678,7 @@ def massMongo():
 			outCounter = 0
 			try:
 				fo = open(savePath, "wb")
-				fo.write("IP Address,MongoDB Version\n")
+				fo.write("IP Address," + platform + " Version\n")
 				for server in success:
 					fo.write(server + "," + versions[outCounter] + "\n" )
 					outCounter += 1				
@@ -1662,7 +1694,7 @@ def massMongo():
 		else:
 			select = True
 			
-	print "Discovered MongoDB Servers with No Auth:"
+	print "Discovered " + platform + " Servers with No Auth:"
 	print "IP" + " " + "Version"
 	
 	outCounter= 1
