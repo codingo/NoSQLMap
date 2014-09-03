@@ -17,7 +17,7 @@
 
 import couchdb
 import urllib
-
+global dbList
 
 def couchScan(target,port,pingIt):
     if pingIt == True:
@@ -153,3 +153,44 @@ def getPlatInfo(couchConn):
         print str(urllib.urlopen("http://" + target + ":5984/_config"))
         print "\n"
         return
+    
+def enumDbs (couchConn):
+    global dbList
+    dbList = []
+    try:
+            for db in couchConn:
+                 dbList.append(db)
+                 
+            print "List of databases:"
+            print "\n".join(mongoConn.database_names())
+            print "\n"
+            
+    except:
+            print "Error:  Couldn't list databases.  The provided credentials may not have rights."
+
+    try:
+            for dbItem in mongoConn.database_names():
+                db = mongoConn[dbItem]
+                print dbItem + ":"
+                print "\n".join(db.collection_names())
+                print "\n"
+
+		if 'system.users' in db.collection_names():
+		    users = list(db.system.users.find())
+                    print "Database Users and Password Hashes:"
+
+                    for x in range (0,len(users)):
+                        print "Username: " + users[x]['user']
+                        print "Hash: " + users[x]['pwd']
+                        print "\n"
+                        crack = raw_input("Crack this hash (y/n)? ")
+
+			if crack in yes_tag:
+			    passCrack(users[x]['user'],users[x]['pwd'])
+
+    except:
+        print "Error:  Couldn't list collections.  The provided credentials may not have rights."
+
+	print "\n"
+	return
+
