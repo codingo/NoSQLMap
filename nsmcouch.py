@@ -85,7 +85,7 @@ def netAttacks(target,port, myIP):
             uri = "http://" + srvUser + ":" + srvPass + "@" + target + ":5984/"
             
             try:
-                conn = couchdb.server(uri)
+                conn = couchdb.Server(uri)
                 print "CouchDB authenticated on " + target + ":5984!"
                 mgtOpen = True
 
@@ -94,7 +94,7 @@ def netAttacks(target,port, myIP):
                 return
     
     elif needCreds[0] == 2:
-        couchdb.Server("http://" + str(target) + ":5984/")
+        conn = couchdb.Server("http://" + str(target) + ":5984/")
         print "Access check failure.  Testing will continue but will be unreliable."
         mgtOpen = True
 

