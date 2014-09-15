@@ -206,7 +206,7 @@ def options():
 		print "4-Toggle HTTPS (Current: " + str(https) + ")"
 		print "5-Set " + platform + " Port (Current : " + str(dbPort) + ")"
 		print "6-Set HTTP Request Method (GET/POST) (Current: " + httpMethod + ")"
-		print "7-Set my local Mongo/Shell IP (Current: " + str(myIP) + ")"
+		print "7-Set my local " +  platform + "/Shell IP (Current: " + str(myIP) + ")"
 		print "8-Set shell listener port (Current: " + str(myPort) + ")"
 		print "9-Toggle Verbose Mode: (Current: " + str(verb) + ")"
 		print "0-Load options file"
@@ -308,7 +308,7 @@ def options():
 			goodLen = False
 			goodDigits = False
 			while optionSet[4] == False:
-				myIP = raw_input("Enter the host IP for my Mongo/Shells: ")
+				myIP = raw_input("Enter the host IP for my " + platform +"/Shells: ")
 				#make sure we got a valid IP
 				octets = myIP.split(".")
 				#If there aren't 4 octets, toss an error.

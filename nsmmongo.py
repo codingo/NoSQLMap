@@ -151,7 +151,7 @@ def stealDBs(myDB,victim,mongoConn):
 		menuItem += 1
 	
 	while dbLoot:
-		dbLoot = raw_input("Select a database to steal:")
+		dbLoot = raw_input("Select a database to steal: ")
 		
 		if int(dbLoot) > menuItem:
 			print "Invalid selection."
@@ -174,12 +174,12 @@ def stealDBs(myDB,victim,mongoConn):
 		
 		else:
 			raw_input("Invalid Selection.  Press enter to continue.")
-			stealDBs(myDB)
+			stealDBs(myDB,victim,mongoConn)
 			
 		cloneAnother = raw_input("Database cloned.  Copy another (y/n)? ")
 		
 		if cloneAnother in yes_tag:
-			stealDBs(myDB)
+			stealDBs(myDB,victim,mongoConn)
 		
 		else:
 			return
