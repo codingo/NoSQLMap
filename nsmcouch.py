@@ -182,9 +182,15 @@ def enumDbs (couchConn,target):
         userDict = r.json() 
         
         for counter in range (0,int(userDict["total_rows"])-int(userDict["offset"])):
-            userNames.append(userDict["rows"][counter]["id"].split(":")[1])
-            userHashes.append(userDict["rows"][counter]["doc"]["password_sha"])
-            userSalts.append(userDict["rows"][counter]["doc"]["salt"])
+            if float(couchConn.version()[0:3]) < 1.3:
+                userNames.append(userDict["rows"][counter]["id"].split(":")[1])
+                userHashes.append(userDict["rows"][counter]["doc"]["password_sha"])
+                userSalts.append(userDict["rows"][counter]["doc"]["salt"])
+            
+            else:
+                userNames.append(userDict["rows"][counter]["id"].split(":")[1])
+                userHashes.append(userDict["rows"][counter]["doc"]["derived_key"])
+                userSalts.append(userDict["rows"][counter]["doc"]["salt"])
         
         print "Database Users and Password Hashes:"
         
