@@ -31,9 +31,6 @@ import ast
 import datetime
 import itertools
 import re
-from hashlib import md5
-from threading import Thread
-
 
 def main():
 	signal.signal(signal.SIGINT, signal_handler)
