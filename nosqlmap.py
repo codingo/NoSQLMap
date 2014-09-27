@@ -77,7 +77,7 @@ def mainMenu():
 		print "| |\  | (_) /\__/ /\ \/' / |____| |  | | (_| | |_) |"
 		print "\_| \_/\___/\____/  \_/\_\_____/\_|  |_/\__,_| .__/"
 		print "===================================================="
-		print "NoSQLMap-v0.5-DEV"
+		print "NoSQLMap-v0.5"
 		print "nosqlmap@gmail.com"
 		print "\n"
 		print "1-Set options"
@@ -536,7 +536,7 @@ def postApps():
 			print "Testing Mongo PHP not equals associative array injection using " + str(postData) +"..."
 		
 		else:
-			print "Test 1: PHP associative array injection"
+			print "Test 1: PHP/ExpressJS != associative array injection"
 
 		errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
 		
@@ -871,7 +871,7 @@ def getApps():
 		if verb == "ON":
 			print "Testing Mongo PHP not equals associative array injection using " + uriArray[1] +"..."
 		else:
-			print "Test 1: PHP associative array injection"
+			print "Test 1: PHP/ExpressJS != associative array injection"
 			
 		#Test for errors returned by injection
 		errorCheck = errorTest(str(urllib.urlopen(uriArray[1]).read()),testNum)
