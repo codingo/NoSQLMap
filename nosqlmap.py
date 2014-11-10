@@ -1115,7 +1115,7 @@ def errorTest (errorCheck,testNum):
 				return True
 			
 			elif testNum == 2:
-				possAddrs.apped(str(gtDict))
+				possAddrs.append(str(gtDict))
 				return True
 
 			else:
