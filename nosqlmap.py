@@ -1119,7 +1119,7 @@ def errorTest (errorCheck,testNum):
 				return True
 
 			else:
-				possAddrs.appends(str(postData))
+				possAddrs.append(str(postData))
 				return True
 	else:
 		return False
@@ -1151,7 +1151,7 @@ def checkResult(baseSize,respSize,testNum):
 				vulnAddrs.append(str(neDict))
 			
 			elif testNum == 2:
-				vulnAddrs.apped(str(gtDict))
+				vulnAddrs.append(str(gtDict))
 			else:
 				vulnAddrs.append(str(postData))
 			
@@ -1192,7 +1192,7 @@ def checkResult(baseSize,respSize,testNum):
 		else:
 			print "Possible injection."
 		if httpMethod == "GET":
-			possAddrs.appends(uriArray[testNum])
+			possAddrs.append(uriArray[testNum])
 		else:
 			if testNum == 1:
 				possAddrs.append(str(neDict))
