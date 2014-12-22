@@ -25,6 +25,7 @@ from binascii import a2b_hex
 import string
 import itertools
 from hashlib import sha1
+import os
 
 global dbList
 global yes_tag

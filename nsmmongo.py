@@ -20,6 +20,7 @@ import itertools
 import string
 import subprocess
 from hashlib import md5
+import os
 
 global yes_tag
 global no_tag
