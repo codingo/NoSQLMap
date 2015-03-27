@@ -1049,7 +1049,7 @@ def getApps():
 
 
 		print "\n"
-		print "Vunerable URLs:"
+		print "Vulnerable URLs:"
 		print "\n".join(vulnAddrs)
 		print "\n"
 		print "Possibly vulnerable URLs:"
