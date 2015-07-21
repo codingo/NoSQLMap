@@ -167,6 +167,7 @@ def options():
 	global mmSelect
 	global dbPort
 	global requestHeaders
+    requestHeaders = {}
 
 	#Set default value if needed
 	if optionSet[0] == False:
@@ -367,6 +368,8 @@ def options():
 				httpMethod = optList[3]
 				myIP = optList[4]
 				myPort = optList[5]
+                verb = optList[6]
+                https = optList[7]
 
 				if httpMethod == "POST":
 					postData = ast.literal_eval(csvOpt[1])
@@ -423,10 +426,11 @@ def options():
 			savePath = raw_input("Enter file name to save: ")
 			try:
 				fo = open(savePath, "wb")
-				fo.write(str(victim) + "," + str(webPort) + "," + str(uri) + "," + str(httpMethod) + "," + str(myIP) + "," + str(myPort))
+				fo.write(str(victim) + "," + str(webPort) + "," + str(uri) + "," + str(httpMethod) + "," + str(myIP) + "," + str(myPort) + "," + verb + "," + https)
 
 				if httpMethod == "POST":
 					fo.write(",\n"+ str(postData))
+				fo.write(",\n" + str(requestHeaders) )
 				fo.close()
 				print "Options file saved!"
 			except:
