@@ -167,7 +167,7 @@ def options():
 	global mmSelect
 	global dbPort
 	global requestHeaders
-    requestHeaders = {}
+	requestHeaders = {}
 
 	#Set default value if needed
 	if optionSet[0] == False:
@@ -287,6 +287,7 @@ def options():
 				if httpMethod == "1":
 					httpMethod = "GET"
 					print "GET request set"
+					requestHeaders = {}
 					optionSet[3] = True
 
 				elif httpMethod == "2":
@@ -368,8 +369,8 @@ def options():
 				httpMethod = optList[3]
 				myIP = optList[4]
 				myPort = optList[5]
-                verb = optList[6]
-                https = optList[7]
+				verb = optList[6]
+				https = optList[7]
 
 				if httpMethod == "POST":
 					postData = ast.literal_eval(csvOpt[1])
