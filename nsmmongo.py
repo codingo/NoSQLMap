@@ -372,16 +372,16 @@ def mongoScan(ip,port,pingIt):
 				try:
 					dbList = conn.database_names()
 					dbVer = conn.server_info()['version']
-					conn.disconnect()
+					conn.close()
 					return [0,dbVer]
 
 				except:
 					if str(sys.exc_info()).find('need to login') != -1:
-						conn.disconnect()
+						conn.close()
 						return [1,None]
 
 					else:
-						conn.disconnect()
+						conn.close()
 						return [2,None]
 
 			except:
@@ -396,16 +396,16 @@ def mongoScan(ip,port,pingIt):
 			try:
 				dbList = conn.database_names()
 				dbVer = conn.server_info()['version']
-				conn.disconnect()
+				conn.close()
 				return [0,dbVer]
 
 			except Exception, e:
 				if str(e).find('need to login') != -1:
-					conn.disconnect()
+					conn.close()
 					return [1,None]
 
 				else:
-					conn.disconnect()
+					conn.close()
 					return [2,None]
 
 		except:
