@@ -496,7 +496,8 @@ def postApps():
 		else:
 			print "Got " + str(appRespCode) + "from the app, check your options."
 
-	except:
+	except Exception,e:
+		print e
 		print "Looks like the server didn't respond.  Check your options."
 
 	if appUp == True:
@@ -857,7 +858,8 @@ def getApps():
 
 		else:
 			print "Got " + str(appRespCode) + "from the app, check your options."
-	except:
+	except Exception,e:
+		print e
 		print "Looks like the server didn't respond.  Check your options."
 
 	if appUp == True:
