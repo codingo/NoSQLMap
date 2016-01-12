@@ -168,6 +168,7 @@ def options():
 	global dbPort
 	global requestHeaders
 	requestHeaders = {}
+	optSelect = True
 
 	#Set default value if needed
 	if optionSet[0] == False:
