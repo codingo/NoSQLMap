@@ -233,18 +233,19 @@ def options():
 					#Treat this as a DNS name
 					optionSet[0] = True
 					notDNS = False
+				else:
+					#If len(octets) != 4 is executed the block of code below is also run, but it is not necessary
+					#If the format of the IP is good, check and make sure the octets are all within acceptable ranges.
+					for item in octets:
+						try:
+							if int(item) < 0 or int(item) > 255:
+								print "Bad octet in IP address."
+								goodDigits = False
 
-				#If the format of the IP is good, check and make sure the octets are all within acceptable ranges.
-				for item in octets:
-					try:
-						if int(item) < 0 or int(item) > 255:
-							print "Bad octet in IP address."
-							goodDigits = False
+						except:
+							#Must be a DNS name (for now)
 
-					except:
-						#Must be a DNS name (for now)
-
-						notDNS = False
+							notDNS = False
 
 				#If everything checks out set the IP and break the loop
 				if goodDigits == True or notDNS == False:
@@ -307,9 +308,13 @@ def options():
 		elif select == "7":
 			#Unset the setting boolean since we're setting it again.
 			optionSet[4] = False
-			goodLen = False
-			goodDigits = False
+
 			while optionSet[4] == False:
+				goodLen = False
+				goodDigits = True
+				#Every time when user input Invalid IP, goodLen and goodDigits should be reset. If not do this, there will be a bug
+				#For example enter 10.0.0.1234 firtly and the goodLen will be set to True and goodDigits will be set to False
+				#Second step enter 10.0.123, because goodLen has already been set to True, this invalid IP will be put in myIP variables
 				myIP = raw_input("Enter the host IP for my " + platform +"/Shells: ")
 				#make sure we got a valid IP
 				octets = myIP.split(".")
@@ -327,8 +332,10 @@ def options():
 							print "Bad octet in IP address."
 							goodDigits = False
 
-						else:
-							goodDigits = True
+#						else:
+#							goodDigits = True
+						#Default value of goodDigits should be set to True
+						#for example 12.12345.12.12
 
 
 				#If everything checks out set the IP and break the loop
