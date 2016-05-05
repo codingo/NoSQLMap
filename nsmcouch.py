@@ -14,7 +14,7 @@
 #along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-
+#test
 import couchdb
 import urllib
 import requests
@@ -83,7 +83,6 @@ def netAttacks(target,port, myIP):
     mgtSelect = True
     #This is a global for future use with other modules; may change
     dbList = []
-
     print "Checking to see if credentials are needed..."
     needCreds = couchScan(target,port,False)
 
