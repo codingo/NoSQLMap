@@ -83,7 +83,6 @@ def netAttacks(target,port, myIP):
     mgtSelect = True
     #This is a global for future use with other modules; may change
     dbList = []
-
     print "Checking to see if credentials are needed..."
     needCreds = couchScan(target,port,False)
 
