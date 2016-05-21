@@ -154,7 +154,7 @@ def stealDBs(myDB,victim,mongoConn):
 	while dbLoot:
 		dbLoot = raw_input("Select a database to steal: ")
 
-		if int(dbLoot) > menuItem:
+		if int(dbLoot) >= menuItem:
 			print "Invalid selection."
 
 		else:
