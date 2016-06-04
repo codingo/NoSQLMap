@@ -93,7 +93,7 @@ def mainMenu():
 			options()
 
 		elif select == "2":
-			if optionSet[0] == True:
+			if optionSet[0] == True and optionSet[4] == True:
 				if platform == "MongoDB":
 					nsmmongo.netAttacks(victim, dbPort, myIP, myPort)
 
