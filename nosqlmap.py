@@ -1,5 +1,5 @@
 #!/usr/bin/python
-#NoSQLMap Copyright 2014 Russell Butturini
+#NoSQLMap Copyright 2016 Russell Butturini
 #This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 #the Free Software Foundation, either version 3 of the License, or
@@ -74,7 +74,7 @@ def mainMenu():
         print "| |\  | (_) /\__/ /\ \/' / |____| |  | | (_| | |_) |"
         print "\_| \_/\___/\____/  \_/\_\_____/\_|  |_/\__,_| .__/"
         print "===================================================="
-        print "NoSQLMap-v0.6ALPHA"
+        print "NoSQLMap-v0.7"
         print "nosqlmap@gmail.com"
         print "\n"
         print "1-Set options"
