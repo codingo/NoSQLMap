@@ -7,16 +7,11 @@ import datetime
 import time
 import random
 
-def httpRequestor (httpReq):
-    #Need to determine version of Python that's running to figure out how to handle self-signed certs.
-    if version_info() >= (2,7,9):
-        import ssl
-        ssl._create_default_https_context = ssl._create_unverified_context
+#Fix for dealing with self-signed certificates.  This is wrong and highly discouraged, but it's a hacking tool, so it's fixed with a hack.  Get over it :-)
 
-
-
-
-
+if version_info >= (2, 7, 9):
+    import ssl
+    ssl._create_default_https_context = ssl._create_unverified_context
 
 def getApps(webPort,victim,uri,https,verb,requestHeaders):
     print "Web App Attacks (GET)"
