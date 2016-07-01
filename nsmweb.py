@@ -132,7 +132,7 @@ def getApps(webPort,victim,uri,https,verb,requestHeaders):
 
         if errorCheck == False:
             injLen = int(len(urllib2.urlopen(req).read()))
-            checkResult(randLength,injLen,testNum,verb)
+            checkResult(randLength,injLen,testNum,verb,None)
             testNum += 1
         else:
             testNum += 1
@@ -150,7 +150,7 @@ def getApps(webPort,victim,uri,https,verb,requestHeaders):
 
         if errorCheck == False:
             injLen = int(len(urllib2.urlopen(req).read()))
-            checkResult(randLength,injLen,testNum,verb)
+            checkResult(randLength,injLen,testNum,verb,None)
             testNum += 1
 
         else:
@@ -169,7 +169,7 @@ def getApps(webPort,victim,uri,https,verb,requestHeaders):
 
         if errorCheck == False:
             injLen = int(len(urllib2.urlopen(req).read()))
-            checkResult(randLength,injLen,testNum,verb)
+            checkResult(randLength,injLen,testNum,verb,None)
             testNum +=1
 
         else:
@@ -188,7 +188,7 @@ def getApps(webPort,victim,uri,https,verb,requestHeaders):
 
         if errorCheck == False:
             injLen = int(len(urllib2.urlopen(req).read()))
-            checkResult(randLength,injLen,testNum,verb)
+            checkResult(randLength,injLen,testNum,verb,None)
             testNum += 1
         else:
             testNum += 1
@@ -205,7 +205,7 @@ def getApps(webPort,victim,uri,https,verb,requestHeaders):
 
         if errorCheck == False:
             injLen = int(len(urllib2.urlopen(req).read()))
-            checkResult(randLength,injLen,testNum,verb)
+            checkResult(randLength,injLen,testNum,verb,None)
             testNum +=1
 
         else:
@@ -223,7 +223,7 @@ def getApps(webPort,victim,uri,https,verb,requestHeaders):
 
         if errorCheck == False:
             injLen = int(len(urllib2.urlopen(req).read()))
-            checkResult(randLength,injLen,testNum,verb)
+            checkResult(randLength,injLen,testNum,verb,None)
             testNum += 1
         else:
             testNum += 1
@@ -240,7 +240,7 @@ def getApps(webPort,victim,uri,https,verb,requestHeaders):
 
         if errorCheck == False:
             injLen = int(len(urllib2.urlopen(req).read()))
-            checkResult(randLength,injLen,testNum,verb)
+            checkResult(randLength,injLen,testNum,verb,None)
             testNum += 1
         else:
             testNum += 1
@@ -258,7 +258,7 @@ def getApps(webPort,victim,uri,https,verb,requestHeaders):
 
         if errorCheck == False:
             injLen = int(len(urllib2.urlopen(req).read()))
-            checkResult(randLength,injLen,testNum,verb)
+            checkResult(randLength,injLen,testNum,verb,None)
             testNum += 1
 
 
@@ -473,7 +473,7 @@ def postApps(victim,webPort,uri,https,verb,postData,requestHeaders):
 
         if errorCheck == False:
             injLen = int(len(urllib2.urlopen(req).read()))
-            checkResult(randLength,injLen,testNum,verb)
+            checkResult(randLength,injLen,testNum,verb,postData)
             testNum += 1
 
         else:
@@ -500,7 +500,7 @@ def postApps(victim,webPort,uri,https,verb,postData,requestHeaders):
 
         if errorCheck == False:
             injLen = int(len(urllib2.urlopen(req).read()))
-            checkResult(randLength,injLen,testNum,verb)
+            checkResult(randLength,injLen,testNum,verb,postData)
             testNum += 1
 
         postData.update({injOpt:"a'; return db.a.find(); var dummy='!"})
@@ -517,7 +517,7 @@ def postApps(victim,webPort,uri,https,verb,postData,requestHeaders):
 
         if errorCheck == False:
             injLen = int(len(urllib2.urlopen(req).read()))
-            checkResult(randLength,injLen,testNum,verb)
+            checkResult(randLength,injLen,testNum,verb,postData)
             testNum += 1
         else:
             testNum += 1
@@ -537,7 +537,7 @@ def postApps(victim,webPort,uri,https,verb,postData,requestHeaders):
 
         if errorCheck == False:
             injLen = int(len(urllib2.urlopen(req).read()))
-            checkResult(randLength,injLen,testNum,verb)
+            checkResult(randLength,injLen,testNum,verb,postData)
             testNum += 1
         else:
             testNum += 1
@@ -558,7 +558,7 @@ def postApps(victim,webPort,uri,https,verb,postData,requestHeaders):
 
         if errorCheck == False:
             injLen = int(len(urllib2.urlopen(req).read()))
-            checkResult(randLength,injLen,testNum,verb)
+            checkResult(randLength,injLen,testNum,verb,postData)
             testNum += 1
 
         else:
@@ -579,7 +579,7 @@ def postApps(victim,webPort,uri,https,verb,postData,requestHeaders):
 
         if errorCheck == False:
             injLen = int(len(urllib2.urlopen(req).read()))
-            checkResult(randLength,injLen,testNum,verb)
+            checkResult(randLength,injLen,testNum,verb,postData)
             testNum += 1
 
         else:
@@ -601,7 +601,7 @@ def postApps(victim,webPort,uri,https,verb,postData,requestHeaders):
 
         if errorCheck == False:
             injLen = int(len(urllib2.urlopen(req).read()))
-            checkResult(randLength,injLen,testNum,verb)
+            checkResult(randLength,injLen,testNum,verb,postData)
             testNum += 1
             print "\n"
         else:
@@ -621,7 +621,7 @@ def postApps(victim,webPort,uri,https,verb,postData,requestHeaders):
 
         if errorCheck == False:
             injLen = int(len(urllib2.urlopen(req).read()))
-            checkResult(randLength,injLen,testNum,verb)
+            checkResult(randLength,injLen,testNum,verb,postData)
             testNum += 1
 
         else:
@@ -750,7 +750,7 @@ def errorTest (errorCheck,testNum):
 
 
 
-def checkResult(baseSize,respSize,testNum,verb):
+def checkResult(baseSize,respSize,testNum,verb,postData):
     global vulnAddrs
     global possAddrs
     global lt24
