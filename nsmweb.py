@@ -759,7 +759,7 @@ def checkResult(baseSize,respSize,testNum,verb,postData):
     global httpMethod
     global neDict
     global gtDict
-    global postData
+    
 
     delta = abs(respSize - baseSize)
     if (delta >= 100) and (respSize != 0) :
