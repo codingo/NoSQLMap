@@ -4,9 +4,9 @@ from setuptools import find_packages, setup
 with open("README.md") as f:
 	setup(
 			name = "NoSQLMap",
-			version = "0.5",
+			version = "0.7",
 			packages = find_packages(),
-			scripts = ['nosqlmap.py', 'nsmmongo.py', 'nsmcouch.py'],
+			scripts = ['nosqlmap.py', 'nsmmongo.py', 'nsmcouch.py','nsmscan.py','nsmweb.py'],
 			
 			entry_points = {
 				"console_scripts": [
@@ -18,7 +18,7 @@ with open("README.md") as f:
 								 "NoSQLMap==0.5", "pbkdf2==1.3", "pymongo==2.7.2",\
 								 "requests==2.5.0"],
 	
-			author = "tcstools",
+			author = "tcstool",
 			author_email = "nosqlmap@gmail.com",
 			description = "Automated MongoDB and NoSQL web application exploitation tool",
 			license = "GPLv3",
