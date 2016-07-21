@@ -43,8 +43,6 @@ def getApps(webPort,victim,uri,https,verb,requestHeaders):
     possAddrs = []
     timeVulnsStr = []
     timeVulnsInt = []
-    yes_tag = ['y', 'Y']
-    no_tag = ['n', 'N']
     appUp = False
     strTbAttack = False
     intTbAttack = False
@@ -264,7 +262,7 @@ def getApps(webPort,victim,uri,https,verb,requestHeaders):
 
         doTimeAttack = raw_input("Start timing based tests (y/n)? ")
 
-        if doTimeAttack in yes_tag:
+        if doTimeAttack.lower() == "y":
             print "Starting Javascript string escape time based injection..."
             req = urllib2.Request(uriArray[18], None, requestHeaders)
             start = time.time()
@@ -306,7 +304,7 @@ def getApps(webPort,victim,uri,https,verb,requestHeaders):
         if lt24 == True:
             bfInfo = raw_input("MongoDB < 2.4 detected.  Start brute forcing database info (y/n)? ")
 
-            if bfInfo in yes_tag:
+            if bfInfo.lower == "y":
                 getDBInfo()
 
 
@@ -330,7 +328,7 @@ def getApps(webPort,victim,uri,https,verb,requestHeaders):
 
         fileOut = raw_input("Save results to file (y/n)? ")
 
-        if fileOut in yes_tag:
+        if fileOut.lower() == "y":
             savePath = raw_input("Enter output file name: ")
             fo = open(savePath, "wb")
             fo.write ("Vulnerable URLs:\n")
@@ -692,7 +690,7 @@ def postApps(victim,webPort,uri,https,verb,postData,requestHeaders):
 
         fileOut = raw_input("Save results to file (y/n)? ")
 
-        if fileOut in yes_tag:
+        if fileOut.lower() == "y":
             savePath = raw_input("Enter output file name: ")
             fo = open(savePath, "wb")
             fo.write ("Vulnerable Requests:\n")
@@ -974,7 +972,6 @@ def buildUri(origUri, randValue):
 
 def getDBInfo():
     curLen = 0
-    yes_tag = ['y', 'Y']
     nameLen = 0
     gotFullDb = False
     gotNameLen = False
@@ -1039,7 +1036,7 @@ def getDBInfo():
 
     getUserInf = raw_input("Get database users and password hashes (y/n)? ")
 
-    if getUserInf in yes_tag:
+    if getUserInf.lower() == "y":
         charCounter = 0
         nameCounter = 0
         #find the total number of users on the database
@@ -1189,7 +1186,7 @@ def getDBInfo():
                 pwdHash = ""
     crackHash = raw_input("Crack recovered hashes (y/n)?:  ")
 
-    while crackHash in yes_tag:
+    while crackHash.lower() == "y":
         menuItem = 1
         for user in users:
             print str(menuItem) + "-" + user
