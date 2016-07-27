@@ -883,7 +883,11 @@ def getApps():
 			print "No URI parameters provided for GET request...Check your options.\n"
 			raw_input("Press enter to continue...")
 			return()
-
+		split_uri = appURL.split("?")
+		if split_uri[1] == '':
+			raw_input(
+				"No parameters in uri.  Check options settings.  Press enter to return to main menu...")
+			return()
 		randomUri = buildUri(appURL,injectString)
 		print "URI : " + randomUri
 		req = urllib2.Request(randomUri, None, requestHeaders)
