@@ -964,7 +964,7 @@ def getApps():
 		print "\n"
 		if verb == "ON":
 			print "Testing Mongo <2.4 $where all Javascript string escape attack for one record...\n"
-			print " Injecting " + uriArray[4]
+			print "Injecting " + uriArray[4]
 		else:
 			print "Test 4: $where injection string escape (single record)"
 
@@ -981,7 +981,7 @@ def getApps():
 		print "\n"
 		if verb == "ON":
 			print "Testing Mongo <2.4 $where Javascript integer escape attack for one record...\n"
-			print " Injecting " + uriArray[5]
+			print "Injecting " + uriArray[5]
 		else:
 			print "Test 5: $where injection integer escape (single record)"
 
@@ -999,7 +999,7 @@ def getApps():
 		print "\n"
 		if verb == "ON":
 			print "Testing Mongo this not equals string escape attack for all records..."
-			print " Injecting " + uriArray[6]
+			print "Injecting " + uriArray[6]
 		else:
 			print "Test 6: This != injection (string escape)"
 
@@ -1016,7 +1016,7 @@ def getApps():
 		print "\n"
 		if verb == "ON":
 			print "Testing Mongo this not equals integer escape attack for all records..."
-			print " Injecting " + uriArray[7]
+			print "Injecting " + uriArray[7]
 		else:
 			print "Test 7: This != injection (integer escape)"
 
