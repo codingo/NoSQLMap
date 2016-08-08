@@ -186,7 +186,11 @@ def stealDBs(myDB,victim,mongoConn):
 			return
 
 	except Exception, e:
-		if str(e).find('text search not enabled') != -1:
+		if str(e).find('Connection refused'):
+			raw_input(
+				"Make sure that mongoDB has been installed or that mongoDB is opened on this computer.  Press enter to return...")
+			return
+		elif str(e).find('text search not enabled') != -1:
 			raw_input("Database copied, but text indexing was not enabled on the target.  Indexes not moved.  Press enter to return...")
 			return
 		elif str(e).find('Network is unreachable') != -1:
