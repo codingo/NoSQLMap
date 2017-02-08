@@ -423,6 +423,13 @@ def options():
             else:
                 print "unsupported method in request header."
 
+            # load the HTTP headers
+            for line in reqData[1:]:
+                print(line)
+                if not line.strip(): break
+                header = line.split(": ");
+                requestHeaders[header[0]] = header[1].strip()
+
             victim = reqData[1].split( " ")[1].replace("\r\n","")
             optionSet[0] = True
             uri = methodPath[1].replace("\r\n","")
