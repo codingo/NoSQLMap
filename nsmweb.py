@@ -56,13 +56,13 @@ def getApps(webPort,victim,uri,https,verb,requestHeaders):
     int24 = False
 
     #Verify app is working.
-    print "Checking to see if site at " + str(victim) + ":" + str(webPort) + str(uri) + " is up..."
+    print "Checking to see if site at " + str(victim).strip() + ":" + str(webPort).strip() + str(uri).strip() + " is up..."
 
     if https == "OFF":
-        appURL = "http://" + str(victim) + ":" + str(webPort) + str(uri)
+        appURL = "http://" + str(victim).strip() + ":" + str(webPort).strip() + str(uri).strip()
 
     elif https == "ON":
-        appURL = "https://" + str(victim) + ":" + str(webPort) + str(uri)
+        appURL = "https://" + str(victim).strip() + ":" + str(webPort).strip() + str(uri).strip()
     try:
         req = urllib2.Request(appURL, None, requestHeaders)
         appRespCode = urllib2.urlopen(req).getcode()
