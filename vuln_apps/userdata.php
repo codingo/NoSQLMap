@@ -11,7 +11,7 @@
 	if (isset($_GET['usersearch']) && !empty($_GET['usersearch'])) {
 		try {
       	$result = "";
-       	$conn = new MongoClient('mongodb://192.168.87.157');
+       	$conn = new MongoClient('mongodb://127.0.0.1');
        	$db = $conn->appUserData;
 		 	$collection = $db->users;
 		 	$search = $_GET['usersearch'];

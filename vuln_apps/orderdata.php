@@ -15,7 +15,7 @@
        	$db = $conn->shop;
 		 	$collection = $db->orders;
 		 	$search = $_GET['ordersearch'];
-		 	$js = "function () { var query = '". $ordersearch . "'; return this.id == query;}";
+		 	$js = "function () { var query = '". $search . "'; return this.id == query;}";
 		 	//print $js;
 		 	print '<br/>';
        
