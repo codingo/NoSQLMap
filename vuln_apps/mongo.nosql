@@ -1,0 +1,23 @@
+use shop
+db.orders.insert({"id":"42","name":"Adrien","item":"Fuzzy pink towel","quantity":"1"})
+db.orders.insert({"id":"99","name":"Justin","item":"Bird supplies","quantity":"4"})
+db.orders.insert({"id":"1","name":"Robin","item":"Music gift cards","quantity":"100"})
+db.orders.insert({"id":"1001","name":"Moses","item":"Miami Heat tickets","quantity":"1000"})
+db.orders.insert({"id":"66","name":"Rick","item":"Black hoodie","quantity":"1"})
+db.orders.insert({"id":"0","name":"Nobody","item":"Nothing","quantity":"0"})
+
+use customers
+db.paymentinfo.insert({"name":"Adrien","id":"42","cc":"5555123456789999","cvv2":"1234"})
+db.paymentinfo.insert({"name":"Justin","id":"99","cc":"5555123456780000","cvv2":"4321"})
+db.paymentinfo.insert({"name":"Robin","id":"1","cc":"3333444455556666","cvv2":"2222"})
+db.paymentinfo.insert({"name":"Moses","id":"2","cc":"4444555566667777","cvv2":"3333"})
+db.paymentinfo.insert({"name":"Rick","id":"3","cc":"5555666677778888","cvv2":"5678"})
+db.paymentinfo.insert({"name":"Nobody","id":"0","cc":"45009876543215555","cvv2":"9999"})
+
+use appUserData
+db.users.insert({"name":"Adrien","username":"adrien","email":"adrien@sec642.org"})
+db.users.insert({"name":"Justin","username":"justin","email":"justin@sec642.org"})
+db.users.insert({"name":"Robin","username":"digininja","email":"digininja@sec642.org"})
+db.users.insert({"name":"Moses","username":"adrien","email":"moses@sec642.org"})
+db.users.insert({"name":"Rick","username":"rick","email":"rick@sec642.org"})
+db.users.insert({"name":"Nobody","username":"administrator","email":"root@sec642.org"})
