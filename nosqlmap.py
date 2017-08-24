@@ -64,7 +64,7 @@ def mainMenu():
         print "\_| \_/\___/\____/  \_/\_\_____/\_|  |_/\__,_| .__/"
         print "===================================================="
         print "NoSQLMap-v0.7"
-        print "nosqlmap@gmail.com"
+        print "codingo@protonmail.com"
         print "\n"
         print "1-Set options"
         print "2-NoSQL DB Access Attacks"
