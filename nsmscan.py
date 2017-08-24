@@ -7,6 +7,7 @@ import ipcalc
 import nsmmongo
 import nsmcouch
 
+
 def massScan(platform):
     yes_tag = ['y', 'Y']
     no_tag = ['n', 'N']
@@ -83,11 +84,11 @@ def massScan(platform):
 
         elif result[0] == 1:
             print platform + " running but credentials required on " + target.rstrip() + "."
-            creds.append(target.rstrip()) #Future use
+            creds.append(target.rstrip()) # Future use
 
         elif result[0] == 2:
             print "Successful " + platform + " connection to " + target.rstrip() + " but error executing command."
-            commError.append(target.rstrip()) #Future use
+            commError.append(target.rstrip()) # Future use
 
         elif result[0] == 3:
             print "Couldn't connect to " + target.rstrip() + "."
