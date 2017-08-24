@@ -11,10 +11,11 @@ import os
 import signal
 import ast
 
+
 def main():
     signal.signal(signal.SIGINT, signal_handler)
     global optionSet
-    #Set a list so we can track whether options are set or not to avoid resetting them in subsequent calls to the options menu.
+    # Set a list so we can track whether options are set or not to avoid resetting them in subsequent calls to the options menu.
     optionSet = [False]*9
     global yes_tag
     global no_tag
@@ -31,7 +32,7 @@ def main():
     global verb
     global scanNeedCreds
     global dbPort
-    #Use MongoDB as the default, since it's the least secure ( :-p at you 10Gen )
+    # Use MongoDB as the default, since it's the least secure ( :-p at you 10Gen )
     platform = "MongoDB"
     dbPort = 27017
     myIP = "Not Set"
@@ -85,13 +86,13 @@ def mainMenu():
                 elif platform == "CouchDB":
                     nsmcouch.netAttacks(victim, dbPort, myIP)
 
-            #Check minimum required options
+            # Check minimum required options
             else:
                 raw_input("Target not set! Check options.  Press enter to continue...")
 
 
         elif select == "3":
-            #Check minimum required options
+            # Check minimum required options
             if (optionSet[0] == True) and (optionSet[2] == True):
                 if httpMethod == "GET":
                     nsmweb.getApps(webPort,victim,uri,https,verb,requestHeaders)
@@ -119,6 +120,7 @@ def mainMenu():
         else:
             raw_input("Invalid selection.  Press enter to continue.")
 
+
 def platSel():
     global platform
     global dbPort
@@ -142,6 +144,7 @@ def platSel():
         else:
             raw_input("Invalid selection.  Press enter to continue.")
 
+
 def options():
     global victim
     global webPort
@@ -159,7 +162,7 @@ def options():
     requestHeaders = {}
     optSelect = True
 
-    #Set default value if needed
+    # Set default value if needed
     if optionSet[0] == False:
         global victim
         victim = "Not Set"
@@ -207,7 +210,7 @@ def options():
         select = raw_input("Select an option: ")
 
         if select == "1":
-            #Unset the boolean if it's set since we're setting it again.
+            # Unset the boolean if it's set since we're setting it again.
             optionSet[0] = False
             ipLen = False
 
@@ -215,16 +218,16 @@ def options():
                 goodDigits = True
                 notDNS = True
                 victim = raw_input("Enter the host IP/DNS name: ")
-                #make sure we got a valid IP
+                # make sure we got a valid IP
                 octets = victim.split(".")
 
                 if len(octets) != 4:
-                    #Treat this as a DNS name
+                    # Treat this as a DNS name
                     optionSet[0] = True
                     notDNS = False
                 else:
-                    #If len(octets) != 4 is executed the block of code below is also run, but it is not necessary
-                    #If the format of the IP is good, check and make sure the octets are all within acceptable ranges.
+                    # If len(octets) != 4 is executed the block of code below is also run, but it is not necessary
+                    # If the format of the IP is good, check and make sure the octets are all within acceptable ranges.
                     for item in octets:
                         try:
                             if int(item) < 0 or int(item) > 255:
@@ -296,19 +299,19 @@ def options():
                     print "Invalid selection"
 
         elif select == "7":
-            #Unset the setting boolean since we're setting it again.
+            # Unset the setting boolean since we're setting it again.
             optionSet[4] = False
 
             while optionSet[4] == False:
                 goodLen = False
                 goodDigits = True
-                #Every time when user input Invalid IP, goodLen and goodDigits should be reset. If this is not done, there will be a bug
-                #For example enter 10.0.0.1234 first and the goodLen will be set to True and goodDigits will be set to False
-                #Second step enter 10.0.123, because goodLen has already been set to True, this invalid IP will be put in myIP variables
+                # Every time when user input Invalid IP, goodLen and goodDigits should be reset. If this is not done, there will be a bug
+                # For example enter 10.0.0.1234 first and the goodLen will be set to True and goodDigits will be set to False
+                # Second step enter 10.0.123, because goodLen has already been set to True, this invalid IP will be put in myIP variables
                 myIP = raw_input("Enter the host IP for my " + platform +"/Shells: ")
-                #make sure we got a valid IP
+                # make sure we got a valid IP
                 octets = myIP.split(".")
-                #If there aren't 4 octets, toss an error.
+                # If there aren't 4 octets, toss an error.
                 if len(octets) != 4:
                     print "Invalid IP length."
 
@@ -316,19 +319,20 @@ def options():
                     goodLen = True
 
                 if goodLen == True:
-                #If the format of the IP is good, check and make sure the octets are all within acceptable ranges.
+                # If the format of the IP is good, check and make sure the octets are all within acceptable ranges.
                     for item in octets:
                         if int(item) < 0 or int(item) > 255:
                             print "Bad octet in IP address."
                             goodDigits = False
 
-#						else:
-#							goodDigits = True
-                        #Default value of goodDigits should be set to True
-                        #for example 12.12345.12.12
+                        # else:
+                        # goodDigits = True
+
+                        # Default value of goodDigits should be set to True
+                        # for example 12.12345.12.12
 
 
-                #If everything checks out set the IP and break the loop
+                # If everything checks out set the IP and break the loop
                 if goodLen == True and goodDigits == True:
                     print "\nShell/DB listener set to " + myIP + "\n"
                     optionSet[4] = True
@@ -368,7 +372,7 @@ def options():
                 if httpMethod == "POST":
                     postData = ast.literal_eval(csvOpt[1])
 
-                #Set option checking array based on what was loaded
+                # Set option checking array based on what was loaded
                 x = 0
                 for item in optList:
                     if item != "Not Set":
@@ -398,7 +402,7 @@ def options():
                 paramValues = []
                 httpMethod = "POST"
                 postData = reqData[len(reqData)-1]
-                #split the POST parameters up into individual items
+                # split the POST parameters up into individual items
                 paramsNvalues = postData.split("&")
 
                 for item in paramsNvalues:
