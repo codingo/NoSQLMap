@@ -12,14 +12,12 @@ Originally authored by [@tcsstool](https://twitter.com/tcstoolHax0r) and now mai
 ## Screenshots
 ![NoSQLMap](https://github.com/codingo/NoSQLMap/blob/master/screenshots/NoSQLMap-v0-5.jpg)
 
-
-
 # Summary
 ## What is NoSQL?
 A NoSQL (originally referring to "non SQL", "non relational" or "not only SQL") database provides a mechanism for storage and retrieval of data which is modeled in means other than the tabular relations used in relational databases. Such databases have existed since the late 1960s, but did not obtain the "NoSQL" moniker until a surge of popularity in the early twenty-first century, triggered by the needs of Web 2.0 companies such as Facebook, Google, and Amazon.com. NoSQL databases are increasingly used in big data and real-time web applications. NoSQL systems are also sometimes called "Not only SQL" to emphasize that they may support SQL-like query languages.
 
 ## DBMS Support
-Presently the tool's exploits are focused around MongoDB, and CouchDB but additional support for other NoSQL based platforms such as CouchDB, Redis, and Cassandra are planned in future releases.
+Presently the tool's exploits are focused around MongoDB, and CouchDB but additional support for other NoSQL based platforms such as Redis, and Cassandra are planned in future releases.
 
 ## Requirements 
 On a Debian or Red Hat based system, the setup.sh script may be run as root to automate the installation of NoSQLMap's dependencies.  
