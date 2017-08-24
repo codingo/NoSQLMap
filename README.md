@@ -6,9 +6,10 @@ NoSQLMap is an open source Python tool designed to audit for as well as automate
 # Screenshots
 ![NoSQLMap](https://github.com/codingo/NoSQLMap/blob/master/screenshots/NoSQLMap-v0-5.jpg)
 
-## About / Credits 
-Originally authored by [@tcsstool](https://twitter.com/tcstoolHax0r) and now maintained by [@codingo_](https://twitter.com/codingo_) NoSQLMap is named as a tribute to Bernardo Damele and Miroslav's Stampar's popular SQL injection tool [sqlmap](http://sqlmap.org), and its concepts are based on and extensions of Ming Chow's excellent presentation at Defcon 21, ["Abusing NoSQL Databases"](https://www.defcon.org/images/defcon-21/dc-21-presentations/Chow/DEFCON-21-Chow-Abusing-NoSQL-Databases.pdf).
+# About / Credits 
+Originally authored by [@tcsstool](https://twitter.com/tcstoolHax0r) and now maintained by [@codingo_](https://twitter.com/codingo_) NoSQLMap is named as a tribute to Bernardo Damele and Miroslav's Stampar's popular SQL injection tool [sqlmap](http://sqlmap.org). Its concepts are based on and extensions of Ming Chow's excellent presentation at Defcon 21, ["Abusing NoSQL Databases"](https://www.defcon.org/images/defcon-21/dc-21-presentations/Chow/DEFCON-21-Chow-Abusing-NoSQL-Databases.pdf).
 
+# Summary
 ## What is NoSQL?
 A NoSQL (originally referring to "non SQL", "non relational" or "not only SQL") database provides a mechanism for storage and retrieval of data which is modeled in means other than the tabular relations used in relational databases. Such databases have existed since the late 1960s, but did not obtain the "NoSQL" moniker until a surge of popularity in the early twenty-first century, triggered by the needs of Web 2.0 companies such as Facebook, Google, and Amazon.com. NoSQL databases are increasingly used in big data and real-time web applications. NoSQL systems are also sometimes called "Not only SQL" to emphasize that they may support SQL-like query languages.
 
@@ -16,7 +17,7 @@ A NoSQL (originally referring to "non SQL", "non relational" or "not only SQL") 
 ## DBMS Support
 Presently the tool's exploits are focused around MongoDB, and CouchDB but additional support for other NoSQL based platforms such as CouchDB, Redis, and Cassandra are planned in future releases.
 
-# Requirements 
+## Requirements 
 On a Debian or Red Hat based system, the setup.sh script may be run as root to automate the installation of NoSQLMap's dependencies.  
 
 Varies based on features used:
@@ -28,18 +29,18 @@ Varies based on features used:
 
 There are some various other libraries required that a normal Python installation should have readily available. Your milage may vary, check the script.  
 
-# Setup
+## Setup
 ```
 python setup.py install
 ```
 
-# Usage
+## Usage
 
-## NoSQLMap MongoDB Management Attack Demo.
+### NoSQLMap MongoDB Management Attack Demo.
 
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=xSFi-jxOBwM" target="_blank"><img src="http://img.youtube.com/vi/xSFi-jxOBwM/0.jpg" alt="NoSQLMap MongoDB Management Attack Demo" width="240" height="180" border="10" /></a> 
 
-## Usage Instructions
+### Usage Instructions
 -Start with
 
 ```
