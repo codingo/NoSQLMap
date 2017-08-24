@@ -55,16 +55,11 @@ def mainMenu():
     mmSelect = True
     while mmSelect:
         os.system('clear')
-        print "===================================================="
-        print " _   _       _____  _____ _     ___  ___            "
-        print "| \ | |     /  ___||  _  | |    |  \/  |            "
-        print "|  \| | ___ \ `--. | | | | |    | .  . | __ _ _ __  "
-        print "| . ` |/ _ \ `--. \| | | | |    | |\/| |/ _` | '_ \ "
-        print "| |\  | (_) /\__/ /\ \/' / |____| |  | | (_| | |_) |"
-        print "\_| \_/\___/\____/  \_/\_\_____/\_|  |_/\__,_| .__/"
-        print "===================================================="
-        print "NoSQLMap-v0.7"
-        print "codingo@protonmail.com"
+        print " _  _     ___  ___  _    __  __           "
+        print "| \| |___/ __|/ _ \| |  |  \/  |__ _ _ __ "
+        print "| .` / _ \__ \ (_) | |__| |\/| / _` | '_ \"
+        print "|_|\_\___/___/\__\_\____|_|  |_\__,_| .__/"
+        print " v0.7 codingo@protonmail.com        |_|   "
         print "\n"
         print "1-Set options"
         print "2-NoSQL DB Access Attacks"
