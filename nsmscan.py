@@ -1,21 +1,12 @@
 #!/usr/bin/python
-#NoSQLMap Copyright 2016 Russell Butturini
-#This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-#the Free Software Foundation, either version 3 of the License, or
-#(at your option) any later version.
+# NoSQLMap Copyright 2012-2017 NoSQLMap Development team
+# See the file 'doc/COPYING' for copying permission
 
-#This program is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
-
-#You should have received a copy of the GNU General Public License
-#along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import ipcalc
 import nsmmongo
 import nsmcouch
+
 
 def massScan(platform):
     yes_tag = ['y', 'Y']
@@ -93,11 +84,11 @@ def massScan(platform):
 
         elif result[0] == 1:
             print platform + " running but credentials required on " + target.rstrip() + "."
-            creds.append(target.rstrip()) #Future use
+            creds.append(target.rstrip()) # Future use
 
         elif result[0] == 2:
             print "Successful " + platform + " connection to " + target.rstrip() + " but error executing command."
-            commError.append(target.rstrip()) #Future use
+            commError.append(target.rstrip()) # Future use
 
         elif result[0] == 3:
             print "Couldn't connect to " + target.rstrip() + "."

