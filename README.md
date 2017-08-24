@@ -3,6 +3,10 @@ NoSQLMap
 
 NoSQLMap is an open source Python tool designed to audit for as well as automate injection attacks and exploit default configuration weaknesses in NoSQL databases and web applications using NoSQL in order to disclose or clone data from the database.
 
+# NoSQLMap MongoDB Management Attack Demo.
+
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=xSFi-jxOBwM" target="_blank"><img src="http://img.youtube.com/vi/xSFi-jxOBwM/0.jpg" alt="NoSQLMap MongoDB Management Attack Demo" width="240" height="180" border="10" /></a> 
+
 # Screenshots
 ![NoSQLMap](https://github.com/codingo/NoSQLMap/blob/master/screenshots/NoSQLMap-v0-5.jpg)
 
@@ -12,7 +16,6 @@ Originally authored by [@tcsstool](https://twitter.com/tcstoolHax0r) and now mai
 # Summary
 ## What is NoSQL?
 A NoSQL (originally referring to "non SQL", "non relational" or "not only SQL") database provides a mechanism for storage and retrieval of data which is modeled in means other than the tabular relations used in relational databases. Such databases have existed since the late 1960s, but did not obtain the "NoSQL" moniker until a surge of popularity in the early twenty-first century, triggered by the needs of Web 2.0 companies such as Facebook, Google, and Amazon.com. NoSQL databases are increasingly used in big data and real-time web applications. NoSQL systems are also sometimes called "Not only SQL" to emphasize that they may support SQL-like query languages.
-
 
 ## DBMS Support
 Presently the tool's exploits are focused around MongoDB, and CouchDB but additional support for other NoSQL based platforms such as CouchDB, Redis, and Cassandra are planned in future releases.
@@ -34,17 +37,10 @@ There are some various other libraries required that a normal Python installatio
 python setup.py install
 ```
 
-## Usage
-
-### NoSQLMap MongoDB Management Attack Demo.
-
-<a href="http://www.youtube.com/watch?feature=player_embedded&v=xSFi-jxOBwM" target="_blank"><img src="http://img.youtube.com/vi/xSFi-jxOBwM/0.jpg" alt="NoSQLMap MongoDB Management Attack Demo" width="240" height="180" border="10" /></a> 
-
-### Usage Instructions
--Start with
-
+## Usage Instructions
+Start with
 ```
-NoSQLMap
+python NoSQLMap
 ```
 
 NoSQLMap uses a menu based system for building attacks.  Upon starting NoSQLMap you are presented with with the main menu:
@@ -56,7 +52,6 @@ NoSQLMap uses a menu based system for building attacks.  Upon starting NoSQLMap 
 4-Scan for Anonymous MongoDB Access
 x-Exit
 ```
-
 
 Explanation of options:
 ```
