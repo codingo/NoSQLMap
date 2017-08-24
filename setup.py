@@ -19,7 +19,7 @@ with open("README.md") as f:
 								 "requests==2.5.0"],
 	
 			author = "tcstool",
-			author_email = "nosqlmap@gmail.com",
+			author_email = "codingo@protonmail.com",
 			description = "Automated MongoDB and NoSQL web application exploitation tool",
 			license = "GPLv3",
 			long_description = f.read(),
