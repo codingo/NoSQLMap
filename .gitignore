@@ -221,3 +221,4 @@ pip-log.txt
 .idea/NoSQLMap.iml
 *.iml
 *.pyproj
+*.sln
