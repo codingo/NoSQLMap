@@ -219,3 +219,5 @@ pip-log.txt
 .idea/.name
 
 .idea/NoSQLMap.iml
+*.iml
+*.pyproj
