@@ -222,3 +222,4 @@ pip-log.txt
 *.iml
 *.pyproj
 *.sln
+/.vs/ProjectSettings.json
