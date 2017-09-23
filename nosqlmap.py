@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #!/usr/bin/python
 # NoSQLMap Copyright 2012-2017 NoSQLMap Development team
 # See the file 'doc/COPYING' for copying permission
@@ -55,11 +56,11 @@ def mainMenu():
     mmSelect = True
     while mmSelect:
         os.system('clear')
-        print " _  _     ___  ___  _    __  __           "
-        print "| \| |___/ __|/ _ \| |  |  \/  |__ _ _ __ "
-        print "| .` / _ \__ \ (_) | |__| |\/| / _` | '_ \"
-        print "|_|\_\___/___/\__\_\____|_|  |_\__,_| .__/"
-        print " v0.7 codingo@protonmail.com        |_|   "
+        print " _  _     ___  ___  _    __  __           "
+        print "| \| |___/ __|/ _ \| |  |  \/  |__ _ _ __ "
+        print "| .` / _ \__ \ (_) | |__| |\/| / _` | '_ \\"
+        print("|_|\_\___/___/\__\_\____|_|  |_\__,_| .__/")
+        print(" v0.7 codingo@protonmail.com        |_|   ")
         print "\n"
         print "1-Set options"
         print "2-NoSQL DB Access Attacks"
