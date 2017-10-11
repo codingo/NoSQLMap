@@ -3,15 +3,12 @@
 # See the file 'doc/COPYING' for copying permission
 
 import sys
-import nsmcouch
-import nsmmongo
-import nsmscan
-import nsmweb
 
 def main():
      print("╔╗╔┌─┐╔═╗╔═╗ ╦  ╔╦╗┌─┐┌─┐")
      print("║║║│ │╚═╗║═╬╗║  ║║║├─┤├─┘")
      print("╝╚╝└─┘╚═╝╚═╝╚╩═╝╩ ╩┴ ┴┴  ")
+
 
 
 
