@@ -54,13 +54,7 @@ def mainMenu():
 
     mmSelect = True
     while mmSelect:
-        os.system('clear')
-        print " _  _     ___  ___  _    __  __           "
-        print "| \| |___/ __|/ _ \| |  |  \/  |__ _ _ __ "
-        print "| .` / _ \__ \ (_) | |__| |\/| / _` | '_ \"
-        print "|_|\_\___/___/\__\_\____|_|  |_\__,_| .__/"
-        print " v0.7 codingo@protonmail.com        |_|   "
-        print "\n"
+        print "NoSQLMap - GUI"
         print "1-Set options"
         print "2-NoSQL DB Access Attacks"
         print "3-NoSQL Web App attacks"
