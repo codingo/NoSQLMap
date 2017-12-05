@@ -81,7 +81,15 @@ def getApps(webPort,victim,uri,https,verb,requestHeaders):
 
     if appUp == True:
 
-        injectSize = raw_input("Baseline test-Enter random string size: ")
+        sizeSelect = True
+
+        while sizeSelect:
+            injectSize = raw_input("Baseline test-Enter random string size: ")
+            if injectSize.isdigit():
+                sizeSelect = False
+            else:
+                print "Invalid! The size should be an integer."
+
         injectString = randInjString(int(injectSize))
         print "Using " + injectString + " for injection testing.\n"
 
@@ -429,7 +437,15 @@ def postApps(victim,webPort,uri,https,verb,postData,requestHeaders):
             raw_input("Something went wrong.  Press enter to return to the main menu...")
             return
 
-        injectSize = raw_input("Baseline test-Enter random string size: ")
+        sizeSelect = True
+
+        while sizeSelect:
+            injectSize = raw_input("Baseline test-Enter random string size: ")
+            if injectSize.isdigit():
+                sizeSelect = False
+            else:
+                print "Invalid! The size should be an integer."
+                
         injectString = randInjString(int(injectSize))
         print "Using " + injectString + " for injection testing.\n"
 
