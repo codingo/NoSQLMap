@@ -367,9 +367,15 @@ def options():
                 myPort = optList[5]
                 verb = optList[6]
                 https = optList[7]
+                
+                # saved headers position will depend of the request verb
+                headersPos= 1
 
                 if httpMethod == "POST":
                     postData = ast.literal_eval(csvOpt[1])
+                    headersPos = 2
+                    
+                requestHeaders = ast.literal_eval(csvOpt[headersPos])
 
                 # Set option checking array based on what was loaded
                 x = 0
