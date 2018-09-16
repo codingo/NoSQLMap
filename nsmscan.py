@@ -7,8 +7,10 @@ import ipcalc
 import nsmmongo
 import nsmcouch
 
+def args():
+    return []
 
-def massScan(platform):
+def massScan(platform, args = None):
     yes_tag = ['y', 'Y']
     no_tag = ['n', 'N']
     optCheck = True

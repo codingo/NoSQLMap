@@ -152,14 +152,14 @@ def attack(args):
     
     if args.attack == 1:
         if platform == "MongoDB":
-            nsmmongo.netAttacks(victim, dbPort, myIP, myPort)
+            nsmmongo.netAttacks(victim, dbPort, myIP, myPort, args)
         elif platform == "CouchDB":
-            nsmcouch.netAttacks(victim, dbPort, myIP)
+            nsmcouch.netAttacks(victim, dbPort, myIP, args)
     elif args.attack == 2:
         if httpMethod == "GET":
-            nsmweb.getApps(webPort,victim,uri,https,verb,requestHeaders)
+            nsmweb.getApps(webPort,victim,uri,https,verb,requestHeaders, args)
         elif httpMethod == "POST":
-            nsmweb.postApps(victim,webPort,uri,https,verb,postData,requestHeaders)
+            nsmweb.postApps(victim,webPort,uri,https,verb,postData,requestHeaders, args)
     elif args.attack == 3:
         scanResult = nsmscan.massScan(platform)
         if scanResult != None:
@@ -514,6 +514,12 @@ def build_parser():
     parser.add_argument("--verb", help="Toggle Verbose Mode", choices=["ON", "OFF"], default="OFF")
     parser.add_argument("--postData", help="Enter POST data in a comma separated list (i.e. param name 1,value1,param name 2,value2)", default="")
     parser.add_argument("--requestHeaders", help="Request headers in a comma separated list (i.e. param name 1,value1,param name 2,value2)", default="")
+
+    modules = [nsmcouch, nsmmongo, nsmscan, nsmweb]
+    for module in modules:     
+        for arg in module.args():
+            parser.add_argument(arg[0], help=arg[1])
+    
     return parser
 
 def signal_handler(signal, frame):

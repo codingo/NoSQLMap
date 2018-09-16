@@ -21,6 +21,8 @@ global no_tag
 yes_tag = ['y', 'Y']
 no_tag = ['n', 'N']
 
+def args():
+    return []
 
 def couchScan(target,port,pingIt):
     if pingIt == True:
@@ -63,8 +65,7 @@ def couchScan(target,port,pingIt):
         except:
             return [3,None]
 
-
-def netAttacks(target,port, myIP):
+def netAttacks(target,port, myIP, args = None):
     print "DB Access attacks (CouchDB)"
     print "======================"
     mgtOpen = False
