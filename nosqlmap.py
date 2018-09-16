@@ -516,9 +516,10 @@ def build_parser():
     parser.add_argument("--requestHeaders", help="Request headers in a comma separated list (i.e. param name 1,value1,param name 2,value2)", default="")
 
     modules = [nsmcouch, nsmmongo, nsmscan, nsmweb]
-    for module in modules:     
+    for module in modules:
+        group = parser.add_argument_group(module.__name__)
         for arg in module.args():
-            parser.add_argument(arg[0], help=arg[1])
+            group.add_argument(arg[0], help=arg[1])
     
     return parser
 

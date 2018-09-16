@@ -19,12 +19,37 @@ if version_info >= (2, 7, 9):
     ssl._create_default_https_context = ssl._create_unverified_context
 
 
+def save_to(savePath, vulnAddrs, possAddrs, strTbAttack,intTbAttack):
+    fo = open(savePath, "wb")
+    fo.write ("Vulnerable URLs:\n")
+    fo.write("\n".join(vulnAddrs))
+    fo.write("\n\n")
+    fo.write("Possibly Vulnerable URLs:\n")
+    fo.write("\n".join(possAddrs))
+    fo.write("\n")
+    fo.write("Timing based attacks:\n")
+    
+    if strTbAttack == True:
+        fo.write("String Attack-Successful\n")
+    else:
+        fo.write("String Attack-Unsuccessful\n")
+    fo.write("\n")
+    
+    if intTbAttack == True:
+        fo.write("Integer attack-Successful\n")
+    else:
+        fo.write("Integer attack-Unsuccessful\n")
+    fo.write("\n")
+    fo.close()
+
 def args():
     return [
+            ["--injectedParameter", "Parameter to be injected"],
             ["--injectSize", "Size of payload"],
             ["--injectFormat", "1-Alphanumeric, 2-Letters only, 3-Numbers only, 4-Email address"],
             ["--params", "Enter parameters to inject in a comma separated list"],
-            ["--doTimeAttack", "Start timing based tests (y/n)"]]
+            ["--doTimeAttack", "Start timing based tests (y/n)"],
+            ["--savePath", "output file name"]]
 
 def getApps(webPort,victim,uri,https,verb,requestHeaders, args = None):
     print "Web App Attacks (GET)"
@@ -75,7 +100,6 @@ def getApps(webPort,victim,uri,https,verb,requestHeaders, args = None):
 
             if verb == "ON":
                 print "App is up! Got response length of " + str(normLength) + " and response time of " + str(timeBase) + " seconds.  Starting injection test.\n"
-
             else:
                 print "App is up!"
             appUp = True
@@ -342,31 +366,14 @@ def getApps(webPort,victim,uri,https,verb,requestHeaders, args = None):
         if args == None:
             fileOut = raw_input("Save results to file (y/n)? ")
         else:
-            fileOut = "n"
+            fileOut = "y" if args.savePath else "n"
 
         if fileOut.lower() == "y":
-            savePath = raw_input("Enter output file name: ")
-            fo = open(savePath, "wb")
-            fo.write ("Vulnerable URLs:\n")
-            fo.write("\n".join(vulnAddrs))
-            fo.write("\n\n")
-            fo.write("Possibly Vulnerable URLs:\n")
-            fo.write("\n".join(possAddrs))
-            fo.write("\n")
-            fo.write("Timing based attacks:\n")
-
-            if strTbAttack == True:
-                fo.write("String Attack-Successful\n")
+            if args == None:
+                savePath = raw_input("Enter output file name: ")
             else:
-                fo.write("String Attack-Unsuccessful\n")
-            fo.write("\n")
-
-            if intTbAttack == True:
-                fo.write("Integer attack-Successful\n")
-            else:
-                fo.write("Integer attack-Unsuccessful\n")
-            fo.write("\n")
-            fo.close()
+                savePath = args.savePath
+            save_to(savePath, vulnAddrs, possAddrs, strTbAttack,intTbAttack)
 
     if args == None:
         raw_input("Press enter to continue...")
@@ -450,10 +457,10 @@ def postApps(victim,webPort,uri,https,verb,postData,requestHeaders):
             menuItem += 1
 
         try:
-            injIndex = 1
             if args == None:
                 injIndex = raw_input("Which parameter should we inject? ")
-                
+            else:
+                injIndex = int(args.injectedParameter)
             injOpt = str(postData.keys()[int(injIndex)-1])
             print "Injecting the " + injOpt + " parameter..."
         except:
@@ -729,31 +736,17 @@ def postApps(victim,webPort,uri,https,verb,postData,requestHeaders):
         else:
             print "Integer attack-Unsuccessful"
 
-        fileOut = raw_input("Save results to file (y/n)? ")
+        if args == None:
+            fileOut = raw_input("Save results to file (y/n)? ")
+        else:
+            fileOut = "y" if args.savePath else "n"
 
         if fileOut.lower() == "y":
-            savePath = raw_input("Enter output file name: ")
-            fo = open(savePath, "wb")
-            fo.write ("Vulnerable Requests:\n")
-            fo.write("\n".join(vulnAddrs))
-            fo.write("\n\n")
-            fo.write("Possibly Vulnerable Requests:\n")
-            fo.write("\n".join(possAddrs))
-            fo.write("\n")
-            fo.write("Timing based attacks:\n")
-
-            if strTbAttack == True:
-                fo.write("String Attack-Successful\n")
+            if args == None:
+                savePath = raw_input("Enter output file name: ")
             else:
-                fo.write("String Attack-Unsuccessful\n")
-            fo.write("\n")
-
-            if intTbAttack == True:
-                fo.write("Integer attack-Successful\n")
-            else:
-                fo.write("Integer attack-Unsuccessful\n")
-            fo.write("\n")
-            fo.close()
+                savePath = args.savePath
+            save_to(savePath, vulnAddrs, possAddrs, strTbAttack,intTbAttack)
 
     raw_input("Press enter to continue...")
     return()
