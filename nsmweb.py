@@ -113,7 +113,7 @@ def getApps(webPort,victim,uri,https,verb,requestHeaders, args = None):
     if appUp == True:
 
         if args == None:
-            sizeSelect = not injectSize.isdigit() 
+            sizeSelect = True 
 
             while sizeSelect:
                 injectSize = raw_input("Baseline test-Enter random string size: ")
@@ -389,7 +389,7 @@ def getResponseBodyHandlingErrors(req):
     return responseBody
 
 
-def postApps(victim,webPort,uri,https,verb,postData,requestHeaders):
+def postApps(victim,webPort,uri,https,verb,postData,requestHeaders, args = None):
     print "Web App Attacks (POST)"
     print "==============="
     paramName = []
@@ -468,17 +468,22 @@ def postApps(victim,webPort,uri,https,verb,postData,requestHeaders):
                 raw_input("Something went wrong.  Press enter to return to the main menu...")
             return
 
+        if args == None:
+            sizeSelect = True
 
-        sizeSelect = (args == None)
-        injectSize = 1000
+            while sizeSelect:
+                injectSize = raw_input("Baseline test-Enter random string size: ")
+                sizeSelect = not injectSize.isdigit()
+                if sizeSelect:
+                    print "Invalid! The size should be an integer."
 
-        while sizeSelect:
-            injectSize = raw_input("Baseline test-Enter random string size: ")
-            sizeSelect = not injectSize.isdigit()
-            if sizeSelect:
-                print "Invalid! The size should be an integer."
+            format = randInjString(int(injectSize))
+        else:
+            injectSize = int(args.injectSize)
+            format = args.injectFormat
+
+        injectString = build_random_string(format, injectSize)
                 
-        injectString = randInjString(int(injectSize))
         print "Using " + injectString + " for injection testing.\n"
 
         # Build a random string and insert; if the app handles input correctly, a random string and injected code should be treated the same.
@@ -747,8 +752,8 @@ def postApps(victim,webPort,uri,https,verb,postData,requestHeaders):
             else:
                 savePath = args.savePath
             save_to(savePath, vulnAddrs, possAddrs, strTbAttack,intTbAttack)
-
-    raw_input("Press enter to continue...")
+    if args == None:
+        raw_input("Press enter to continue...")
     return()
 
 
