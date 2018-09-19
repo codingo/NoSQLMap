@@ -12,8 +12,10 @@ import os
 import signal
 import ast
 
+import argparse
 
-def main():
+
+def main(args):
     signal.signal(signal.SIGINT, signal_handler)
     global optionSet
     # Set a list so we can track whether options are set or not to avoid resetting them in subsequent calls to the options menu.
@@ -38,7 +40,10 @@ def main():
     dbPort = 27017
     myIP = "Not Set"
     myPort = "Not Set"
-    mainMenu()
+    if args.attack:
+        attack(args)
+    else:
+        mainMenu()
 
 def mainMenu():
     global platform
@@ -56,11 +61,11 @@ def mainMenu():
     mmSelect = True
     while mmSelect:
         os.system('clear')
-        print " _  _     ___  ___  _    __  __           "
-        print "| \| |___/ __|/ _ \| |  |  \/  |__ _ _ __ "
+        print " _  _     ___  ___  _    __  __           "
+        print "| \| |___/ __|/ _ \| |  |  \/  |__ _ _ __ "
         print "| .` / _ \__ \ (_) | |__| |\/| / _` | '_ \\"
         print("|_|\_\___/___/\__\_\____|_|  |_\__,_| .__/")
-        print(" v0.7 codingo@protonmail.com        |_|   ")
+        print(" v0.7 codingo@protonmail.com        |_|   ")
         print "\n"
         print "1-Set options"
         print "2-NoSQL DB Access Attacks"
@@ -116,6 +121,50 @@ def mainMenu():
         else:
             raw_input("Invalid selection.  Press enter to continue.")
 
+def build_request_headers(reqHeadersIn):
+    requestHeaders = {}
+    reqHeadersArray = reqHeadersIn.split(",")
+    headerNames = reqHeadersArray[0::2]
+    headerValues = reqHeadersArray[1::2]
+    requestHeaders = dict(zip(headerNames, headerValues))
+    return requestHeaders
+
+def build_post_data(postDataIn):
+    pdArray = postDataIn.split(",")
+    paramNames = pdArray[0::2]
+    paramValues = pdArray[1::2]
+    postData = dict(zip(paramNames,paramValues))
+    return postData
+
+def attack(args):
+    platform = args.platform 
+    victim = args.victim
+    webPort = args.webPort
+    dbPort = args.dbPort
+    myIP = args.myIP
+    myPort = args.myPort
+    uri = args.uri
+    https = args.https
+    verb = args.verb
+    httpMethod = args.httpMethod
+    requestHeaders = build_request_headers(args.requestHeaders)
+    postData = build_post_data(args.postData)
+    
+    if args.attack == 1:
+        if platform == "MongoDB":
+            nsmmongo.netAttacks(victim, dbPort, myIP, myPort, args)
+        elif platform == "CouchDB":
+            nsmcouch.netAttacks(victim, dbPort, myIP, args)
+    elif args.attack == 2:
+        if httpMethod == "GET":
+            nsmweb.getApps(webPort,victim,uri,https,verb,requestHeaders, args)
+        elif httpMethod == "POST":
+            nsmweb.postApps(victim,webPort,uri,https,verb,postData,requestHeaders, args)
+    elif args.attack == 3:
+        scanResult = nsmscan.massScan(platform)
+        if scanResult != None:
+            optionSet[0] = True
+            victim = scanResult[1]
 
 def platSel():
     global platform
@@ -288,10 +337,7 @@ def options():
                     print "POST request set"
                     optionSet[3] = True
                     postDataIn = raw_input("Enter POST data in a comma separated list (i.e. param name 1,value1,param name 2,value2)\n")
-                    pdArray = postDataIn.split(",")
-                    paramNames = pdArray[0::2]
-                    paramValues = pdArray[1::2]
-                    postData = dict(zip(paramNames,paramValues))
+                    build_post_data(postDataIn)
                     httpMethod = "POST"
 
                 else:
@@ -448,14 +494,34 @@ def options():
 
         elif select == "h":
             reqHeadersIn = raw_input("Enter HTTP Request Header data in a comma separated list (i.e. header name 1,value1,header name 2,value2)\n")
-            reqHeadersArray = reqHeadersIn.split(",")
-            headerNames = reqHeadersArray[0::2]
-            headerValues = reqHeadersArray[1::2]
-            requestHeaders = dict(zip(headerNames, headerValues))
+            build_request_headers(reqHeadersIn)
 
         elif select == "x":
             return
 
+def build_parser():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--attack", help="1 = NoSQL DB Access Attacks, 2 = NoSQL Web App attacks, 3 - Scan for Anonymous platform Access", type=int, choices=[1,2,3])
+    parser.add_argument("--platform", help="Platform to attack", choices=["MongoDB", "CouchDB"], default="MongoDB")
+    parser.add_argument("--victim", help="Set target host/IP (ex: localhost or 127.0.0.1)")
+    parser.add_argument("--dbPort", help="Set shell listener port", type=int)
+    parser.add_argument("--myIP",help="Set my local platform/Shell IP")
+    parser.add_argument("--myPort",help="Set my local platform/Shell port", type=int)
+    parser.add_argument("--webPort", help="Set web app port ([1 - 65535])", type=int)
+    parser.add_argument("--uri", help="Set App Path. For example '/a-path/'. Final URI will be [https option]://[victim option]:[webPort option]/[uri option]") 
+    parser.add_argument("--httpMethod", help="Set HTTP Request Method", choices=["GET","POST"], default="GET")
+    parser.add_argument("--https", help="Toggle HTTPS", choices=["ON", "OFF"], default="OFF")
+    parser.add_argument("--verb", help="Toggle Verbose Mode", choices=["ON", "OFF"], default="OFF")
+    parser.add_argument("--postData", help="Enter POST data in a comma separated list (i.e. param name 1,value1,param name 2,value2)", default="")
+    parser.add_argument("--requestHeaders", help="Request headers in a comma separated list (i.e. param name 1,value1,param name 2,value2)", default="")
+
+    modules = [nsmcouch, nsmmongo, nsmscan, nsmweb]
+    for module in modules:
+        group = parser.add_argument_group(module.__name__)
+        for arg in module.args():
+            group.add_argument(arg[0], help=arg[1])
+    
+    return parser
 
 def signal_handler(signal, frame):
     print "\n"
@@ -463,4 +529,6 @@ def signal_handler(signal, frame):
     sys.exit()
 
 if __name__ == '__main__':
-    main()
+    parser = build_parser()
+    args = parser.parse_args()
+    main(args)

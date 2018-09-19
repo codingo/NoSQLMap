@@ -19,7 +19,39 @@ if version_info >= (2, 7, 9):
     ssl._create_default_https_context = ssl._create_unverified_context
 
 
-def getApps(webPort,victim,uri,https,verb,requestHeaders):
+def save_to(savePath, vulnAddrs, possAddrs, strTbAttack,intTbAttack):
+    fo = open(savePath, "wb")
+    fo.write ("Vulnerable URLs:\n")
+    fo.write("\n".join(vulnAddrs))
+    fo.write("\n\n")
+    fo.write("Possibly Vulnerable URLs:\n")
+    fo.write("\n".join(possAddrs))
+    fo.write("\n")
+    fo.write("Timing based attacks:\n")
+    
+    if strTbAttack == True:
+        fo.write("String Attack-Successful\n")
+    else:
+        fo.write("String Attack-Unsuccessful\n")
+    fo.write("\n")
+    
+    if intTbAttack == True:
+        fo.write("Integer attack-Successful\n")
+    else:
+        fo.write("Integer attack-Unsuccessful\n")
+    fo.write("\n")
+    fo.close()
+
+def args():
+    return [
+            ["--injectedParameter", "Parameter to be injected"],
+            ["--injectSize", "Size of payload"],
+            ["--injectFormat", "1-Alphanumeric, 2-Letters only, 3-Numbers only, 4-Email address"],
+            ["--params", "Enter parameters to inject in a comma separated list"],
+            ["--doTimeAttack", "Start timing based tests (y/n)"],
+            ["--savePath", "output file name"]]
+
+def getApps(webPort,victim,uri,https,verb,requestHeaders, args = None):
     print "Web App Attacks (GET)"
     print "==============="
     paramName = []
@@ -68,7 +100,6 @@ def getApps(webPort,victim,uri,https,verb,requestHeaders):
 
             if verb == "ON":
                 print "App is up! Got response length of " + str(normLength) + " and response time of " + str(timeBase) + " seconds.  Starting injection test.\n"
-
             else:
                 print "App is up!"
             appUp = True
@@ -81,25 +112,32 @@ def getApps(webPort,victim,uri,https,verb,requestHeaders):
 
     if appUp == True:
 
-        sizeSelect = True
+        if args == None:
+            sizeSelect = True 
 
-        while sizeSelect:
-            injectSize = raw_input("Baseline test-Enter random string size: ")
-            if injectSize.isdigit():
-                sizeSelect = False
-            else:
-                print "Invalid! The size should be an integer."
+            while sizeSelect:
+                injectSize = raw_input("Baseline test-Enter random string size: ")
+                sizeSelect = not injectSize.isdigit() 
+                if sizeSelect:
+                    print "Invalid! The size should be an integer."
 
-        injectString = randInjString(int(injectSize))
+            format = randInjString(int(injectSize))
+        else:
+            injectSize = int(args.injectSize)
+            format = args.injectFormat
+            
+        injectString = build_random_string(format, injectSize)
+
         print "Using " + injectString + " for injection testing.\n"
 
         # Build a random string and insert; if the app handles input correctly, a random string and injected code should be treated the same.
         if "?" not in appURL:
             print "No URI parameters provided for GET request...Check your options.\n"
-            raw_input("Press enter to continue...")
+            if args == None:
+                raw_input("Press enter to continue...")
             return()
 
-        randomUri = buildUri(appURL,injectString)
+        randomUri = buildUri(appURL,injectString, args)
         print "URI : " + randomUri
         req = urllib2.Request(randomUri, None, requestHeaders)
 
@@ -260,8 +298,10 @@ def getApps(webPort,victim,uri,https,verb,requestHeaders):
             checkResult(randLength,injLen,testNum,verb,None)
             testNum += 1
 
-
-        doTimeAttack = raw_input("Start timing based tests (y/n)? ")
+        if args == None:
+            doTimeAttack = raw_input("Start timing based tests (y/n)? ")
+        else:
+            doTimeAttack = args.doTimeAttack
 
         if doTimeAttack.lower() == "y":
             print "Starting Javascript string escape time based injection..."
@@ -323,33 +363,20 @@ def getApps(webPort,victim,uri,https,verb,requestHeaders):
         else:
             print "Integer attack-Unsuccessful"
 
-        fileOut = raw_input("Save results to file (y/n)? ")
+        if args == None:
+            fileOut = raw_input("Save results to file (y/n)? ")
+        else:
+            fileOut = "y" if args.savePath else "n"
 
         if fileOut.lower() == "y":
-            savePath = raw_input("Enter output file name: ")
-            fo = open(savePath, "wb")
-            fo.write ("Vulnerable URLs:\n")
-            fo.write("\n".join(vulnAddrs))
-            fo.write("\n\n")
-            fo.write("Possibly Vulnerable URLs:\n")
-            fo.write("\n".join(possAddrs))
-            fo.write("\n")
-            fo.write("Timing based attacks:\n")
-
-            if strTbAttack == True:
-                fo.write("String Attack-Successful\n")
+            if args == None:
+                savePath = raw_input("Enter output file name: ")
             else:
-                fo.write("String Attack-Unsuccessful\n")
-            fo.write("\n")
+                savePath = args.savePath
+            save_to(savePath, vulnAddrs, possAddrs, strTbAttack,intTbAttack)
 
-            if intTbAttack == True:
-                fo.write("Integer attack-Successful\n")
-            else:
-                fo.write("Integer attack-Unsuccessful\n")
-            fo.write("\n")
-            fo.close()
-
-    raw_input("Press enter to continue...")
+    if args == None:
+        raw_input("Press enter to continue...")
     return()
 
 
@@ -362,7 +389,7 @@ def getResponseBodyHandlingErrors(req):
     return responseBody
 
 
-def postApps(victim,webPort,uri,https,verb,postData,requestHeaders):
+def postApps(victim,webPort,uri,https,verb,postData,requestHeaders, args = None):
     print "Web App Attacks (POST)"
     print "==============="
     paramName = []
@@ -430,23 +457,33 @@ def postApps(victim,webPort,uri,https,verb,postData,requestHeaders):
             menuItem += 1
 
         try:
-            injIndex = raw_input("Which parameter should we inject? ")
+            if args == None:
+                injIndex = raw_input("Which parameter should we inject? ")
+            else:
+                injIndex = int(args.injectedParameter)
             injOpt = str(postData.keys()[int(injIndex)-1])
             print "Injecting the " + injOpt + " parameter..."
         except:
-            raw_input("Something went wrong.  Press enter to return to the main menu...")
+            if args == None:
+                raw_input("Something went wrong.  Press enter to return to the main menu...")
             return
 
-        sizeSelect = True
+        if args == None:
+            sizeSelect = True
 
-        while sizeSelect:
-            injectSize = raw_input("Baseline test-Enter random string size: ")
-            if injectSize.isdigit():
-                sizeSelect = False
-            else:
-                print "Invalid! The size should be an integer."
+            while sizeSelect:
+                injectSize = raw_input("Baseline test-Enter random string size: ")
+                sizeSelect = not injectSize.isdigit()
+                if sizeSelect:
+                    print "Invalid! The size should be an integer."
+
+            format = randInjString(int(injectSize))
+        else:
+            injectSize = int(args.injectSize)
+            format = args.injectFormat
+
+        injectString = build_random_string(format, injectSize)
                 
-        injectString = randInjString(int(injectSize))
         print "Using " + injectString + " for injection testing.\n"
 
         # Build a random string and insert; if the app handles input correctly, a random string and injected code should be treated the same.
@@ -454,7 +491,6 @@ def postApps(victim,webPort,uri,https,verb,postData,requestHeaders):
         postData.update({injOpt:injectString})
         if verb == "ON":
             print "Checking random injected parameter HTTP response size sending " + str(postData) +"...\n"
-
         else:
             print "Sending random parameter value..."
 
@@ -641,7 +677,9 @@ def postApps(victim,webPort,uri,https,verb,postData,requestHeaders):
             testNum += 1
         print "\n"
 
-        doTimeAttack = raw_input("Start timing based tests (y/n)? ")
+        doTimeAttack = "N"
+        if args == None:        
+            doTimeAttack = raw_input("Start timing based tests (y/n)? ")
 
         if doTimeAttack == "y" or doTimeAttack == "Y":
             print "Starting Javascript string escape time based injection..."
@@ -703,33 +741,19 @@ def postApps(victim,webPort,uri,https,verb,postData,requestHeaders):
         else:
             print "Integer attack-Unsuccessful"
 
-        fileOut = raw_input("Save results to file (y/n)? ")
+        if args == None:
+            fileOut = raw_input("Save results to file (y/n)? ")
+        else:
+            fileOut = "y" if args.savePath else "n"
 
         if fileOut.lower() == "y":
-            savePath = raw_input("Enter output file name: ")
-            fo = open(savePath, "wb")
-            fo.write ("Vulnerable Requests:\n")
-            fo.write("\n".join(vulnAddrs))
-            fo.write("\n\n")
-            fo.write("Possibly Vulnerable Requests:\n")
-            fo.write("\n".join(possAddrs))
-            fo.write("\n")
-            fo.write("Timing based attacks:\n")
-
-            if strTbAttack == True:
-                fo.write("String Attack-Successful\n")
+            if args == None:
+                savePath = raw_input("Enter output file name: ")
             else:
-                fo.write("String Attack-Unsuccessful\n")
-            fo.write("\n")
-
-            if intTbAttack == True:
-                fo.write("Integer attack-Successful\n")
-            else:
-                fo.write("Integer attack-Unsuccessful\n")
-            fo.write("\n")
-            fo.close()
-
-    raw_input("Press enter to continue...")
+                savePath = args.savePath
+            save_to(savePath, vulnAddrs, possAddrs, strTbAttack,intTbAttack)
+    if args == None:
+        raw_input("Press enter to continue...")
     return()
 
 
@@ -849,28 +873,29 @@ def randInjString(size):
 
     while format:
         format = raw_input("Select an option: ")
-
-        if format == "1":
-            chars = string.ascii_letters + string.digits
-            return ''.join(random.choice(chars) for x in range(size))
-
-        elif format == "2":
-            chars = string.ascii_letters
-            return ''.join(random.choice(chars) for x in range(size))
-
-        elif format == "3":
-            chars = string.digits
-            return ''.join(random.choice(chars) for x in range(size))
-
-        elif format == "4":
-            chars = string.ascii_letters + string.digits
-            return ''.join(random.choice(chars) for x in range(size)) + '@' + ''.join(random.choice(chars) for x in range(size)) + '.com'
-        else:
+        if format not in ["1", "2", "3", "4"]:
             format = True
             print "Invalid selection."
+    return format
 
+def build_random_string(format, size):
+    if format == "1":
+        chars = string.ascii_letters + string.digits
+        return ''.join(random.choice(chars) for x in range(size))
 
-def buildUri(origUri, randValue):
+    elif format == "2":
+        chars = string.ascii_letters
+        return ''.join(random.choice(chars) for x in range(size))
+
+    elif format == "3":
+        chars = string.digits
+        return ''.join(random.choice(chars) for x in range(size))
+
+    else: # format == "4":
+        chars = string.ascii_letters + string.digits
+        return ''.join(random.choice(chars) for x in range(size)) + '@' + ''.join(random.choice(chars) for x in range(size)) + '.com'
+
+def buildUri(origUri, randValue, args=None):
     paramName = []
     paramValue = []
     global uriArray
@@ -898,7 +923,10 @@ def buildUri(origUri, randValue):
         menuItem += 1
 
     try:
-        injIndex = raw_input("Enter parameters to inject in a comma separated list:  ")
+        if args == None:
+            injIndex = raw_input("Enter parameters to inject in a comma separated list:  ")
+        else:
+            injIndex = args.params
 
         for params in injIndex.split(","):
             injOpt.append(paramName[int(params)-1])

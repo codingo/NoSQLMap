@@ -18,8 +18,10 @@ global no_tag
 yes_tag = ['y', 'Y']
 no_tag = ['n', 'N']
 
+def args():
+    return []
 
-def netAttacks(target, dbPort, myIP, myPort):
+def netAttacks(target, dbPort, myIP, myPort, args = None):
     print "DB Access attacks (MongoDB)"
     print "================="
     mgtOpen = False
