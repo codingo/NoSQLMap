@@ -125,7 +125,8 @@ def getApps(webPort,victim,uri,https,verb,requestHeaders, args = None):
         else:
             injectSize = int(args.injectSize)
             format = args.injectFormat
-            
+
+        injectSize = int(injectSize)
         injectString = build_random_string(format, injectSize)
 
         print "Using " + injectString + " for injection testing.\n"
@@ -869,13 +870,13 @@ def randInjString(size):
     print "2-Letters only"
     print "3-Numbers only"
     print "4-Email address"
-    format = True
 
-    while format:
+    while True:
         format = raw_input("Select an option: ")
         if format not in ["1", "2", "3", "4"]:
-            format = True
             print "Invalid selection."
+        else:
+            break
     return format
 
 def build_random_string(format, size):
