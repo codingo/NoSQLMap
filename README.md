@@ -39,7 +39,10 @@ There are some various other libraries required that a normal Python installatio
 ```
 python setup.py install
 ```
-
+Alternatively you can build a Docker image by changing to the docker directory and entering:
+```
+docker build -t nosqlmap .
+```
 ## Usage Instructions
 Start with
 ```
