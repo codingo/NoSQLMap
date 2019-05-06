@@ -400,46 +400,51 @@ def options():
 
         elif select == "0":
             loadPath = raw_input("Enter file name to load: ")
+            cvsOpt = []
             try:
-                fo = open(loadPath,"r" )
-                csvOpt = fo.readlines()
-                fo.close()
-                optList = csvOpt[0].split(",")
-                victim = optList[0]
-                webPort = optList[1]
-                uri = optList[2]
-                httpMethod = optList[3]
-                myIP = optList[4]
-                myPort = optList[5]
-                verb = optList[6]
-                https = optList[7]
+                with open(loadPath,"r") as fo:
+                    for line in fo:
+                        cvsOpt.append(line.rstrip())
+            except IOError as e:
+                print "I/O error({0}): {1}".format(e.errno, e.strerror)
+                raw_input("error reading file.  Press enter to continue...")
+                return
+
+            optList = csvOpt[0].split(",")
+            victim = optList[0]
+            webPort = optList[1]
+            uri = optList[2]
+            httpMethod = optList[3]
+            myIP = optList[4]
+            myPort = optList[5]
+            verb = optList[6]
+            https = optList[7]
+            
+            # saved headers position will depend of the request verb
+            headersPos= 1
+
+            if httpMethod == "POST":
+                postData = ast.literal_eval(csvOpt[1])
+                headersPos = 2
                 
-                # saved headers position will depend of the request verb
-                headersPos= 1
+            requestHeaders = ast.literal_eval(csvOpt[headersPos])
 
-                if httpMethod == "POST":
-                    postData = ast.literal_eval(csvOpt[1])
-                    headersPos = 2
-                    
-                requestHeaders = ast.literal_eval(csvOpt[headersPos])
-
-                # Set option checking array based on what was loaded
-                x = 0
-                for item in optList:
-                    if item != "Not Set":
-                        optionSet[x] = True
-                    x += 1
-            except:
-                print "Couldn't load options file!"
+            # Set option checking array based on what was loaded
+            x = 0
+            for item in optList:
+                if item != "Not Set":
+                    optionSet[x] = True
+                x += 1
 
         elif select == "a":
             loadPath = raw_input("Enter path to Burp request file: ")
-
+            reqData = []
             try:
-                fo = open(loadPath,"r")
-                reqData = fo.readlines()
-
-            except:
+                with open(loadPath,"r") as fo:
+                    for line in fo:
+                        reqData.append(line.rstrip())
+            except IOError as e:
+                print "I/O error({0}): {1}".format(e.errno, e.strerror)
                 raw_input("error reading file.  Press enter to continue...")
                 return
 
@@ -473,23 +478,22 @@ def options():
                 header = line.split(": ");
                 requestHeaders[header[0]] = header[1].strip()
 
-            victim = reqData[1].split( " ")[1].replace("\r\n","")
+            victim = reqData[1].split( " ")[1]
             optionSet[0] = True
-            uri = methodPath[1].replace("\r\n","")
+            uri = methodPath[1]
             optionSet[2] = True
 
         elif select == "b":
             savePath = raw_input("Enter file name to save: ")
             try:
-                fo = open(savePath, "wb")
-                fo.write(str(victim) + "," + str(webPort) + "," + str(uri) + "," + str(httpMethod) + "," + str(myIP) + "," + str(myPort) + "," + verb + "," + https)
+                with open(savePath, "wb") as fo:
+                    fo.write(str(victim) + "," + str(webPort) + "," + str(uri) + "," + str(httpMethod) + "," + str(myIP) + "," + str(myPort) + "," + verb + "," + https)
 
-                if httpMethod == "POST":
-                    fo.write(",\n"+ str(postData))
-                fo.write(",\n" + str(requestHeaders) )
-                fo.close()
-                print "Options file saved!"
-            except:
+                    if httpMethod == "POST":
+                        fo.write(",\n"+ str(postData))
+                    fo.write(",\n" + str(requestHeaders) )
+                    print "Options file saved!"
+            except IOError:
                 print "Couldn't save options file."
 
         elif select == "h":
