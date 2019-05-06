@@ -483,6 +483,7 @@ def postApps(victim,webPort,uri,https,verb,postData,requestHeaders, args = None)
             injectSize = int(args.injectSize)
             format = args.injectFormat
 
+        injectSize = int(injectSize)
         injectString = build_random_string(format, injectSize)
                 
         print "Using " + injectString + " for injection testing.\n"
