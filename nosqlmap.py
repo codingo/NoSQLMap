@@ -473,9 +473,11 @@ def options():
                 header = line.split(": ");
                 requestHeaders[header[0]] = header[1].strip()
 
-            victim = reqData[1].split( " ")[1].replace("\r\n","")
+            victim = reqData[1].split( " ")[1].replace("\r","")
+            victim = victim.replace("\n","")
             optionSet[0] = True
-            uri = methodPath[1].replace("\r\n","")
+            uri = methodPath[1].replace("\r","")
+            uri = uri.replace("\n","")
             optionSet[2] = True
 
         elif select == "b":
