@@ -137,7 +137,7 @@ def build_post_data(postDataIn):
     return postData
 
 def attack(args):
-    platform = args.platform 
+    platform = args.platform
     victim = args.victim
     webPort = args.webPort
     dbPort = args.dbPort
@@ -149,7 +149,7 @@ def attack(args):
     httpMethod = args.httpMethod
     requestHeaders = build_request_headers(args.requestHeaders)
     postData = build_post_data(args.postData)
-    
+
     if args.attack == 1:
         if platform == "MongoDB":
             nsmmongo.netAttacks(victim, dbPort, myIP, myPort, args)
@@ -337,7 +337,7 @@ def options():
                     print "POST request set"
                     optionSet[3] = True
                     postDataIn = raw_input("Enter POST data in a comma separated list (i.e. param name 1,value1,param name 2,value2)\n")
-                    build_post_data(postDataIn)
+                    postData = build_post_data(postDataIn)
                     httpMethod = "POST"
 
                 else:
@@ -419,14 +419,14 @@ def options():
             myPort = optList[5]
             verb = optList[6]
             https = optList[7]
-            
+
             # saved headers position will depend of the request verb
             headersPos= 1
 
             if httpMethod == "POST":
                 postData = ast.literal_eval(csvOpt[1])
                 headersPos = 2
-                
+
             requestHeaders = ast.literal_eval(csvOpt[headersPos])
 
             # Set option checking array based on what was loaded
@@ -512,7 +512,7 @@ def build_parser():
     parser.add_argument("--myIP",help="Set my local platform/Shell IP")
     parser.add_argument("--myPort",help="Set my local platform/Shell port", type=int)
     parser.add_argument("--webPort", help="Set web app port ([1 - 65535])", type=int)
-    parser.add_argument("--uri", help="Set App Path. For example '/a-path/'. Final URI will be [https option]://[victim option]:[webPort option]/[uri option]") 
+    parser.add_argument("--uri", help="Set App Path. For example '/a-path/'. Final URI will be [https option]://[victim option]:[webPort option]/[uri option]")
     parser.add_argument("--httpMethod", help="Set HTTP Request Method", choices=["GET","POST"], default="GET")
     parser.add_argument("--https", help="Toggle HTTPS", choices=["ON", "OFF"], default="OFF")
     parser.add_argument("--verb", help="Toggle Verbose Mode", choices=["ON", "OFF"], default="OFF")
@@ -524,7 +524,7 @@ def build_parser():
         group = parser.add_argument_group(module.__name__)
         for arg in module.args():
             group.add_argument(arg[0], help=arg[1])
-    
+
     return parser
 
 def signal_handler(signal, frame):
