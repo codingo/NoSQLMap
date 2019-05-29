@@ -296,10 +296,15 @@ def options():
 
         elif select == "3":
             uri = raw_input("Enter URI Path (Press enter for no URI): ")
-            #Ensuring the URI path always starts with / and causes less errors
-            if uri[0] != "/":
+            #Ensuring the URI path always starts with / and accepts null values
+            if len(uri) == 0:
+                uri = "Not Set"
+                print "\nURI Not Set." "\n"
+                optionSet[2] = False
+
+            elif uri[0] != "/":
                 uri = "/" + uri
-            print "\nURI Path set to " + uri + "\n"
+                print "\nURI Path set to " + uri + "\n"
             optionSet[2] = True
 
         elif select == "4":
