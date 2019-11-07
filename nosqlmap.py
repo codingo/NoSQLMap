@@ -503,7 +503,7 @@ def options():
 
         elif select == "h":
             reqHeadersIn = raw_input("Enter HTTP Request Header data in a comma separated list (i.e. header name 1,value1,header name 2,value2)\n")
-            build_request_headers(reqHeadersIn)
+            requestHeaders = build_request_headers(reqHeadersIn)
 
         elif select == "x":
             return
