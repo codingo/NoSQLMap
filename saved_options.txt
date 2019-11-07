@@ -1,3 +1,0 @@
-10.11.1.237,443,/cgi-bin/mongo/2.2.3/dbparse.py,POST,Not Set,Not Set,OFF,ON,
-{'CompanyName': 'test'},
-{}
