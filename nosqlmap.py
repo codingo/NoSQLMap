@@ -405,11 +405,11 @@ def options():
 
         elif select == "0":
             loadPath = raw_input("Enter file name to load: ")
-            cvsOpt = []
+            csvOpt = []
             try:
                 with open(loadPath,"r") as fo:
                     for line in fo:
-                        cvsOpt.append(line.rstrip())
+                        csvOpt.append(line.rstrip())
             except IOError as e:
                 print "I/O error({0}): {1}".format(e.errno, e.strerror)
                 raw_input("error reading file.  Press enter to continue...")
