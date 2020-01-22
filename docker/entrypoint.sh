@@ -1,2 +1,2 @@
-#!/bin/bash
-exec python nosqlmap.py
+#!/bin/ash
+python nosqlmap.py

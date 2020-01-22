@@ -43,6 +43,12 @@ Alternatively you can build a Docker image by changing to the docker directory a
 ```
 docker build -t nosqlmap .
 ```
+
+or you can use Docker-compose to run Nosqlmap:
+```
+docker-compose build
+docker-compose run nosqlmap
+```
 ## Usage Instructions
 Start with
 ```

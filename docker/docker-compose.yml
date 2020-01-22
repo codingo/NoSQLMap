@@ -1,0 +1,6 @@
+version: "3"
+services:
+  nosqlmap:
+    image: nosqlmap:latest
+    build:
+      context: .
