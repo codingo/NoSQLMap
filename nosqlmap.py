@@ -3,6 +3,7 @@
 # NoSQLMap Copyright 2012-2017 NoSQLMap Development team
 # See the file 'doc/COPYING' for copying permission
 
+from exception import NoSQLMapException
 import sys
 import nsmcouch
 import nsmmongo
@@ -279,7 +280,7 @@ def options():
                                 print "Bad octet in IP address."
                                 goodDigits = False
 
-                        except:
+                        except NoSQLMapException("[!] Must be a DNS name."):
                             #Must be a DNS name (for now)
 
                             notDNS = False
