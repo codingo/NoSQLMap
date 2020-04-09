@@ -3,6 +3,7 @@
 # See the file 'doc/COPYING' for copying permission
 
 
+from exception import NoSQLMapException
 import ipcalc
 import nsmmongo
 import nsmcouch
@@ -41,7 +42,7 @@ def massScan(platform, args = None):
                 for ip in ipcalc.Network(subnet):
                     ipList.append(str(ip))
                 optCheck = False
-            except:
+            except NoSQLMapException:
                 raw_input("Not a valid subnet.  Press enter to return to main menu.")
                 return
 
@@ -54,7 +55,7 @@ def massScan(platform, args = None):
                             ipList = f.readlines()
                     loadCheck = True
                     optCheck = False
-                except:
+                except NoSQLMapException:
                     print "Couldn't open file."
 
         if loadOpt == "3":
@@ -119,7 +120,7 @@ def massScan(platform, args = None):
                 print "Scan results saved!"
                 select = False
 
-            except:
+            except NoSQLMapException:
                 print "Couldn't save scan results."
 
         elif saveEm in no_tag:

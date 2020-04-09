@@ -3,6 +3,7 @@
 # See the file 'doc/COPYING' for copying permission
 
 
+from exception import NoSQLMapException
 import urllib
 import urllib2
 import string
@@ -106,7 +107,7 @@ def getApps(webPort,victim,uri,https,verb,requestHeaders, args = None):
 
         else:
             print "Got " + str(appRespCode) + "from the app, check your options."
-    except Exception,e:
+    except NoSQLMapException,e:
         print e
         print "Looks like the server didn't respond.  Check your options."
 
@@ -445,7 +446,7 @@ def postApps(victim,webPort,uri,https,verb,postData,requestHeaders, args = None)
         else:
             print "Got " + str(appRespCode) + "from the app, check your options."
 
-    except Exception,e:
+    except NoSQLMapException,e:
         print e
         print "Looks like the server didn't respond.  Check your options."
 
@@ -464,7 +465,7 @@ def postApps(victim,webPort,uri,https,verb,postData,requestHeaders, args = None)
                 injIndex = int(args.injectedParameter)
             injOpt = str(postData.keys()[int(injIndex)-1])
             print "Injecting the " + injOpt + " parameter..."
-        except:
+        except NoSQLMapException:
             if args == None:
                 raw_input("Something went wrong.  Press enter to return to the main menu...")
             return
@@ -909,7 +910,7 @@ def buildUri(origUri, randValue, args=None):
         split_uri = origUri.split("?")
         params = split_uri[1].split("&")
 
-    except:
+    except NoSQLMapException:
         raw_input("Not able to parse the URL and parameters.  Check options settings.  Press enter to return to main menu...")
         return
 
@@ -938,7 +939,7 @@ def buildUri(origUri, randValue, args=None):
         for params in injOpt:
             print "Injecting the " + params + " parameter..."
 
-    except Exception:
+    except NoSQLMapException:
         raw_input("Something went wrong.  Press enter to return to the main menu...")
         return
 
