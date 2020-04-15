@@ -6,7 +6,7 @@ with open("README.md") as f:
 			name = "NoSQLMap",
 			version = "0.7",
 			packages = find_packages(),
-			scripts = ['nosqlmap.py', 'nsmmongo.py', 'nsmcouch.py','nsmscan.py','nsmweb.py'],
+			scripts = ['nosqlmap.py', 'nsmmongo.py', 'nsmcouch.py', 'nsmscan.py', 'nsmweb.py', 'exception.py'],
 			
 			entry_points = {
 				"console_scripts": [
