@@ -4,6 +4,7 @@
 # See the file 'doc/COPYING' for copying permission
 
 from exception import NoSQLMapException
+from ipaddress import IPv4Address, AddressValueError
 import sys
 import nsmcouch
 import nsmmongo
@@ -265,29 +266,39 @@ def options():
                 notDNS = True
                 victim = raw_input("Enter the host IP/DNS name: ")
                 # make sure we got a valid IP
-                octets = victim.split(".")
+                # octets = victim.split(".")
 
-                if len(octets) != 4:
-                    # Treat this as a DNS name
-                    optionSet[0] = True
+                try:
+                    victim = IPv4Address(unicode(victim))
+                except AddressValueError as err:
                     notDNS = False
-                else:
+                    goodDigits = False
+                    print("[!]", err)
+
+                # else:
+                #     octets = str(victim.exploded).split(".")
+
+                # if len(octets) != 4:
+                #     # Treat this as a DNS name
+                #     optionSet[0] = True
+                #     notDNS = False
+                # else:
                     # If len(octets) != 4 is executed the block of code below is also run, but it is not necessary
                     # If the format of the IP is good, check and make sure the octets are all within acceptable ranges.
-                    for item in octets:
-                        try:
-                            if int(item) < 0 or int(item) > 255:
-                                print "Bad octet in IP address."
-                                goodDigits = False
-
-                        except NoSQLMapException("[!] Must be a DNS name."):
-                            #Must be a DNS name (for now)
-
-                            notDNS = False
+                    # for item in octets:
+                    #     try:
+                    #         if int(item) < 0 or int(item) > 255:
+                    #             print "Bad octet in IP address."
+                    #             goodDigits = False
+                    #
+                    #     except NoSQLMapException("[!] Must be a DNS name."):
+                    #         #Must be a DNS name (for now)
+                    #
+                    #         notDNS = False
 
                 #If everything checks out set the IP and break the loop
-                if goodDigits == True or notDNS == False:
-                    print "\nTarget set to " + victim + "\n"
+                if goodDigits or notDNS is False:
+                    print "\nTarget set to " + victim.exploded + "\n"
                     optionSet[0] = True
 
         elif select == "2":
