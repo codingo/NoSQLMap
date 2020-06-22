@@ -5,6 +5,8 @@
 
 from exception import NoSQLMapException
 from ipaddress import IPv4Address, AddressValueError
+from socket import getfqdn, error as SockError
+import re
 import sys
 import nsmcouch
 import nsmmongo
@@ -259,27 +261,38 @@ def options():
         if select == "1":
             # Unset the boolean if it's set since we're setting it again.
             optionSet[0] = False
-            ipLen = False
 
             while optionSet[0] == False:
                 goodDigits = True
                 notDNS = True
                 victim = raw_input("Enter the host IP/DNS name: ")
-                octets = None
-
-                # make sure we got a valid IP
-                try:
-                    octets = IPv4Address(unicode(victim)).exploded
-                except AddressValueError as err:
-                    print("\n[!] Not a valid IP address. Please make another selection or try again.\n{}".format(err.message))
+                pattern = re.compile('^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])')
+                target = None
+                if re.match(string=victim, pattern=pattern) is None:
+                    print("\n[!] Not a valid hostname or IP address. Please make another selection or try again.\n{}")
                     notDNS = False
                     goodDigits = False
                     # take the user back to the options dialog
                     options()
 
+                else:
+                    # make sure we got a valid IP
+                    try:
+                        target = IPv4Address(unicode(victim)).exploded
+                    except AddressValueError:
+                        print("\n[+] Not a valid IP address. Attempting to grab fully qualified domain name...")
+                        try:
+                            target = getfqdn(victim)
+                            print("[+] Target: {}\n".format(target))
+                        except SockError:
+                            print("[+] Failed to grab FQDN. Please make another selection or try again.\n")
+                            notDNS = False
+                            goodDigits = False
+                            options()
+
                 #If everything checks out set the IP and break the loop
                 if goodDigits or notDNS is False:
-                    print "\nTarget set to " + octets + "\n"
+                    print "\nTarget set to " + target + "\n"
                     optionSet[0] = True
 
         elif select == "2":
