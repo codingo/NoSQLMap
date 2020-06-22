@@ -245,7 +245,7 @@ def options():
         print "4-Toggle HTTPS (Current: " + str(https) + ")"
         print "5-Set " + platform + " Port (Current : " + str(dbPort) + ")"
         print "6-Set HTTP Request Method (GET/POST) (Current: " + httpMethod + ")"
-        print "7-Set my local " +  platform + "/Shell IP (Current: " + str(myIP) + ")"
+        print "7-Set my local " + platform + "/Shell IP (Current: " + str(myIP) + ")"
         print "8-Set shell listener port (Current: " + str(myPort) + ")"
         print "9-Toggle Verbose Mode: (Current: " + str(verb) + ")"
         print "0-Load options file"
@@ -265,40 +265,21 @@ def options():
                 goodDigits = True
                 notDNS = True
                 victim = raw_input("Enter the host IP/DNS name: ")
-                # make sure we got a valid IP
-                # octets = victim.split(".")
+                octets = None
 
+                # make sure we got a valid IP
                 try:
-                    victim = IPv4Address(unicode(victim))
+                    octets = IPv4Address(unicode(victim)).exploded
                 except AddressValueError as err:
+                    print("\n[!] Not a valid IP address. Please make another selection or try again.\n{}".format(err.message))
                     notDNS = False
                     goodDigits = False
-                    print("[!]", err)
-
-                # else:
-                #     octets = str(victim.exploded).split(".")
-
-                # if len(octets) != 4:
-                #     # Treat this as a DNS name
-                #     optionSet[0] = True
-                #     notDNS = False
-                # else:
-                    # If len(octets) != 4 is executed the block of code below is also run, but it is not necessary
-                    # If the format of the IP is good, check and make sure the octets are all within acceptable ranges.
-                    # for item in octets:
-                    #     try:
-                    #         if int(item) < 0 or int(item) > 255:
-                    #             print "Bad octet in IP address."
-                    #             goodDigits = False
-                    #
-                    #     except NoSQLMapException("[!] Must be a DNS name."):
-                    #         #Must be a DNS name (for now)
-                    #
-                    #         notDNS = False
+                    # take the user back to the options dialog
+                    options()
 
                 #If everything checks out set the IP and break the loop
                 if goodDigits or notDNS is False:
-                    print "\nTarget set to " + victim.exploded + "\n"
+                    print "\nTarget set to " + octets + "\n"
                     optionSet[0] = True
 
         elif select == "2":
@@ -329,7 +310,6 @@ def options():
                 print "HTTPS disabled."
                 https = "OFF"
                 optionSet[8] = True
-
 
         elif select == "5":
             dbPort = int(raw_input("Enter target MongoDB port: "))
@@ -365,38 +345,26 @@ def options():
             optionSet[4] = False
 
             while optionSet[4] == False:
-                goodLen = False
+                goodLen = True
                 goodDigits = True
                 # Every time when user input Invalid IP, goodLen and goodDigits should be reset. If this is not done, there will be a bug
                 # For example enter 10.0.0.1234 first and the goodLen will be set to True and goodDigits will be set to False
                 # Second step enter 10.0.123, because goodLen has already been set to True, this invalid IP will be put in myIP variables
-                myIP = raw_input("Enter the host IP for my " + platform +"/Shells: ")
-                # make sure we got a valid IP
-                octets = myIP.split(".")
-                # If there aren't 4 octets, toss an error.
-                if len(octets) != 4:
-                    print "Invalid IP length."
+                myIP = raw_input("Enter the host IP for my {}/Shells: ".format(platform))
+                octets = None
 
-                else:
-                    goodLen = True
-
-                if goodLen == True:
-                # If the format of the IP is good, check and make sure the octets are all within acceptable ranges.
-                    for item in octets:
-                        if int(item) < 0 or int(item) > 255:
-                            print "Bad octet in IP address."
-                            goodDigits = False
-
-                        # else:
-                        # goodDigits = True
-
-                        # Default value of goodDigits should be set to True
-                        # for example 12.12345.12.12
-
+                try:
+                    octets = IPv4Address(unicode(myIP)).exploded
+                except AddressValueError as err:
+                    print("\n[!] Not a valid IP address. Please make another selection or try again.\n{}".format(err.message))
+                    goodLen = False
+                    goodDigits = False
+                    # take the user back to the options dialog
+                    options()
 
                 # If everything checks out set the IP and break the loop
-                if goodLen == True and goodDigits == True:
-                    print "\nShell/DB listener set to " + myIP + "\n"
+                if goodLen and goodDigits:
+                    print "\nShell/DB listener set to " + octets + "\n"
                     optionSet[4] = True
 
         elif select == "8":
@@ -548,6 +516,7 @@ def signal_handler(signal, frame):
     print "\n"
     print "CTRL+C detected.  Exiting."
     sys.exit()
+
 
 if __name__ == '__main__':
     parser = build_parser()
