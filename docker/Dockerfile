@@ -10,6 +10,9 @@ WORKDIR /root/NoSqlMap
 
 RUN python setup.py install
 
+RUN pip2 uninstall certifi -y
+RUN pip2 install certifi==2018.10.15
+
 COPY entrypoint.sh /tmp/entrypoint.sh
 RUN chmod +x /tmp/entrypoint.sh
 
