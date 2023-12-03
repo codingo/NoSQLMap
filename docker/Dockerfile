@@ -10,6 +10,8 @@ WORKDIR /root/NoSqlMap
 
 RUN python setup.py install
 
+RUN python -m pip install requests 'certifi<=2020.4.5.1'
+
 COPY entrypoint.sh /tmp/entrypoint.sh
 RUN chmod +x /tmp/entrypoint.sh
 
