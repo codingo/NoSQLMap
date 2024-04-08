@@ -15,7 +15,7 @@ with open("README.md") as f:
 				},
 			
 			install_requires = [ "CouchDB==1.0", "httplib2==0.19.0", "ipcalc==1.1.3",\
-								 "NoSQLMap==0.7", "pbkdf2==1.3", "pymongo==2.7.2",\
+								 "NoSQLMap==0.7", "pbkdf2==1.3", "pymongo==4.6.3",\
 								 "requests==2.20.0"],
 	
 			author = "tcstool",
